@@ -35,6 +35,10 @@ public partial class PomodoroViewModel : ViewModelBase
     [ObservableProperty]
     private string _roundLabel = "round 1 of 4";
 
+    /// <summary>0..1 fraction of the current phase still to run. Drains down.</summary>
+    [ObservableProperty]
+    private double _progress = 1.0;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(StartPauseLabel))]
     private bool _isRunning;
@@ -173,5 +177,8 @@ public partial class PomodoroViewModel : ViewModelBase
     {
         var span = TimeSpan.FromSeconds(_remainingSeconds);
         TimeDisplay = $"{(int)span.TotalMinutes:00}:{span.Seconds:00}";
+
+        var total = PhaseLengthSeconds(Phase);
+        Progress = total > 0 ? (double)_remainingSeconds / total : 0.0;
     }
 }

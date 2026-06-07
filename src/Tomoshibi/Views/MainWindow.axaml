@@ -103,10 +103,14 @@
                     <TextBlock Grid.Row="0" Text="{Binding Pomodoro.PhaseLabel}" Classes="jp" />
 
                     <StackPanel Grid.Row="1" VerticalAlignment="Center"
-                                HorizontalAlignment="Center" Spacing="6">
+                                HorizontalAlignment="Center" Spacing="10">
                         <TextBlock Text="{Binding Pomodoro.TimeDisplay}" FontSize="86" FontWeight="Light"
                                    Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
                                    HorizontalAlignment="Center" />
+                        <ProgressBar Value="{Binding Pomodoro.Progress}" Minimum="0" Maximum="1"
+                                     Width="260" Height="4" MinHeight="0"
+                                     Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
+                                     Background="{DynamicResource BorderBrush}" />
                         <TextBlock Text="{Binding Pomodoro.RoundLabel}" Classes="caption"
                                    HorizontalAlignment="Center" />
                     </StackPanel>
@@ -216,6 +220,10 @@
             <TextBlock Text="{Binding Pomodoro.TimeDisplay}" FontSize="180" FontWeight="Light"
                        Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
                        HorizontalAlignment="Center" />
+            <ProgressBar Value="{Binding Pomodoro.Progress}" Minimum="0" Maximum="1"
+                         Width="560" Height="5" MinHeight="0"
+                         Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
+                         Background="{DynamicResource BorderBrush}" />
             <TextBlock Text="{Binding Pomodoro.RoundLabel}" Classes="caption"
                        HorizontalAlignment="Center" />
         </StackPanel>
