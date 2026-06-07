@@ -1,0 +1,39 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================================
+         Tokyo Night palette
+         ============================================================ -->
+    <Color x:Key="InkColor">#16161E</Color>
+    <Color x:Key="SurfaceColor">#1F2335</Color>
+    <Color x:Key="SurfaceHoverColor">#2A2E42</Color>
+    <Color x:Key="BorderColor">#2A2E42</Color>
+    <Color x:Key="MatchaColor">#9ECE6A</Color>
+    <Color x:Key="MatchaDeepColor">#8DBD59</Color>
+    <Color x:Key="SakuraColor">#F7768E</Color>
+    <Color x:Key="AmberColor">#E0AF68</Color>
+    <Color x:Key="BlueColor">#7AA2F7</Color>
+    <Color x:Key="TextColor">#C0CAF5</Color>
+    <Color x:Key="MutedTextColor">#565F89</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="InkBrush" Color="{StaticResource InkColor}" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{StaticResource SurfaceHoverColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="MatchaBrush" Color="{StaticResource MatchaColor}" />
+    <SolidColorBrush x:Key="MatchaDeepBrush" Color="{StaticResource MatchaDeepColor}" />
+    <SolidColorBrush x:Key="SakuraBrush" Color="{StaticResource SakuraColor}" />
+    <SolidColorBrush x:Key="AmberBrush" Color="{StaticResource AmberColor}" />
+    <SolidColorBrush x:Key="BlueBrush" Color="{StaticResource BlueColor}" />
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="MutedTextBrush" Color="{StaticResource MutedTextColor}" />
+
+    <!-- Typography: a coding/monospace family with sensible per-OS fallbacks -->
+    <FontFamily x:Key="MonoFont">Cascadia Code,JetBrains Mono,Consolas,Menlo,DejaVu Sans Mono,monospace</FontFamily>
+
+    <!-- Shape / spacing tokens -->
+    <CornerRadius x:Key="CardRadius">14</CornerRadius>
+    <Thickness x:Key="CardPadding">22</Thickness>
+
+</ResourceDictionary>

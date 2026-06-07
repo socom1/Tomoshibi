@@ -1,0 +1,108 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Window background + base font -->
+    <Style Selector="Window">
+        <Setter Property="Background" Value="{DynamicResource InkBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+    </Style>
+
+    <!-- Default text -->
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+    </Style>
+
+    <!-- Card surface -->
+    <Style Selector="Border.card">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource CardRadius}" />
+        <Setter Property="Padding" Value="{DynamicResource CardPadding}" />
+        <Setter Property="BoxShadow" Value="0 6 20 0 #33000000" />
+    </Style>
+
+    <!-- Headings -->
+    <Style Selector="TextBlock.h1">
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- Japanese / section labels -->
+    <Style Selector="TextBlock.jp">
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="LetterSpacing" Value="0.5" />
+    </Style>
+
+    <!-- Small captions under stats -->
+    <Style Selector="TextBlock.caption">
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <!-- Completed task title -->
+    <Style Selector="TextBlock.done">
+        <Setter Property="TextDecorations" Value="Strikethrough" />
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+    </Style>
+
+    <!-- Buttons -->
+    <Style Selector="Button">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="24,10" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+
+    <!-- Accent (matcha) button -->
+    <Style Selector="Button.accent">
+        <Setter Property="Background" Value="{DynamicResource MatchaBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource MatchaDeepBrush}" />
+    </Style>
+
+    <!-- Borderless icon button (gear, remove) -->
+    <Style Selector="Button.icon">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+    </Style>
+    <Style Selector="Button.icon:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource SakuraBrush}" />
+    </Style>
+
+    <!-- Course tag chip -->
+    <Style Selector="Border.tag">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="8,2" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.tag > TextBlock">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{DynamicResource BlueBrush}" />
+    </Style>
+
+    <!-- Flyout surface (settings) -->
+    <Style Selector="FlyoutPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="6" />
+    </Style>
+
+</Styles>
