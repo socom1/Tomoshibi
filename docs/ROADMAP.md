@@ -9,9 +9,11 @@ sensible order of work.
 - **v1.0 — core.** The everyday study app: Pomodoro timer, daily intention, focus
   stats, task list with course tags, settings, all saved locally. Released after a
   short polish pass and a confirmed build.
-- **v1.1 and on — the standout features**, each as its own release: zen/full-screen
-  focus mode, streak calendar, `.ics` timetable deadline view, system tray +
-  notifications, ambient soundscapes, and packaged self-contained downloads.
+- **v1.1 — zen focus mode.** A distraction-free full-screen layout that hides
+  everything but the timer.
+- **v1.2 and on — the standout features**, each as its own release: streak
+  calendar, `.ics` timetable deadline view, system tray + notifications, ambient
+  soundscapes, and packaged self-contained downloads.
 
 ## v1.0 — core
 
@@ -30,12 +32,17 @@ Foundations and the daily-use features. Mostly done.
 - [x] Confirm a clean `dotnet restore` + `dotnet run`
 - [x] Tag v1.0
 
-## After v1.0 — feature releases
+## v1.1 — zen focus mode
+
+- [x] Full-screen layout that hides everything but the timer
+- [x] Phase-coloured oversized clock, round indicator, basic controls
+- [x] Toggle from the header (`⛶`) and Esc to exit
+
+## After v1.1 — feature releases
 
 Pulled from the original roadmap and shipped one at a time, so each is a clean,
 demoable increment.
 
-- **Zen / full-screen focus mode** — timer only, everything else fades.
 - **Streak calendar** — days with at least one completed session.
 - **Deadline view** — import an `.ics` timetable and list upcoming deadlines.
 - **System tray + notifications** — native alerts on phase change.

@@ -275,3 +275,46 @@ Three small things I cleaned up before moving on:
   *running* phase has to finish first. New caption is
   "applies live · running phase finishes first", which is what the code actually
   does.
+
+---
+
+## v1.1 — zen focus mode (2026-06-07)
+
+The first standout feature: a full-screen layout that strips the UI back to the
+timer. The idea is that when I genuinely sit down to work, I don't want the
+intention line, stats, tasks, or even the chrome around the clock — I want a
+lamp and a number ticking down.
+
+**Entry and exit.** A small `⛶` button in the header next to the gear toggles
+zen on. To exit there's a `✕` in the top-right of the zen view and, more
+importantly, Escape — wired as a Window-level `KeyBinding` to an `ExitZenCommand`
+whose `CanExecute` is gated by `IsZenMode`, so pressing Escape outside zen is a
+no-op rather than a half-state toggle.
+
+**What's shown.** Phase label, the time display blown up to ~180pt and coloured
+by the same phase brush converter, the round indicator, and the start/pause,
+reset, skip controls. Nothing else. Background is the same ink colour, so the
+clock floats on the dark.
+
+**Layout structure.** I kept the existing layout intact and wrapped it, plus a
+new minimal zen panel, in a single outer `Grid`. Their visibility flips on
+`IsZenMode`. That's lighter than building a second window or a hosted view, and
+it means the view-model state (running timer, settings) is shared by definition
+rather than synchronised. The Pomodoro view model is reused untouched — zen is
+purely a view concern.
+
+**Window state.** The view model is deliberately Avalonia-free, so I didn't want
+it to know about `WindowState`. The code-behind subscribes to the view model's
+`PropertyChanged`, and on `IsZenMode` changes it flips `WindowState` between
+`FullScreen` and `Normal`. Avalonia restores the prior size on its own when
+coming back from full screen, so I didn't need to remember it. On macOS this
+also rides the system's native full-screen so the menu bar gets out of the way.
+
+**Not persisted.** `IsZenMode` lives only on the view model, not in `AppState`.
+Every session starts in normal view. The feeling I'm after is that zen is a
+deliberate action you take, not a state you fall back into.
+
+**Things I deliberately left out.** No animation on the transition; no
+fade-on-idle for the buttons; no minimum-size protection for the 180pt clock on
+small displays. All three are easy follow-ups if they prove worth it after I've
+used the feature for a bit.

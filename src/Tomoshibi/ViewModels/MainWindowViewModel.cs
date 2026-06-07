@@ -1,6 +1,7 @@
 using System;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Tomoshibi.Models;
 using Tomoshibi.Services;
 
@@ -23,6 +24,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _greeting;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ExitZenCommand))]
+    private bool _isZenMode;
 
     /// <summary>The Pomodoro timer shown in the focus card.</summary>
     public PomodoroViewModel Pomodoro { get; }
@@ -87,6 +92,14 @@ public partial class MainWindowViewModel : ViewModelBase
         Pomodoro.ApplySettings();
         Save();
     }
+
+    [RelayCommand]
+    private void ToggleZen() => IsZenMode = !IsZenMode;
+
+    [RelayCommand(CanExecute = nameof(CanExitZen))]
+    private void ExitZen() => IsZenMode = false;
+
+    private bool CanExitZen() => IsZenMode;
 
     private void OnDayWatcherTick(object? sender, EventArgs e)
     {

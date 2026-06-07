@@ -17,21 +17,34 @@
         <conv:PhaseToBrushConverter x:Key="PhaseToBrush" />
     </Window.Resources>
 
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Escape" Command="{Binding ExitZenCommand}" />
+    </Window.KeyBindings>
+
     <Design.DataContext>
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="28">
+    <Grid>
+
+    <!-- Normal layout -->
+    <Grid IsVisible="{Binding !IsZenMode}" RowDefinitions="Auto,Auto,*" Margin="28">
 
         <!-- Header -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto">
             <StackPanel Grid.Column="0" Spacing="2">
                 <TextBlock Text="灯火 · tomoshibi" Classes="jp" />
                 <TextBlock Text="{Binding Greeting}" Classes="h1" />
             </StackPanel>
 
+            <!-- Zen -->
+            <Button Grid.Column="1" Classes="icon" Content="⛶" FontSize="20"
+                    VerticalAlignment="Top" Margin="0,0,4,0"
+                    Command="{Binding ToggleZenCommand}"
+                    ToolTip.Tip="集中 · zen" />
+
             <!-- Settings -->
-            <Button Grid.Column="1" Classes="icon" Content="⚙" FontSize="20"
+            <Button Grid.Column="2" Classes="icon" Content="⚙" FontSize="20"
                     VerticalAlignment="Top" ToolTip.Tip="設定 · settings">
                 <Button.Flyout>
                     <Flyout Placement="BottomEdgeAlignedRight">
@@ -186,5 +199,35 @@
                 </Border>
             </Grid>
         </Grid>
+    </Grid>
+
+    <!-- Zen layout: timer only, everything else fades -->
+    <Grid IsVisible="{Binding IsZenMode}" RowDefinitions="Auto,*,Auto" Margin="48">
+
+        <Button Grid.Row="0" Classes="icon" Content="✕" FontSize="18"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                Command="{Binding ExitZenCommand}"
+                ToolTip.Tip="esc · exit" />
+
+        <StackPanel Grid.Row="1" VerticalAlignment="Center"
+                    HorizontalAlignment="Center" Spacing="18">
+            <TextBlock Text="{Binding Pomodoro.PhaseLabel}" Classes="jp"
+                       HorizontalAlignment="Center" />
+            <TextBlock Text="{Binding Pomodoro.TimeDisplay}" FontSize="180" FontWeight="Light"
+                       Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
+                       HorizontalAlignment="Center" />
+            <TextBlock Text="{Binding Pomodoro.RoundLabel}" Classes="caption"
+                       HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal"
+                    HorizontalAlignment="Center" Spacing="12" Margin="0,0,0,12">
+            <Button Content="{Binding Pomodoro.StartPauseLabel}" Classes="accent"
+                    Command="{Binding Pomodoro.ToggleRunCommand}" />
+            <Button Content="reset" Command="{Binding Pomodoro.ResetCommand}" />
+            <Button Content="skip" Command="{Binding Pomodoro.SkipCommand}" />
+        </StackPanel>
+    </Grid>
+
     </Grid>
 </Window>
