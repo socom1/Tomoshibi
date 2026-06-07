@@ -1,0 +1,25 @@
+# build output
+bin/
+obj/
+out/
+publish/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+
+# rider / resharper
+_ReSharper*/
+*.DotSettings.user
+
+# os cruft
+.DS_Store
+Thumbs.db
+
+# local app data (tomoshibi writes its json to the OS app-data folder, not the repo,
+# but ignore any stray copies dropped in the working tree)
+*.tomoshibi.json
