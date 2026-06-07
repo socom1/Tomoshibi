@@ -1,0 +1,186 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Tomoshibi.ViewModels"
+        xmlns:conv="using:Tomoshibi.Converters"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="Tomoshibi.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="tomoshibi"
+        Width="980" Height="680"
+        MinWidth="820" MinHeight="560"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource InkBrush}">
+
+    <Window.Resources>
+        <conv:PhaseToBrushConverter x:Key="PhaseToBrush" />
+    </Window.Resources>
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="28">
+
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock Text="灯火 · tomoshibi" Classes="jp" />
+                <TextBlock Text="{Binding Greeting}" Classes="h1" />
+            </StackPanel>
+
+            <!-- Settings -->
+            <Button Grid.Column="1" Classes="icon" Content="⚙" FontSize="20"
+                    VerticalAlignment="Top" ToolTip.Tip="設定 · settings">
+                <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedRight">
+                        <StackPanel Width="250" Spacing="12" Margin="8">
+                            <TextBlock Text="設定 · settings" Classes="jp" />
+
+                            <Grid ColumnDefinitions="*,90">
+                                <TextBlock Text="focus (min)" VerticalAlignment="Center" />
+                                <NumericUpDown Grid.Column="1" Value="{Binding Settings.FocusMinutes}"
+                                               Minimum="1" Maximum="120" Increment="1" FormatString="0" />
+                            </Grid>
+                            <Grid ColumnDefinitions="*,90">
+                                <TextBlock Text="short break" VerticalAlignment="Center" />
+                                <NumericUpDown Grid.Column="1" Value="{Binding Settings.ShortBreakMinutes}"
+                                               Minimum="1" Maximum="60" Increment="1" FormatString="0" />
+                            </Grid>
+                            <Grid ColumnDefinitions="*,90">
+                                <TextBlock Text="long break" VerticalAlignment="Center" />
+                                <NumericUpDown Grid.Column="1" Value="{Binding Settings.LongBreakMinutes}"
+                                               Minimum="1" Maximum="60" Increment="1" FormatString="0" />
+                            </Grid>
+                            <Grid ColumnDefinitions="*,90">
+                                <TextBlock Text="rounds / long" VerticalAlignment="Center" />
+                                <NumericUpDown Grid.Column="1" Value="{Binding Settings.RoundsBeforeLongBreak}"
+                                               Minimum="1" Maximum="12" Increment="1" FormatString="0" />
+                            </Grid>
+
+                            <TextBlock Text="changes apply from the next round" Classes="caption" />
+                        </StackPanel>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
+        </Grid>
+
+        <!-- Daily intention -->
+        <Border Grid.Row="1" Classes="card" Margin="0,20,0,0">
+            <StackPanel Spacing="8">
+                <TextBlock Text="今日の狙い · today's intention" Classes="jp" />
+                <TextBox Text="{Binding DailyIntention}"
+                         Watermark="what's the one thing for today?"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         Padding="0"
+                         FontSize="16"
+                         FontFamily="{DynamicResource MonoFont}"
+                         Foreground="{DynamicResource TextBrush}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Body: focus on the left, stats + tasks on the right -->
+        <Grid Grid.Row="2" Margin="0,20,0,0" ColumnDefinitions="*,320">
+
+            <!-- Focus / pomodoro -->
+            <Border Grid.Column="0" Classes="card" Margin="0,0,20,0">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Row="0" Text="{Binding Pomodoro.PhaseLabel}" Classes="jp" />
+
+                    <StackPanel Grid.Row="1" VerticalAlignment="Center"
+                                HorizontalAlignment="Center" Spacing="6">
+                        <TextBlock Text="{Binding Pomodoro.TimeDisplay}" FontSize="86" FontWeight="Light"
+                                   Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding Pomodoro.RoundLabel}" Classes="caption"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal"
+                                HorizontalAlignment="Center" Spacing="12">
+                        <Button Content="{Binding Pomodoro.StartPauseLabel}" Classes="accent"
+                                Command="{Binding Pomodoro.ToggleRunCommand}" />
+                        <Button Content="reset" Command="{Binding Pomodoro.ResetCommand}" />
+                        <Button Content="skip" Command="{Binding Pomodoro.SkipCommand}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Right column -->
+            <Grid Grid.Column="1" RowDefinitions="Auto,*">
+
+                <!-- Today's stats -->
+                <Border Grid.Row="0" Classes="card">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="記録 · today" Classes="jp" />
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="{Binding CompletedSessions}"
+                                           FontSize="30"
+                                           Foreground="{DynamicResource BlueBrush}" />
+                                <TextBlock Text="sessions" Classes="caption" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="{Binding FocusedHours}"
+                                           FontSize="30"
+                                           Foreground="{DynamicResource AmberBrush}" />
+                                <TextBlock Text="hours" Classes="caption" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Tasks -->
+                <Border Grid.Row="1" Classes="card" Margin="0,20,0,0">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="課題 · tasks" Classes="jp" />
+
+                        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,72,Auto" Margin="0,12,0,0">
+                            <TextBox Grid.Column="0" Text="{Binding Tasks.NewTaskTitle}"
+                                     Watermark="add a task…"
+                                     FontFamily="{DynamicResource MonoFont}">
+                                <TextBox.KeyBindings>
+                                    <KeyBinding Gesture="Enter" Command="{Binding Tasks.AddTaskCommand}" />
+                                </TextBox.KeyBindings>
+                            </TextBox>
+                            <TextBox Grid.Column="1" Text="{Binding Tasks.NewTaskCourse}"
+                                     Watermark="tag" Margin="8,0,0,0"
+                                     FontFamily="{DynamicResource MonoFont}" />
+                            <Button Grid.Column="2" Content="+" Classes="accent" Margin="8,0,0,0"
+                                    Command="{Binding Tasks.AddTaskCommand}" />
+                        </Grid>
+
+                        <TextBlock DockPanel.Dock="Top" Text="no tasks yet" Classes="caption"
+                                   Margin="0,12,0,0" IsVisible="{Binding !Tasks.HasTasks}" />
+
+                        <ScrollViewer Margin="0,8,0,0" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding Tasks.Items}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:TaskItemViewModel">
+                                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,6,0,0">
+                                            <CheckBox Grid.Column="0" IsChecked="{Binding IsDone}"
+                                                      VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                                       Classes.done="{Binding IsDone}"
+                                                       VerticalAlignment="Center" TextWrapping="Wrap"
+                                                       Margin="4,0,0,0" />
+                                            <Border Grid.Column="2" Classes="tag" Margin="8,0,0,0"
+                                                    IsVisible="{Binding HasCourse}">
+                                                <TextBlock Text="{Binding Course}" />
+                                            </Border>
+                                            <Button Grid.Column="3" Content="✕" Classes="icon" Margin="4,0,0,0"
+                                                    Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).Tasks.RemoveTaskCommand}"
+                                                    CommandParameter="{Binding}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
