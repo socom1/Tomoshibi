@@ -1,4 +1,5 @@
 using System;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Tomoshibi.Models;
 using Tomoshibi.Services;
@@ -9,6 +10,7 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly IStorageService _storage;
     private readonly AppState _state;
+    private readonly DispatcherTimer _dayWatcher;
 
     [ObservableProperty]
     private string _dailyIntention;
@@ -19,8 +21,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private double _focusedHours;
 
-    /// <summary>Time-of-day greeting shown in the header.</summary>
-    public string Greeting { get; }
+    [ObservableProperty]
+    private string _greeting;
 
     /// <summary>The Pomodoro timer shown in the focus card.</summary>
     public PomodoroViewModel Pomodoro { get; }
@@ -36,29 +38,23 @@ public partial class MainWindowViewModel : ViewModelBase
         _storage = storage;
         _state = storage.Load();
 
-        var today = DateOnly.FromDateTime(DateTime.Now);
-
-        // Daily reset: clear stats and the intention when the date rolls over.
-        if (_state.Today.Date != today)
-            _state.Today = new DailyStats { Date = today };
-
-        if (_state.IntentionDate != today)
-        {
-            _state.DailyIntention = string.Empty;
-            _state.IntentionDate = today;
-        }
+        ApplyDailyReset(DateOnly.FromDateTime(DateTime.Now));
 
         _dailyIntention = _state.DailyIntention;
         _completedSessions = _state.Today.CompletedSessions;
         _focusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);
-
-        Greeting = GreetingFor(DateTime.Now);
+        _greeting = GreetingFor(DateTime.Now);
 
         Pomodoro = new PomodoroViewModel(_state.Settings);
         Pomodoro.FocusSessionCompleted += OnFocusSessionCompleted;
 
         Tasks = new TasksViewModel(_state, Save);
         Settings = new SettingsViewModel(_state.Settings, OnSettingsChanged);
+
+        // Catches the date rollover when the app is left running through midnight.
+        _dayWatcher = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
+        _dayWatcher.Tick += OnDayWatcherTick;
+        _dayWatcher.Start();
 
         Save();
     }
@@ -90,6 +86,41 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Pomodoro.ApplySettings();
         Save();
+    }
+
+    private void OnDayWatcherTick(object? sender, EventArgs e)
+    {
+        var now = DateTime.Now;
+        Greeting = GreetingFor(now);
+
+        var today = DateOnly.FromDateTime(now);
+        if (!ApplyDailyReset(today))
+            return;
+
+        CompletedSessions = _state.Today.CompletedSessions;
+        FocusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);
+        DailyIntention = _state.DailyIntention;
+        Save();
+    }
+
+    private bool ApplyDailyReset(DateOnly today)
+    {
+        var changed = false;
+
+        if (_state.Today.Date != today)
+        {
+            _state.Today = new DailyStats { Date = today };
+            changed = true;
+        }
+
+        if (_state.IntentionDate != today)
+        {
+            _state.DailyIntention = string.Empty;
+            _state.IntentionDate = today;
+            changed = true;
+        }
+
+        return changed;
     }
 
     private void Save() => _storage.Save(_state);

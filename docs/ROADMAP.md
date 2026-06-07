@@ -26,9 +26,9 @@ Foundations and the daily-use features. Mostly done.
 - [x] Settings for timer lengths
 - [x] Task list: add / complete / delete, with course tags
 - [x] Persist tasks to JSON; carry over between launches
-- [ ] Polish pass: spacing, empty states, layout at the minimum window size
-- [ ] Confirm a clean `dotnet restore` + `dotnet run`
-- [ ] Tag v1.0
+- [x] Polish pass: bilingual empty state, accurate settings caption, midnight reset for the always-on case
+- [x] Confirm a clean `dotnet restore` + `dotnet run`
+- [x] Tag v1.0
 
 ## After v1.0 — feature releases
 

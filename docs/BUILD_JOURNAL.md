@@ -244,3 +244,34 @@ above become later versions.
 - **Testing plan.** The logic worth testing has no UI: the timer state machine
   (round counting, when a long break is due) and the daily-reset rules. Those get
   plain unit tests as the first thing after v1.
+
+---
+
+## Post-v1.0 polish (2026-06-07)
+
+First clean compile on this machine — `dotnet restore` and `dotnet run` both went
+straight through on Avalonia 11.2.1. The two spots I'd flagged as risky (the
+`$parent[ItemsControl]` cast for the per-row remove button, and the converter's
+`TryGetResource` call) both work as written, so the binding lookup and the theme
+resource lookup are sound on this version.
+
+Three small things I cleaned up before moving on:
+
+- **Midnight reset for the always-on case.** The original reset only ran in the
+  constructor, so the app left open through midnight would still show yesterday's
+  stats and intention. I lifted the reset rules into `ApplyDailyReset(today)`,
+  made `Greeting` an observable property, and added a one-minute `DispatcherTimer`
+  in the main view model that refreshes the greeting on every tick and re-applies
+  the reset when the calendar date has rolled over. One minute is plenty granular
+  for a stats-and-greeting refresh and is cheap.
+- **Empty task state.** The old "no tasks yet" caption sat just under the input
+  row and felt accidental. Wrapped the list area in a Grid that holds both the
+  `ScrollViewer` and a centered `課題はまだない · no tasks yet` label, with their
+  visibility flipped by `HasTasks`. The empty state now occupies the same space
+  the list will and matches the bilingual JP/EN style used by the other section
+  labels.
+- **Settings flyout caption.** The original "changes apply from the next round"
+  was wrong — when the timer is idle the change shows immediately; only a
+  *running* phase has to finish first. New caption is
+  "applies live · running phase finishes first", which is what the code actually
+  does.

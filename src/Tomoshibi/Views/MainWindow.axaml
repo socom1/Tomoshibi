@@ -59,7 +59,7 @@
                                                Minimum="1" Maximum="12" Increment="1" FormatString="0" />
                             </Grid>
 
-                            <TextBlock Text="changes apply from the next round" Classes="caption" />
+                            <TextBlock Text="applies live · running phase finishes first" Classes="caption" />
                         </StackPanel>
                     </Flyout>
                 </Button.Flyout>
@@ -152,32 +152,36 @@
                                     Command="{Binding Tasks.AddTaskCommand}" />
                         </Grid>
 
-                        <TextBlock DockPanel.Dock="Top" Text="no tasks yet" Classes="caption"
-                                   Margin="0,12,0,0" IsVisible="{Binding !Tasks.HasTasks}" />
+                        <Grid Margin="0,8,0,0">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                          IsVisible="{Binding Tasks.HasTasks}">
+                                <ItemsControl ItemsSource="{Binding Tasks.Items}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:TaskItemViewModel">
+                                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,6,0,0">
+                                                <CheckBox Grid.Column="0" IsChecked="{Binding IsDone}"
+                                                          VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                                           Classes.done="{Binding IsDone}"
+                                                           VerticalAlignment="Center" TextWrapping="Wrap"
+                                                           Margin="4,0,0,0" />
+                                                <Border Grid.Column="2" Classes="tag" Margin="8,0,0,0"
+                                                        IsVisible="{Binding HasCourse}">
+                                                    <TextBlock Text="{Binding Course}" />
+                                                </Border>
+                                                <Button Grid.Column="3" Content="✕" Classes="icon" Margin="4,0,0,0"
+                                                        Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).Tasks.RemoveTaskCommand}"
+                                                        CommandParameter="{Binding}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
 
-                        <ScrollViewer Margin="0,8,0,0" VerticalScrollBarVisibility="Auto">
-                            <ItemsControl ItemsSource="{Binding Tasks.Items}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:TaskItemViewModel">
-                                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,6,0,0">
-                                            <CheckBox Grid.Column="0" IsChecked="{Binding IsDone}"
-                                                      VerticalAlignment="Center" />
-                                            <TextBlock Grid.Column="1" Text="{Binding Title}"
-                                                       Classes.done="{Binding IsDone}"
-                                                       VerticalAlignment="Center" TextWrapping="Wrap"
-                                                       Margin="4,0,0,0" />
-                                            <Border Grid.Column="2" Classes="tag" Margin="8,0,0,0"
-                                                    IsVisible="{Binding HasCourse}">
-                                                <TextBlock Text="{Binding Course}" />
-                                            </Border>
-                                            <Button Grid.Column="3" Content="✕" Classes="icon" Margin="4,0,0,0"
-                                                    Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).Tasks.RemoveTaskCommand}"
-                                                    CommandParameter="{Binding}" />
-                                        </Grid>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
+                            <TextBlock Text="課題はまだない · no tasks yet" Classes="jp"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       IsVisible="{Binding !Tasks.HasTasks}" />
+                        </Grid>
                     </DockPanel>
                 </Border>
             </Grid>
