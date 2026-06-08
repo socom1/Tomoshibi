@@ -84,6 +84,27 @@
         <Setter Property="Foreground" Value="{DynamicResource SakuraBrush}" />
     </Style>
 
+    <!-- Nav-rail destination button -->
+    <Style Selector="Button.nav">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="3,0,0,0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Padding" Value="19,10" />
+        <Setter Property="MinWidth" Value="180" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+    </Style>
+    <Style Selector="Button.nav:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+    </Style>
+    <Style Selector="Button.nav.active">
+        <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    </Style>
+
     <!-- Course tag chip -->
     <Style Selector="Border.tag">
         <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
@@ -94,6 +115,15 @@
     <Style Selector="Border.tag > TextBlock">
         <Setter Property="FontSize" Value="11" />
         <Setter Property="Foreground" Value="{DynamicResource BlueBrush}" />
+    </Style>
+
+    <!-- Class slot block on the week grid -->
+    <Style Selector="Border.slot">
+        <Setter Property="Background" Value="#339ECE6A" />
+        <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
+        <Setter Property="BorderThickness" Value="3,0,0,0" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="Margin" Value="2,1" />
     </Style>
 
     <!-- Flyout surface (settings) -->

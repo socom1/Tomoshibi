@@ -15,4 +15,12 @@ public class AppState
     public DailyStats Today { get; set; } = new();
     public List<TaskItem> Tasks { get; set; } = new();
     public PomodoroSettings Settings { get; set; } = new();
+
+    // Navigation
+    public bool IsNavOpen { get; set; } = true;
+    public Destination ActiveDestination { get; set; } = Destination.Today;
+
+    // Timetable data
+    public List<ClassSlot> ClassSlots { get; set; } = new();
+    public List<Deadline> Deadlines { get; set; } = new();
 }

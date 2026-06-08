@@ -318,3 +318,169 @@ deliberate action you take, not a state you fall back into.
 fade-on-idle for the buttons; no minimum-size protection for the 180pt clock on
 small displays. All three are easy follow-ups if they prove worth it after I've
 used the feature for a bit.
+
+---
+
+## v1.2 — nav sidebar + timetable (2026-06-08)
+
+Up to v1.1 the whole app lived inside one window with one layout. For v1.2 I
+wanted to add a second page (a class-schedule timetable), and rather than
+bolt it on as another section, I took the moment to put a proper
+**navigation sidebar** in front of the app. The "today" view becomes the
+first destination behind the nav; the timetable becomes the second. New
+features land as new destinations from here on out.
+
+### The shape of it
+
+The window content is now: nav rail on the left, a 1-pixel divider, then the
+main content area. The nav rail holds one button per destination. The main
+area is a `ContentControl` whose `Content` is bound to `MainWindowViewModel.
+ActiveContent` — a `ViewModelBase` that points at either the today or
+timetable view model depending on the current `Destination` enum. The
+existing `ViewLocator` resolves the bound view model to its matching view by
+the `Foo.ViewModels.BarViewModel → Foo.Views.BarView` naming convention, so
+adding a third destination is just three files: an enum entry, a view model,
+and a view.
+
+I'd originally written the timetable feature as *a sidebar that contained
+the timetable*, with the timetable's data and controls living in the panel
+itself. The nav reframing replaces that: the sidebar is now navigation
+chrome and the timetable is a page that opens in the main area when you pick
+it. The plumbing is the same; what changed is what the sidebar holds.
+
+### Extracting "today"
+
+The main view model used to own the daily intention, Pomodoro timer, today's
+focus stats and the task list directly. With the timetable arriving as a
+peer page, that arrangement stopped being neutral — anything in the main VM
+implicitly belonged to the today page. I lifted those fields and methods
+into a new `TodayViewModel` and added a corresponding `TodayView`
+UserControl that hosts the intention card and the body grid. The
+`MainWindowViewModel` now owns the chrome (greeting, nav state, zen state,
+active destination, the settings flyout) and exposes two destinations
+(`Today` and `Timetable`) plus an `ActiveContent` switch.
+
+The day-watcher logic (the once-a-minute `DispatcherTimer` that re-checks
+the calendar date for the midnight reset) stays in the main view model
+because it's not Today-specific; on a rollover it calls
+`Today.RefreshFromState()` to pull the cleared stats and intention back into
+the today view model's observable properties.
+
+### Nav rail
+
+A narrow vertical strip of `Button.nav` controls, one per destination. The
+selector style draws a 3-pixel left edge that's transparent by default and
+matcha on `.active`, plus a muted text colour that goes to full text colour
+on `.active`. The active class is bound to a `bool` per destination on the
+main view model (`IsTodayActive`, `IsTimetableActive`), each computed from
+the `ActiveDestination` enum with `NotifyPropertyChangedFor` so they
+re-evaluate when the enum flips. A `☰` button in the top-left of the main
+header toggles the whole rail open or closed; both the open/closed state and
+the active destination persist in `AppState`, so the app comes back the way
+you left it.
+
+The rail's three column widths are flipped from code-behind on
+`IsNavOpen` change: open is `Auto / 1px / *` (rail sized to its content,
+divider 1px, main takes the rest); closed is `0 / 0 / *`. Keeping this in
+code-behind avoided a `BoolToGridLength` converter for two lines of logic
+and kept the view model Avalonia-free.
+
+### Timetable destination
+
+Two new plain data classes — `ClassSlot` (`Day`/`Start`/`End`/`Title`/
+`Course`) and `Deadline` (`Date`/`Title`/`Course`) — plus a `WeekDay` enum
+ordered Mon-first. `Start` and `End` are `TimeOnly`; `Date` is `DateOnly`.
+Both lists hang off `AppState` and persist through the existing JSON
+storage.
+
+`TimetableViewModel` wraps the two model lists in observable collections of
+small row view models (`ClassSlotItemViewModel`, `DeadlineItemViewModel`),
+each with the read-only display strings the row template binds to. The
+wrappers exist so the row template stays XAML-only — no converters, no
+string formatting in markup. Past deadlines flag themselves via an `IsPast`
+property that toggles the same `done` strikethrough style the task list
+uses, so a stale entry visibly fades.
+
+Add/remove for both lists goes through `[RelayCommand]` methods that mutate
+the underlying `AppState` lists, insert the new row at the right sorted
+position in the observable collection, and trigger a single save. Sorting
+is by `(Day, Start)` for slots and by `Date` for deadlines, so the lists
+are always in reading order without any re-sorting work on render.
+
+**Course autocomplete.** The entry forms autocomplete the course field from
+a `KnownCourses` collection that's the union of every course string seen
+across tasks, slots and deadlines — distinct, case-insensitive, sorted. So
+once "MATH101" exists anywhere it's offered everywhere it could be used
+again. The list is rebuilt on construction (snapshotting task courses) and
+on every timetable mutation; new tasks added mid-session won't appear until
+relaunch, which I accepted as a fair tradeoff for not coupling the
+two view models.
+
+**Forms.** Each section header has a `+` icon button that opens a flyout
+with the entry form — same pattern as the settings flyout. The slot form
+uses an Avalonia `TimePicker` (24-hour) for start/end and a `ComboBox` over
+the `WeekDay` enum; the deadline form uses a `CalendarDatePicker`. Both
+forms validate by silently no-op'ing on empty titles or `end <= start`
+rather than throwing errors at the user — at this scale, no-feedback is
+acceptable; I'll add inline validation when there's more than one way to
+fail.
+
+### Week grid
+
+Deadlines stay as a sorted list in their own card at the top of the
+timetable view. Class slots render as a proper week grid below: hour axis
+on the left, seven day columns Mon–Sun, slot blocks placed in their day's
+column at their start hour. Keeping deadlines and slots visually separate
+("what's due" vs "when you have class") was much cleaner than trying to
+overlay deadlines onto day columns, and lets each section evolve
+independently.
+
+The grid is a single `Grid` with eight columns (a 28px time axis + seven
+star-sized day columns) and fifteen rows (a 22px header row for day labels
++ fourteen 38px hour rows covering 08:00 through 22:00). Day labels and
+hour labels are static `TextBlock`s — they don't change, so they're
+binding-free. Slots are placed by an `ItemsControl` that overlays rows 1–14
+and columns 1–7 and uses an inner `Grid` as its `ItemsPanel`, with each
+item's `ContentPresenter` styled with `Grid.Row`, `Grid.Column` and
+`Grid.RowSpan` bound to properties on the slot row view model.
+
+`ClassSlotItemViewModel` exposes `DayIndex`, `HourRow` and `HourSpan` for
+this. `HourRow` is the start hour minus 8, clamped to the visible range;
+`HourSpan` rounds the duration up to the nearest hour (so a 09:30–10:50
+block lands in rows 1–2 — visually 09:00–11:00). Snapping to the hour means
+the layout is a clean integer `Grid` placement instead of fractional
+`Canvas` math, and the slot block still shows the true 09:30–10:50 in its
+label so the information isn't lost. If I ever want to-the-minute precision
+I can swap the inner panel for a `Canvas` with `Canvas.Top` bound to pixel
+offsets without touching the rest.
+
+The grid is naturally responsive: it sits in the main content area and the
+seven day columns are star-sized, so widening the window widens the
+columns. No fixed pixel widths anywhere on the grid itself.
+
+**Slot block visuals.** A new `Border.slot` style: a translucent matcha
+fill (`#339ECE6A`) with a solid matcha left edge for a sticky-note feel.
+Title and course are stacked inside, both with `TextTrimming` so a long
+title gets an ellipsis instead of overflowing. A faint `✕` in the top-right
+of each block goes to full opacity on hover via the existing
+`Button.icon:pointerover` rule — same delete affordance as elsewhere,
+visually quieter.
+
+### Gotcha — compiled bindings inside an `ItemsControl.Styles` block
+
+First build failed with `AVLN2000: Unable to resolve property or method of
+name 'HourRow' on type 'TimetableViewModel'`. The Setter bindings in the
+style were being compiled against the *outer* view model rather than the
+item type, because the markup compiler can't infer that the
+`ContentPresenter` selector applies to slot rows. Annotating the `Style`
+itself with `x:DataType="vm:ClassSlotItemViewModel"` told the compiler what
+type the Setter bindings target, and it resolves cleanly. Noting it so I
+don't spend ten minutes on it again the next time I do a Style-driven item
+container.
+
+### Not yet
+
+No overlap handling — two slots on the same day and hour overlap visually;
+rare in practice and obvious when it happens. No clip for slots outside
+08:00–22:00 (start is clamped; ends are bounded by the grid). And no `.ics`
+import — that's the next focused commit.
