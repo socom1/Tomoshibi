@@ -8,7 +8,7 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <ApplicationIcon></ApplicationIcon>
+    <ApplicationIcon>Assets/icon.ico</ApplicationIcon>
     <AvaloniaVersion>11.2.1</AvaloniaVersion>
   </PropertyGroup>
 
@@ -22,6 +22,10 @@
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
   </ItemGroup>
 
 </Project>
