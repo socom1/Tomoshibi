@@ -53,11 +53,32 @@ public partial class TodayViewModel : ViewModelBase
         _focusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);
         _greeting = GreetingFor(DateTime.Now);
 
-        Pomodoro = new PomodoroViewModel(_state.Settings);
+        Pomodoro = new PomodoroViewModel(ComposeEffectiveSettings);
         Pomodoro.FocusSessionCompleted += OnFocusSessionCompleted;
 
-        Tasks = new TaskTemplateViewModel(_state, _save);
+        Tasks = new TaskTemplateViewModel(_state, _save, OnActiveTaskChanged);
     }
+
+    /// <summary>The timer reads its phase lengths through this every time it
+    /// switches phases — so the active task's <c>study</c>/<c>short</c>/
+    /// <c>long</c> override the global settings without mutating them.</summary>
+    private PomodoroSettings ComposeEffectiveSettings()
+    {
+        var t = Tasks?.ActiveTask;
+        var s = _state.Settings;
+
+        return new PomodoroSettings
+        {
+            FocusMinutes = t?.Study ?? s.FocusMinutes,
+            ShortBreakMinutes = t?.Short ?? s.ShortBreakMinutes,
+            LongBreakMinutes = t?.Long ?? s.LongBreakMinutes,
+            RoundsBeforeLongBreak = s.RoundsBeforeLongBreak
+        };
+    }
+
+    /// <summary>When the user picks a different task, the timer needs to
+    /// reload the new effective settings — same path the settings flyout uses.</summary>
+    private void OnActiveTaskChanged() => Pomodoro.ApplySettings();
 
     /// <summary>Called by the shell's day-watcher every minute so the greeting
     /// keeps up with the time of day.</summary>

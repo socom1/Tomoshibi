@@ -13,7 +13,7 @@ namespace Tomoshibi.ViewModels;
 /// </summary>
 public partial class PomodoroViewModel : ViewModelBase
 {
-    private readonly PomodoroSettings _settings;
+    private readonly Func<PomodoroSettings> _getSettings;
     private readonly DispatcherTimer _timer;
 
     private int _remainingSeconds;
@@ -45,9 +45,12 @@ public partial class PomodoroViewModel : ViewModelBase
 
     public string StartPauseLabel => IsRunning ? "pause" : "start";
 
-    public PomodoroViewModel(PomodoroSettings settings)
+    /// <summary>Constructs the timer with a callback that returns the current
+    /// effective settings (global, optionally overridden by the active task).
+    /// The callback is called fresh each time a phase length is needed.</summary>
+    public PomodoroViewModel(Func<PomodoroSettings> getSettings)
     {
-        _settings = settings;
+        _getSettings = getSettings;
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _timer.Tick += OnTick;
 
@@ -55,7 +58,7 @@ public partial class PomodoroViewModel : ViewModelBase
     }
 
     /// <summary>Parameterless ctor for the XAML designer preview only.</summary>
-    public PomodoroViewModel() : this(new PomodoroSettings())
+    public PomodoroViewModel() : this(() => new PomodoroSettings())
     {
     }
 
@@ -121,10 +124,11 @@ public partial class PomodoroViewModel : ViewModelBase
         switch (Phase)
         {
             case PomodoroPhase.Focus:
+                var s = _getSettings();
                 if (focusCounts)
-                    FocusSessionCompleted?.Invoke(_settings.FocusMinutes);
+                    FocusSessionCompleted?.Invoke(s.FocusMinutes);
 
-                var longDue = _round >= _settings.RoundsBeforeLongBreak;
+                var longDue = _round >= s.RoundsBeforeLongBreak;
                 SetPhase(longDue ? PomodoroPhase.LongBreak : PomodoroPhase.ShortBreak, resetRound: false);
                 break;
 
@@ -157,7 +161,7 @@ public partial class PomodoroViewModel : ViewModelBase
 
         RoundLabel = phase switch
         {
-            PomodoroPhase.Focus => $"round {_round} of {_settings.RoundsBeforeLongBreak}",
+            PomodoroPhase.Focus => $"round {_round} of {_getSettings().RoundsBeforeLongBreak}",
             PomodoroPhase.LongBreak => "long break",
             _ => "short break"
         };
@@ -165,13 +169,17 @@ public partial class PomodoroViewModel : ViewModelBase
         UpdateTimeDisplay();
     }
 
-    private int PhaseLengthSeconds(PomodoroPhase phase) => phase switch
+    private int PhaseLengthSeconds(PomodoroPhase phase)
     {
-        PomodoroPhase.Focus => _settings.FocusMinutes * 60,
-        PomodoroPhase.ShortBreak => _settings.ShortBreakMinutes * 60,
-        PomodoroPhase.LongBreak => _settings.LongBreakMinutes * 60,
-        _ => _settings.FocusMinutes * 60
-    };
+        var s = _getSettings();
+        return phase switch
+        {
+            PomodoroPhase.Focus => s.FocusMinutes * 60,
+            PomodoroPhase.ShortBreak => s.ShortBreakMinutes * 60,
+            PomodoroPhase.LongBreak => s.LongBreakMinutes * 60,
+            _ => s.FocusMinutes * 60
+        };
+    }
 
     private void UpdateTimeDisplay()
     {
