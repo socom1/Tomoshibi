@@ -145,21 +145,23 @@
                      hidden behind a power-user toggle. -->
                 <Border Grid.Row="1" Classes="card" Margin="0,20,0,0">
                     <DockPanel>
-                        <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,Auto,*,Auto,Auto">
-                            <TextBlock Text="課題 · tasks" Classes="jp" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Classes="caption"
-                                       Margin="8,0,0,0" VerticalAlignment="Center">
+                        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto">
+                            <!-- Title + counter in one TextBlock so they share
+                                 a single baseline regardless of font metrics. -->
+                            <TextBlock Classes="jp" VerticalAlignment="Center">
+                                <Run Text="課題 · tasks" />
+                                <Run Text="   " />
                                 <Run Text="{Binding Tasks.DoneCount, Mode=OneWay}" />
                                 <Run Text=" / " />
                                 <Run Text="{Binding Tasks.TotalCount, Mode=OneWay}" />
                             </TextBlock>
 
-                            <ToggleButton Grid.Column="3" Classes="icon"
+                            <ToggleButton Grid.Column="1" Classes="icon"
                                           IsChecked="{Binding Tasks.IsEditorVisible}"
                                           ToolTip.Tip="show / hide the .code editor"
                                           FontSize="12"
                                           Content="&lt;/&gt;" />
-                            <Button Grid.Column="4" Classes="icon" Content="+" FontSize="18"
+                            <Button Grid.Column="2" Classes="icon" Content="+" FontSize="18"
                                     Margin="2,0,0,0"
                                     Command="{Binding Tasks.OpenAddTaskCommand}"
                                     ToolTip.Tip="add a task" />

@@ -92,11 +92,17 @@
          Lives at the root so it floats above whichever destination is
          active. DataContext drilled to Today.Tasks so all the form bindings
          stay short. -->
-    <Border IsVisible="{Binding Today.Tasks.IsAddTaskModalOpen}"
+    <Border Classes="modal-backdrop"
+            IsVisible="{Binding Today.Tasks.IsAddTaskModalOpen}"
             Background="#A0000000">
-        <Border Classes="card" Width="380" Padding="22"
+        <Border Classes="card modal-card"
+                Width="380" Padding="22"
                 HorizontalAlignment="Center" VerticalAlignment="Center"
-                DataContext="{Binding Today.Tasks}">
+                DataContext="{Binding Today.Tasks}"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+            </Border.RenderTransform>
             <StackPanel Spacing="14">
                 <TextBlock Text="新しい課題 · new task" Classes="jp" />
 
