@@ -18,6 +18,7 @@
     </Window.Resources>
 
     <Window.KeyBindings>
+        <KeyBinding Gesture="Escape" Command="{Binding Today.Tasks.CancelAddTaskCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding ExitZenCommand}" />
     </Window.KeyBindings>
 
@@ -86,6 +87,65 @@
             </TransitioningContentControl>
         </Grid>
     </Grid>
+
+    <!-- Add-task modal — semi-transparent backdrop with a centered card.
+         Lives at the root so it floats above whichever destination is
+         active. DataContext drilled to Today.Tasks so all the form bindings
+         stay short. -->
+    <Border IsVisible="{Binding Today.Tasks.IsAddTaskModalOpen}"
+            Background="#A0000000">
+        <Border Classes="card" Width="380" Padding="22"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                DataContext="{Binding Today.Tasks}">
+            <StackPanel Spacing="14">
+                <TextBlock Text="新しい課題 · new task" Classes="jp" />
+
+                <!-- Mode toggle -->
+                <Grid ColumnDefinitions="*,*">
+                    <Button Grid.Column="0" Classes="seg"
+                            Classes.active="{Binding IsSimpleMode}"
+                            Content="simple"
+                            Command="{Binding ShowSimpleModeCommand}" />
+                    <Button Grid.Column="1" Classes="seg"
+                            Classes.active="{Binding IsCodeMode}"
+                            Content=".code"
+                            Command="{Binding ShowCodeModeCommand}" />
+                </Grid>
+
+                <!-- Simple form -->
+                <StackPanel Spacing="10" IsVisible="{Binding IsSimpleMode}">
+                    <TextBox Text="{Binding NewTaskTitle}"
+                             Watermark="what's the task?" />
+                    <Grid ColumnDefinitions="*,8,*,8,*">
+                        <NumericUpDown Grid.Column="0" Value="{Binding NewTaskStudy}"
+                                       Watermark="study" Minimum="1" Maximum="240" FormatString="0" />
+                        <NumericUpDown Grid.Column="2" Value="{Binding NewTaskShort}"
+                                       Watermark="short" Minimum="1" Maximum="60" FormatString="0" />
+                        <NumericUpDown Grid.Column="4" Value="{Binding NewTaskLong}"
+                                       Watermark="long" Minimum="1" Maximum="120" FormatString="0" />
+                    </Grid>
+                    <TextBox Text="{Binding NewTaskCourse}" Watermark="course" />
+                    <CheckBox IsChecked="{Binding NewTaskDone}" Content="done" />
+                </StackPanel>
+
+                <!-- Code form -->
+                <TextBox Classes="code" IsVisible="{Binding IsCodeMode}"
+                         Text="{Binding NewTaskCode}"
+                         Watermark="// title&#x0a;study: 25&#x0a;short: 5&#x0a;course: MATH101"
+                         AcceptsReturn="True" TextWrapping="Wrap"
+                         MinHeight="140" />
+
+                <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                    <Button Grid.Column="0" Content="cancel"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding CancelAddTaskCommand}" />
+                    <Button Grid.Column="1" Content="add" Classes="accent"
+                            HorizontalAlignment="Stretch" Margin="8,0,0,0"
+                            Command="{Binding ConfirmAddTaskCommand}" />
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Border>
 
     <!-- Zen layout: timer only, everything else fades -->
     <Grid IsVisible="{Binding IsZenMode}" RowDefinitions="Auto,*,Auto" Margin="48">

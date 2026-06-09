@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Tomoshibi.Models;
 using Tomoshibi.Services;
 
@@ -37,6 +39,35 @@ public partial class TaskTemplateViewModel : ViewModelBase
     [ObservableProperty]
     private TaskBlock? _activeTask;
 
+    /// <summary>Power-user toggle — show the raw template source for hand-editing.
+    /// Off by default; the list view is the everyday surface.</summary>
+    [ObservableProperty] private bool _isEditorVisible;
+
+    // ---- New-task modal state ----
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CancelAddTaskCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ConfirmAddTaskCommand))]
+    private bool _isAddTaskModalOpen;
+
+    /// <summary>True = simplified form, false = .code area.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCodeMode))]
+    private bool _isSimpleMode = true;
+
+    public bool IsCodeMode => !IsSimpleMode;
+
+    // Simple-form fields
+    [ObservableProperty] private string _newTaskTitle = string.Empty;
+    [ObservableProperty] private decimal? _newTaskStudy;
+    [ObservableProperty] private decimal? _newTaskShort;
+    [ObservableProperty] private decimal? _newTaskLong;
+    [ObservableProperty] private string _newTaskCourse = string.Empty;
+    [ObservableProperty] private bool _newTaskDone;
+
+    // Code-mode field
+    [ObservableProperty] private string _newTaskCode = string.Empty;
+
     public TaskTemplateViewModel(AppState state, Action save, Action onActiveTaskChanged)
     {
         _state = state;
@@ -56,6 +87,75 @@ public partial class TaskTemplateViewModel : ViewModelBase
     }
 
     partial void OnActiveTaskChanged(TaskBlock? value) => _onActiveTaskChanged?.Invoke();
+
+    [RelayCommand]
+    private void ToggleEditor() => IsEditorVisible = !IsEditorVisible;
+
+    [RelayCommand]
+    private void OpenAddTask()
+    {
+        ResetForm();
+        IsSimpleMode = true;
+        IsAddTaskModalOpen = true;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanCloseAddTask))]
+    private void CancelAddTask()
+    {
+        IsAddTaskModalOpen = false;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanCloseAddTask))]
+    private void ConfirmAddTask()
+    {
+        var block = IsSimpleMode ? BuildBlockFromForm() : NewTaskCode?.Trim();
+        if (string.IsNullOrWhiteSpace(block))
+            return;
+
+        var existing = (Source ?? string.Empty).TrimEnd();
+        Source = string.IsNullOrEmpty(existing) ? block : $"{existing}\n\n{block}";
+
+        ResetForm();
+        IsAddTaskModalOpen = false;
+    }
+
+    [RelayCommand]
+    private void ShowSimpleMode() => IsSimpleMode = true;
+
+    [RelayCommand]
+    private void ShowCodeMode() => IsSimpleMode = false;
+
+    private bool CanCloseAddTask() => IsAddTaskModalOpen;
+
+    /// <summary>Render the simple-form fields into a task block in the
+    /// template grammar. Skips any field the user left blank.</summary>
+    private string? BuildBlockFromForm()
+    {
+        var title = NewTaskTitle?.Trim();
+        if (string.IsNullOrWhiteSpace(title))
+            return null;
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"// {title}");
+        if (NewTaskStudy is { } s) sb.AppendLine($"study: {(int)s}");
+        if (NewTaskShort is { } sh) sb.AppendLine($"short: {(int)sh}");
+        if (NewTaskLong is { } l) sb.AppendLine($"long: {(int)l}");
+        if (!string.IsNullOrWhiteSpace(NewTaskCourse)) sb.AppendLine($"course: {NewTaskCourse.Trim()}");
+        if (NewTaskDone) sb.AppendLine("done");
+
+        return sb.ToString().TrimEnd();
+    }
+
+    private void ResetForm()
+    {
+        NewTaskTitle = string.Empty;
+        NewTaskStudy = null;
+        NewTaskShort = null;
+        NewTaskLong = null;
+        NewTaskCourse = string.Empty;
+        NewTaskDone = false;
+        NewTaskCode = string.Empty;
+    }
 
     /// <summary>The course strings used in the current template, for the
     /// timetable's autocomplete to draw on.</summary>

@@ -141,25 +141,49 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Tasks: written as code -->
+                <!-- Tasks: a simple list by default; the .code editor is
+                     hidden behind a power-user toggle. -->
                 <Border Grid.Row="1" Classes="card" Margin="0,20,0,0">
                     <DockPanel>
-                        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto">
-                            <TextBlock Text="課題 · tasks.code" Classes="jp" VerticalAlignment="Center" />
+                        <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+                            <TextBlock Text="課題 · tasks" Classes="jp" VerticalAlignment="Center" />
                             <TextBlock Grid.Column="1" Classes="caption"
-                                       VerticalAlignment="Center">
+                                       Margin="8,0,0,0" VerticalAlignment="Center">
                                 <Run Text="{Binding Tasks.DoneCount, Mode=OneWay}" />
                                 <Run Text=" / " />
                                 <Run Text="{Binding Tasks.TotalCount, Mode=OneWay}" />
                             </TextBlock>
+
+                            <ToggleButton Grid.Column="3" Classes="icon"
+                                          IsChecked="{Binding Tasks.IsEditorVisible}"
+                                          ToolTip.Tip="show / hide the .code editor"
+                                          FontSize="12"
+                                          Content="&lt;/&gt;" />
+                            <Button Grid.Column="4" Classes="icon" Content="+" FontSize="18"
+                                    Margin="2,0,0,0"
+                                    Command="{Binding Tasks.OpenAddTaskCommand}"
+                                    ToolTip.Tip="add a task" />
                         </Grid>
 
-                        <!-- Parsed preview, sits at the bottom of the card.
-                             Clicking a row makes it the active task — the
-                             pomodoro timer then reads study/short/long from
-                             that task instead of the global settings. -->
-                        <ListBox DockPanel.Dock="Bottom"
-                                 ItemsSource="{Binding Tasks.Tasks}"
+                        <!-- Optional .code editor — only when the toggle is on -->
+                        <TextBox Classes="code" DockPanel.Dock="Bottom"
+                                 Margin="0,12,0,0"
+                                 IsVisible="{Binding Tasks.IsEditorVisible}"
+                                 Text="{Binding Tasks.Source}"
+                                 Watermark="// what do you want to get done?&#x0a;study: 25&#x0a;short: 5&#x0a;course: MATH101"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalContentAlignment="Top" />
+
+                        <!-- Empty state -->
+                        <TextBlock DockPanel.Dock="Bottom" Text="課題はまだない · no tasks yet"
+                                   Classes="jp" HorizontalAlignment="Center"
+                                   Margin="0,16,0,8"
+                                   IsVisible="{Binding !Tasks.HasTasks}" />
+
+                        <!-- Parsed list — click a row to make it the active
+                             task; the pomodoro reads study/short/long from it. -->
+                        <ListBox ItemsSource="{Binding Tasks.Tasks}"
                                  SelectedItem="{Binding Tasks.ActiveTask}"
                                  Classes="tasks"
                                  Margin="0,10,0,0"
@@ -182,15 +206,6 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-
-                        <!-- The editor fills the rest -->
-                        <TextBox Classes="code" Margin="0,12,0,0"
-                                 Text="{Binding Tasks.Source}"
-                                 Watermark="// what do you want to get done?&#x0a;study: 25&#x0a;short: 5&#x0a;course: MATH101"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 VerticalAlignment="Stretch"
-                                 VerticalContentAlignment="Top" />
                     </DockPanel>
                 </Border>
             </Grid>
