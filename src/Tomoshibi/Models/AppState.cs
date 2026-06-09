@@ -13,8 +13,16 @@ public class AppState
     public DateOnly IntentionDate { get; set; }
 
     public DailyStats Today { get; set; } = new();
-    public List<TaskItem> Tasks { get; set; } = new();
     public PomodoroSettings Settings { get; set; } = new();
+
+    /// <summary>The user's "task code" — what they've typed in the today
+    /// editor. Parsed at the view-model layer; persisted as-is.</summary>
+    public string TaskTemplate { get; set; } = string.Empty;
+
+    /// <summary>Legacy task list. Kept around so existing JSON files still
+    /// deserialise; on first load the contents are migrated into
+    /// <see cref="TaskTemplate"/> and this list is cleared.</summary>
+    public List<TaskItem> Tasks { get; set; } = new();
 
     // Navigation
     public bool IsNavOpen { get; set; } = true;

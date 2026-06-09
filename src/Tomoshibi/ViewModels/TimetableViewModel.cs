@@ -5,6 +5,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Tomoshibi.Models;
+using Tomoshibi.Services;
 
 namespace Tomoshibi.ViewModels;
 
@@ -178,10 +179,14 @@ public partial class TimetableViewModel : ViewModelBase
     }
 
     /// <summary>Rebuild the autocomplete source from every place a course can
-    /// have been entered.</summary>
+    /// have been entered — class slots, deadlines, and the parsed today
+    /// task template.</summary>
     private void RebuildKnownCourses()
     {
-        var courses = _state.Tasks.Select(t => t.Course)
+        var fromTemplate = TaskTemplateParser.Parse(_state.TaskTemplate)
+            .Select(t => t.Course);
+
+        var courses = fromTemplate
             .Concat(_state.ClassSlots.Select(s => s.Course))
             .Concat(_state.Deadlines.Select(d => d.Course))
             .Where(c => !string.IsNullOrWhiteSpace(c))

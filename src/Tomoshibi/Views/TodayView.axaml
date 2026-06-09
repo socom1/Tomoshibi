@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Tomoshibi.ViewModels"
+             xmlns:m="using:Tomoshibi.Models"
              xmlns:conv="using:Tomoshibi.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -140,54 +141,52 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Tasks -->
+                <!-- Tasks: written as code -->
                 <Border Grid.Row="1" Classes="card" Margin="0,20,0,0">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="課題 · tasks" Classes="jp" />
-
-                        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,84,Auto" Margin="0,12,0,0">
-                            <TextBox Grid.Column="0" Text="{Binding Tasks.NewTaskTitle}"
-                                     Watermark="what's next on the list?">
-                                <TextBox.KeyBindings>
-                                    <KeyBinding Gesture="Enter" Command="{Binding Tasks.AddTaskCommand}" />
-                                </TextBox.KeyBindings>
-                            </TextBox>
-                            <TextBox Grid.Column="1" Text="{Binding Tasks.NewTaskCourse}"
-                                     Watermark="course" Margin="8,0,0,0" />
-                            <Button Grid.Column="2" Content="+" Classes="accent" Margin="8,0,0,0"
-                                    Command="{Binding Tasks.AddTaskCommand}" />
+                        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto">
+                            <TextBlock Text="課題 · tasks.code" Classes="jp" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Classes="caption"
+                                       VerticalAlignment="Center">
+                                <Run Text="{Binding Tasks.DoneCount, Mode=OneWay}" />
+                                <Run Text=" / " />
+                                <Run Text="{Binding Tasks.TotalCount, Mode=OneWay}" />
+                            </TextBlock>
                         </Grid>
 
-                        <Grid Margin="0,8,0,0">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                          IsVisible="{Binding Tasks.HasTasks}">
-                                <ItemsControl ItemsSource="{Binding Tasks.Items}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:TaskItemViewModel">
-                                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,6,0,0">
-                                                <CheckBox Grid.Column="0" IsChecked="{Binding IsDone}"
-                                                          VerticalAlignment="Center" />
-                                                <TextBlock Grid.Column="1" Text="{Binding Title}"
-                                                           Classes.done="{Binding IsDone}"
-                                                           VerticalAlignment="Center" TextWrapping="Wrap"
-                                                           Margin="4,0,0,0" />
-                                                <Border Grid.Column="2" Classes="tag" Margin="8,0,0,0"
-                                                        IsVisible="{Binding HasCourse}">
-                                                    <TextBlock Text="{Binding Course}" />
-                                                </Border>
-                                                <Button Grid.Column="3" Content="✕" Classes="icon" Margin="4,0,0,0"
-                                                        Command="{Binding $parent[ItemsControl].((vm:TodayViewModel)DataContext).Tasks.RemoveTaskCommand}"
-                                                        CommandParameter="{Binding}" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
+                        <!-- Parsed preview, sits at the bottom of the card -->
+                        <ItemsControl DockPanel.Dock="Bottom" ItemsSource="{Binding Tasks.Tasks}"
+                                      Margin="0,10,0,0"
+                                      IsVisible="{Binding Tasks.HasTasks}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="m:TaskBlock">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,4,0,0">
+                                        <TextBlock Grid.Column="0" Text="•" Classes="caption"
+                                                   VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                                   Classes.done="{Binding IsDone}"
+                                                   VerticalAlignment="Center" TextWrapping="Wrap" />
+                                        <Border Grid.Column="2" Classes="tag" Margin="8,0,0,0"
+                                                IsVisible="{Binding HasStudy}">
+                                            <TextBlock Text="{Binding DurationsLabel}" />
+                                        </Border>
+                                        <Border Grid.Column="3" Classes="tag" Margin="6,0,0,0"
+                                                IsVisible="{Binding HasCourse}">
+                                            <TextBlock Text="{Binding Course}" />
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
 
-                            <TextBlock Text="課題はまだない · no tasks yet" Classes="jp"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       IsVisible="{Binding !Tasks.HasTasks}" />
-                        </Grid>
+                        <!-- The editor fills the rest -->
+                        <TextBox Classes="code" Margin="0,12,0,0"
+                                 Text="{Binding Tasks.Source}"
+                                 Watermark="// what do you want to get done?&#x0a;study: 25&#x0a;short: 5&#x0a;course: MATH101"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalAlignment="Stretch"
+                                 VerticalContentAlignment="Top" />
                     </DockPanel>
                 </Border>
             </Grid>

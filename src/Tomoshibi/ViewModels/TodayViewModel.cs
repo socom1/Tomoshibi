@@ -34,8 +34,8 @@ public partial class TodayViewModel : ViewModelBase
     /// <summary>The Pomodoro timer.</summary>
     public PomodoroViewModel Pomodoro { get; }
 
-    /// <summary>The course-tagged task list.</summary>
-    public TasksViewModel Tasks { get; }
+    /// <summary>The code-edited task list for today.</summary>
+    public TaskTemplateViewModel Tasks { get; }
 
     /// <summary>Editable timer lengths — surfaced from this page's header
     /// gear since the settings only ever affect the pomodoro.</summary>
@@ -56,7 +56,7 @@ public partial class TodayViewModel : ViewModelBase
         Pomodoro = new PomodoroViewModel(_state.Settings);
         Pomodoro.FocusSessionCompleted += OnFocusSessionCompleted;
 
-        Tasks = new TasksViewModel(_state, _save);
+        Tasks = new TaskTemplateViewModel(_state, _save);
     }
 
     /// <summary>Called by the shell's day-watcher every minute so the greeting
