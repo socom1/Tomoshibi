@@ -20,9 +20,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly DispatcherTimer _dayWatcher;
 
     [ObservableProperty]
-    private string _greeting;
-
-    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ExitZenCommand))]
     private bool _isZenMode;
 
@@ -35,14 +32,12 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(ActiveContent))]
     private Destination _activeDestination;
 
-    /// <summary>The "today" destination's content.</summary>
+    /// <summary>The "today" destination's content. Owns the pomodoro settings
+    /// flyout since the settings only matter for the timer.</summary>
     public TodayViewModel Today { get; }
 
     /// <summary>The timetable destination's content.</summary>
     public TimetableViewModel Timetable { get; }
-
-    /// <summary>Editable timer lengths, surfaced in the settings flyout.</summary>
-    public SettingsViewModel Settings { get; }
 
     /// <summary>The view model the main content area is currently bound to.
     /// Resolved through <see cref="ViewLocator"/> to the right view.</summary>
@@ -62,13 +57,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
         ApplyDailyReset(DateOnly.FromDateTime(DateTime.Now));
 
-        _greeting = GreetingFor(DateTime.Now);
         _isNavOpen = _state.IsNavOpen;
         _activeDestination = _state.ActiveDestination;
 
-        Today = new TodayViewModel(_state, Save);
+        var settings = new SettingsViewModel(_state.Settings, OnSettingsChanged);
+        Today = new TodayViewModel(_state, Save, () => IsZenMode = !IsZenMode, settings);
         Timetable = new TimetableViewModel(_state, Save);
-        Settings = new SettingsViewModel(_state.Settings, OnSettingsChanged);
 
         // Catches the date rollover when the app is left running through midnight.
         _dayWatcher = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
@@ -121,7 +115,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void OnDayWatcherTick(object? sender, EventArgs e)
     {
         var now = DateTime.Now;
-        Greeting = GreetingFor(now);
+        Today.Tick(now);
 
         var today = DateOnly.FromDateTime(now);
         if (!ApplyDailyReset(today))
@@ -152,12 +146,4 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     private void Save() => _storage.Save(_state);
-
-    private static string GreetingFor(DateTime now) => now.Hour switch
-    {
-        >= 5 and < 12 => "good morning",
-        >= 12 and < 18 => "good afternoon",
-        >= 18 and < 23 => "good evening",
-        _ => "burning the midnight oil"
-    };
 }

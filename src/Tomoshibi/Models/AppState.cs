@@ -20,7 +20,8 @@ public class AppState
     public bool IsNavOpen { get; set; } = true;
     public Destination ActiveDestination { get; set; } = Destination.Today;
 
-    // Timetable data
+    // Timetable
     public List<ClassSlot> ClassSlots { get; set; } = new();
     public List<Deadline> Deadlines { get; set; } = new();
+    public ClassesView ClassesView { get; set; } = ClassesView.Grid;
 }

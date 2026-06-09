@@ -1,19 +1,22 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Tomoshibi.Models;
 
 namespace Tomoshibi.ViewModels;
 
 /// <summary>
 /// The "today" destination — the daily intention, the Pomodoro timer,
-/// today's focus stats and the course-tagged task list. Owns everything the
-/// main window used to own directly, so the main view model only has to
+/// today's focus stats and the course-tagged task list, plus the page's
+/// own time-of-day greeting and zen toggle. Owns everything the main
+/// window used to own directly, so the main view model only has to
 /// route between destinations.
 /// </summary>
 public partial class TodayViewModel : ViewModelBase
 {
     private readonly AppState _state;
     private readonly Action _save;
+    private readonly Action _toggleZen;
 
     [ObservableProperty]
     private string _dailyIntention;
@@ -24,26 +27,41 @@ public partial class TodayViewModel : ViewModelBase
     [ObservableProperty]
     private double _focusedHours;
 
+    /// <summary>Time-of-day greeting shown at the top of the page.</summary>
+    [ObservableProperty]
+    private string _greeting;
+
     /// <summary>The Pomodoro timer.</summary>
     public PomodoroViewModel Pomodoro { get; }
 
     /// <summary>The course-tagged task list.</summary>
     public TasksViewModel Tasks { get; }
 
-    public TodayViewModel(AppState state, Action save)
+    /// <summary>Editable timer lengths — surfaced from this page's header
+    /// gear since the settings only ever affect the pomodoro.</summary>
+    public SettingsViewModel Settings { get; }
+
+    public TodayViewModel(AppState state, Action save, Action toggleZen, SettingsViewModel settings)
     {
         _state = state;
         _save = save;
+        _toggleZen = toggleZen;
+        Settings = settings;
 
         _dailyIntention = _state.DailyIntention;
         _completedSessions = _state.Today.CompletedSessions;
         _focusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);
+        _greeting = GreetingFor(DateTime.Now);
 
         Pomodoro = new PomodoroViewModel(_state.Settings);
         Pomodoro.FocusSessionCompleted += OnFocusSessionCompleted;
 
         Tasks = new TasksViewModel(_state, _save);
     }
+
+    /// <summary>Called by the shell's day-watcher every minute so the greeting
+    /// keeps up with the time of day.</summary>
+    public void Tick(DateTime now) => Greeting = GreetingFor(now);
 
     /// <summary>Pull the latest stats and intention back out of state after
     /// the day-watcher's midnight reset.</summary>
@@ -53,6 +71,11 @@ public partial class TodayViewModel : ViewModelBase
         CompletedSessions = _state.Today.CompletedSessions;
         FocusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);
     }
+
+    /// <summary>Passes the click through to the shell so this view model
+    /// doesn't have to know what zen mode actually is.</summary>
+    [RelayCommand]
+    private void ToggleZen() => _toggleZen();
 
     partial void OnDailyIntentionChanged(string value)
     {
@@ -71,4 +94,12 @@ public partial class TodayViewModel : ViewModelBase
 
         _save();
     }
+
+    private static string GreetingFor(DateTime now) => now.Hour switch
+    {
+        >= 5 and < 12 => "good morning",
+        >= 12 and < 18 => "good afternoon",
+        >= 18 and < 23 => "good evening",
+        _ => "burning the midnight oil"
+    };
 }

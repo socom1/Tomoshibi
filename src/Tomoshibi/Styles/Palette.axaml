@@ -29,8 +29,11 @@
     <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
     <SolidColorBrush x:Key="MutedTextBrush" Color="{StaticResource MutedTextColor}" />
 
-    <!-- Typography: a coding/monospace family with sensible per-OS fallbacks -->
-    <FontFamily x:Key="MonoFont">Cascadia Code,JetBrains Mono,Consolas,Menlo,DejaVu Sans Mono,monospace</FontFamily>
+    <!-- Typography: a coding/monospace family with sensible per-OS fallbacks.
+         The CJK families at the end exist so Japanese characters all resolve
+         to the same font (per platform) — without them, every kanji and kana
+         can hit a different system fallback, which makes baselines jitter. -->
+    <FontFamily x:Key="MonoFont">Cascadia Code,JetBrains Mono,Consolas,Menlo,DejaVu Sans Mono,Hiragino Sans,Yu Gothic UI,Noto Sans CJK JP,monospace</FontFamily>
 
     <!-- Shape / spacing tokens -->
     <CornerRadius x:Key="CardRadius">14</CornerRadius>

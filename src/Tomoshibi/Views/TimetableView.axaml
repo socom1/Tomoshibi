@@ -8,8 +8,14 @@
              x:Class="Tomoshibi.Views.TimetableView"
              x:DataType="vm:TimetableViewModel">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="28,12,28,28">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="28,4,28,28">
         <StackPanel Spacing="20">
+
+            <!-- Page header -->
+            <StackPanel Spacing="2">
+                <TextBlock Text="時間割 · timetable" Classes="jp" />
+                <TextBlock Text="this week" Classes="h1" />
+            </StackPanel>
 
             <!-- ============ Deadlines ============ -->
             <Border Classes="card">
@@ -24,14 +30,12 @@
                                         <TextBlock Text="新しい締切 · new deadline" Classes="jp" />
 
                                         <CalendarDatePicker SelectedDate="{Binding NewDeadlineDate}" />
-                                        <TextBox Watermark="title"
-                                                 Text="{Binding NewDeadlineTitle}"
-                                                 FontFamily="{DynamicResource MonoFont}" />
-                                        <AutoCompleteBox Watermark="course (optional)"
+                                        <TextBox Watermark="what's due?"
+                                                 Text="{Binding NewDeadlineTitle}" />
+                                        <AutoCompleteBox Watermark="course"
                                                          Text="{Binding NewDeadlineCourse}"
                                                          ItemsSource="{Binding KnownCourses}"
-                                                         FilterMode="Contains"
-                                                         FontFamily="{DynamicResource MonoFont}" />
+                                                         FilterMode="Contains" />
                                         <Button Content="add" Classes="accent"
                                                 HorizontalAlignment="Stretch"
                                                 Command="{Binding AddDeadlineCommand}" />
@@ -73,9 +77,21 @@
             <!-- ============ Classes ============ -->
             <Border Classes="card">
                 <DockPanel>
-                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto">
+                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto">
                         <TextBlock Text="授業 · classes" Classes="jp" VerticalAlignment="Center" />
-                        <Button Grid.Column="1" Classes="icon" Content="+" FontSize="18"
+
+                        <!-- View toggle -->
+                        <Button Grid.Column="1" Classes="seg"
+                                Classes.active="{Binding IsClassesGridView}"
+                                Content="grid"
+                                Command="{Binding ShowGridClassesCommand}" />
+                        <Button Grid.Column="2" Classes="seg"
+                                Classes.active="{Binding IsClassesListView}"
+                                Content="list"
+                                Command="{Binding ShowListClassesCommand}" />
+
+                        <Button Grid.Column="3" Classes="icon" Content="+" FontSize="18"
+                                Margin="8,0,0,0"
                                 ToolTip.Tip="add a class slot">
                             <Button.Flyout>
                                 <Flyout Placement="BottomEdgeAlignedRight">
@@ -93,14 +109,12 @@
                                                         SelectedTime="{Binding NewSlotEnd}" />
                                         </Grid>
 
-                                        <TextBox Watermark="title"
-                                                 Text="{Binding NewSlotTitle}"
-                                                 FontFamily="{DynamicResource MonoFont}" />
-                                        <AutoCompleteBox Watermark="course (optional)"
+                                        <TextBox Watermark="class name"
+                                                 Text="{Binding NewSlotTitle}" />
+                                        <AutoCompleteBox Watermark="course"
                                                          Text="{Binding NewSlotCourse}"
                                                          ItemsSource="{Binding KnownCourses}"
-                                                         FilterMode="Contains"
-                                                         FontFamily="{DynamicResource MonoFont}" />
+                                                         FilterMode="Contains" />
                                         <Button Content="add" Classes="accent"
                                                 HorizontalAlignment="Stretch"
                                                 Command="{Binding AddSlotCommand}" />
@@ -114,9 +128,38 @@
                                Classes="caption" Margin="0,12,0,0"
                                IsVisible="{Binding !HasSlots}" />
 
+                    <!-- List view: flat sortable list, shown when ClassesView = List -->
+                    <ItemsControl ItemsSource="{Binding Slots}" Margin="0,8,0,0"
+                                  DockPanel.Dock="Top"
+                                  IsVisible="{Binding IsClassesListShown}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ClassSlotItemViewModel">
+                                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" Margin="0,6,0,0">
+                                    <TextBlock Grid.Column="0" Text="{Binding DayLabel}"
+                                               Classes="caption" VerticalAlignment="Center"
+                                               Width="34" />
+                                    <TextBlock Grid.Column="1" Text="{Binding TimeLabel}"
+                                               Classes="caption" VerticalAlignment="Center"
+                                               Width="92" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Title}"
+                                               VerticalAlignment="Center" TextWrapping="Wrap"
+                                               Margin="4,0,0,0" />
+                                    <Border Grid.Column="3" Classes="tag" Margin="8,0,0,0"
+                                            IsVisible="{Binding HasCourse}">
+                                        <TextBlock Text="{Binding Course}" />
+                                    </Border>
+                                    <Button Grid.Column="4" Content="✕" Classes="icon" Margin="4,0,0,0"
+                                            Command="{Binding $parent[ItemsControl].((vm:TimetableViewModel)DataContext).RemoveSlotCommand}"
+                                            CommandParameter="{Binding}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
                     <!-- Week grid: time axis on the left, 7 day columns, slot
                          blocks placed via Grid.Row/Column on each ContentPresenter -->
-                    <Grid Margin="0,12,0,0" IsVisible="{Binding HasSlots}"
+                    <Grid Margin="0,12,0,0"
+                          IsVisible="{Binding IsClassesGridShown}"
                           ColumnDefinitions="28,*,*,*,*,*,*,*"
                           RowDefinitions="22,38,38,38,38,38,38,38,38,38,38,38,38,38,38">
 

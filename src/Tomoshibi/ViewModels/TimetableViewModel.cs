@@ -25,11 +25,31 @@ public partial class TimetableViewModel : ViewModelBase
     /// the source the entry forms autocomplete against.</summary>
     public ObservableCollection<string> KnownCourses { get; } = new();
 
-    [ObservableProperty] private bool _hasSlots;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsClassesGridShown))]
+    [NotifyPropertyChangedFor(nameof(IsClassesListShown))]
+    private bool _hasSlots;
+
     [ObservableProperty] private bool _hasDeadlines;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsClassesGridView))]
+    [NotifyPropertyChangedFor(nameof(IsClassesListView))]
+    [NotifyPropertyChangedFor(nameof(IsClassesGridShown))]
+    [NotifyPropertyChangedFor(nameof(IsClassesListShown))]
+    private ClassesView _classesView;
+
+    /// <summary>Toggle-button highlight state — true when that view is selected.</summary>
+    public bool IsClassesGridView => ClassesView == ClassesView.Grid;
+    public bool IsClassesListView => ClassesView == ClassesView.List;
+
+    /// <summary>View-content visibility — true only when the view is selected
+    /// AND there's something to render.</summary>
+    public bool IsClassesGridShown => HasSlots && IsClassesGridView;
+    public bool IsClassesListShown => HasSlots && IsClassesListView;
+
     // ---- New deadline form ----
-    [ObservableProperty] private DateTimeOffset? _newDeadlineDate = DateTimeOffset.Now;
+    [ObservableProperty] private DateTime? _newDeadlineDate = DateTime.Now;
     [ObservableProperty] private string _newDeadlineTitle = string.Empty;
     [ObservableProperty] private string _newDeadlineCourse = string.Empty;
 
@@ -47,6 +67,7 @@ public partial class TimetableViewModel : ViewModelBase
     {
         _state = state;
         _save = save;
+        _classesView = _state.ClassesView;
 
         foreach (var slot in _state.ClassSlots.OrderBy(s => s.Day).ThenBy(s => s.Start))
             Slots.Add(new ClassSlotItemViewModel(slot));
@@ -59,6 +80,18 @@ public partial class TimetableViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void ShowGridClasses() => ClassesView = ClassesView.Grid;
+
+    [RelayCommand]
+    private void ShowListClasses() => ClassesView = ClassesView.List;
+
+    partial void OnClassesViewChanged(ClassesView value)
+    {
+        _state.ClassesView = value;
+        _save();
+    }
+
+    [RelayCommand]
     private void AddDeadline()
     {
         var title = NewDeadlineTitle?.Trim();
@@ -67,7 +100,7 @@ public partial class TimetableViewModel : ViewModelBase
 
         var model = new Deadline
         {
-            Date = DateOnly.FromDateTime(NewDeadlineDate.Value.LocalDateTime),
+            Date = DateOnly.FromDateTime(NewDeadlineDate.Value),
             Title = title,
             Course = string.IsNullOrWhiteSpace(NewDeadlineCourse) ? null : NewDeadlineCourse.Trim()
         };

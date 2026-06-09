@@ -68,65 +68,22 @@
         <!-- ============ Main area: header + active destination ============ -->
         <Grid Grid.Column="2" RowDefinitions="Auto,*">
 
-            <!-- Header -->
-            <Grid Grid.Row="0" Margin="28,28,28,0" ColumnDefinitions="Auto,*,Auto,Auto">
-
-                <!-- Nav toggle -->
+            <!-- Shell header: just the nav toggle. Page titles and page
+                 actions live inside each destination view. -->
+            <Grid Grid.Row="0" Margin="28,28,28,0" ColumnDefinitions="Auto,*">
                 <Button Grid.Column="0" Classes="icon" Content="☰" FontSize="18"
-                        VerticalAlignment="Top" Margin="0,6,16,0"
+                        VerticalAlignment="Top"
                         Command="{Binding ToggleNavCommand}"
                         ToolTip.Tip="menu · メニュー" />
-
-                <StackPanel Grid.Column="1" Spacing="2">
-                    <TextBlock Text="灯火 · tomoshibi" Classes="jp"
-                               IsVisible="{Binding !IsNavOpen}" />
-                    <TextBlock Text="{Binding Greeting}" Classes="h1" />
-                </StackPanel>
-
-                <!-- Zen -->
-                <Button Grid.Column="2" Classes="icon" Content="⛶" FontSize="20"
-                        VerticalAlignment="Top" Margin="0,0,4,0"
-                        Command="{Binding ToggleZenCommand}"
-                        ToolTip.Tip="集中 · zen" />
-
-                <!-- Settings -->
-                <Button Grid.Column="3" Classes="icon" Content="⚙" FontSize="20"
-                        VerticalAlignment="Top" ToolTip.Tip="設定 · settings">
-                    <Button.Flyout>
-                        <Flyout Placement="BottomEdgeAlignedRight">
-                            <StackPanel Width="250" Spacing="12" Margin="8">
-                                <TextBlock Text="設定 · settings" Classes="jp" />
-
-                                <Grid ColumnDefinitions="*,90">
-                                    <TextBlock Text="focus (min)" VerticalAlignment="Center" />
-                                    <NumericUpDown Grid.Column="1" Value="{Binding Settings.FocusMinutes}"
-                                                   Minimum="1" Maximum="120" Increment="1" FormatString="0" />
-                                </Grid>
-                                <Grid ColumnDefinitions="*,90">
-                                    <TextBlock Text="short break" VerticalAlignment="Center" />
-                                    <NumericUpDown Grid.Column="1" Value="{Binding Settings.ShortBreakMinutes}"
-                                                   Minimum="1" Maximum="60" Increment="1" FormatString="0" />
-                                </Grid>
-                                <Grid ColumnDefinitions="*,90">
-                                    <TextBlock Text="long break" VerticalAlignment="Center" />
-                                    <NumericUpDown Grid.Column="1" Value="{Binding Settings.LongBreakMinutes}"
-                                                   Minimum="1" Maximum="60" Increment="1" FormatString="0" />
-                                </Grid>
-                                <Grid ColumnDefinitions="*,90">
-                                    <TextBlock Text="rounds / long" VerticalAlignment="Center" />
-                                    <NumericUpDown Grid.Column="1" Value="{Binding Settings.RoundsBeforeLongBreak}"
-                                                   Minimum="1" Maximum="12" Increment="1" FormatString="0" />
-                                </Grid>
-
-                                <TextBlock Text="applies live · running phase finishes first" Classes="caption" />
-                            </StackPanel>
-                        </Flyout>
-                    </Button.Flyout>
-                </Button>
             </Grid>
 
-            <!-- Active destination's view, resolved via ViewLocator -->
-            <ContentControl Grid.Row="1" Content="{Binding ActiveContent}" />
+            <!-- Active destination's view, resolved via ViewLocator. The
+                 transitioning variant crossfades when the bound content swaps. -->
+            <TransitioningContentControl Grid.Row="1" Content="{Binding ActiveContent}">
+                <TransitioningContentControl.PageTransition>
+                    <CrossFade Duration="0:0:0.22" />
+                </TransitioningContentControl.PageTransition>
+            </TransitioningContentControl>
         </Grid>
     </Grid>
 
@@ -144,11 +101,24 @@
                        HorizontalAlignment="Center" />
             <TextBlock Text="{Binding Today.Pomodoro.TimeDisplay}" FontSize="180" FontWeight="Light"
                        Foreground="{Binding Today.Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
-                       HorizontalAlignment="Center" />
+                       HorizontalAlignment="Center">
+                <TextBlock.Transitions>
+                    <Transitions>
+                        <BrushTransition Property="Foreground" Duration="0:0:0.45" />
+                    </Transitions>
+                </TextBlock.Transitions>
+            </TextBlock>
             <ProgressBar Value="{Binding Today.Pomodoro.Progress}" Minimum="0" Maximum="1"
                          Width="560" Height="5" MinHeight="0"
                          Foreground="{Binding Today.Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
-                         Background="{DynamicResource BorderBrush}" />
+                         Background="{DynamicResource BorderBrush}">
+                <ProgressBar.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Value" Duration="0:0:1" />
+                        <BrushTransition Property="Foreground" Duration="0:0:0.45" />
+                    </Transitions>
+                </ProgressBar.Transitions>
+            </ProgressBar>
             <TextBlock Text="{Binding Today.Pomodoro.RoundLabel}" Classes="caption"
                        HorizontalAlignment="Center" />
         </StackPanel>
