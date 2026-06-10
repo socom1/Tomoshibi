@@ -225,6 +225,18 @@
         <Setter Property="Padding" Value="24,10" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <!-- Everything else clickable gets the hand too -->
+    <Style Selector="ToggleButton">
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="CheckBox">
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="ListBox.tasks ListBoxItem">
+        <Setter Property="Cursor" Value="Hand" />
     </Style>
     <Style Selector="Button:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />

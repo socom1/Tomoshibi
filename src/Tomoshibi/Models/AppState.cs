@@ -28,6 +28,12 @@ public class AppState
     public bool IsNavOpen { get; set; } = true;
     public Destination ActiveDestination { get; set; } = Destination.Today;
 
+    // Window placement (0 width = never saved, use the XAML defaults)
+    public double WindowWidth { get; set; }
+    public double WindowHeight { get; set; }
+    public int? WindowX { get; set; }
+    public int? WindowY { get; set; }
+
     // Timetable
     public List<ClassSlot> ClassSlots { get; set; } = new();
     public List<Deadline> Deadlines { get; set; } = new();

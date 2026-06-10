@@ -193,23 +193,29 @@
                                    IsVisible="{Binding !Tasks.HasTasks}" />
 
                         <!-- Parsed list — click a row to make it the active
-                             task; the pomodoro reads study/short/long from it. -->
+                             task (click again to release it back to global
+                             settings); tick the box to mark it done. -->
                         <ListBox ItemsSource="{Binding Tasks.Tasks}"
                                  SelectedItem="{Binding Tasks.ActiveTask}"
+                                 SelectionMode="Single,Toggle"
                                  Classes="tasks"
                                  Margin="0,10,0,0"
                                  IsVisible="{Binding Tasks.HasTasks}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate x:DataType="m:TaskBlock">
-                                    <Grid ColumnDefinitions="*,Auto,Auto">
-                                        <TextBlock Grid.Column="0" Text="{Binding Title}"
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding IsDone, Mode=OneWay}"
+                                                  Click="OnTaskDoneClick"
+                                                  MinHeight="0" Padding="0"
+                                                  VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Title}"
                                                    Classes.done="{Binding IsDone}"
                                                    VerticalAlignment="Center" TextWrapping="Wrap" />
-                                        <Border Grid.Column="1" Classes="tag" Margin="8,0,0,0"
+                                        <Border Grid.Column="2" Classes="tag" Margin="8,0,0,0"
                                                 IsVisible="{Binding HasStudy}">
                                             <TextBlock Text="{Binding DurationsLabel}" />
                                         </Border>
-                                        <Border Grid.Column="2" Classes="tag" Margin="6,0,0,0"
+                                        <Border Grid.Column="3" Classes="tag" Margin="6,0,0,0"
                                                 IsVisible="{Binding HasCourse}">
                                             <TextBlock Text="{Binding Course}" />
                                         </Border>

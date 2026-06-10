@@ -117,6 +117,55 @@ public static class TaskTemplateParser
         return string.Join("\n", lines).TrimEnd();
     }
 
+    /// <summary>
+    /// Toggle the <c>done</c> flag on the block whose title matches, editing
+    /// the source surgically so the user's own formatting elsewhere survives.
+    /// Unknown title → source returned unchanged.
+    /// </summary>
+    public static string ToggleDone(string source, string title)
+    {
+        if (string.IsNullOrEmpty(source) || string.IsNullOrWhiteSpace(title))
+            return source;
+
+        var lines = source.Replace("\r\n", "\n").Split('\n').ToList();
+
+        // Find the comment line carrying this title.
+        var titleLine = -1;
+        for (var i = 0; i < lines.Count; i++)
+        {
+            var line = lines[i].Trim();
+            if (line.StartsWith("//") && line[2..].TrimStart() == title)
+            {
+                titleLine = i;
+                break;
+            }
+        }
+        if (titleLine < 0)
+            return source;
+
+        // Walk out to the block's blank-line boundaries.
+        var blockStart = titleLine;
+        while (blockStart - 1 >= 0 && lines[blockStart - 1].Trim().Length > 0)
+            blockStart--;
+
+        var blockEnd = titleLine;
+        while (blockEnd + 1 < lines.Count && lines[blockEnd + 1].Trim().Length > 0)
+            blockEnd++;
+
+        // Existing done line? Remove it. Otherwise append one to the block.
+        for (var i = blockStart; i <= blockEnd; i++)
+        {
+            if (lines[i].Trim().Equals("done", StringComparison.OrdinalIgnoreCase))
+            {
+                lines.RemoveAt(i);
+                return string.Join("\n", lines);
+            }
+        }
+
+        lines.Insert(blockEnd + 1, "done");
+        return string.Join("\n", lines);
+    }
+
     /// <summary>Accept either a bare integer ("25") or a "25m" form so the
     /// user can type either.</summary>
     private static bool TryParseMinutes(string value, out int minutes)

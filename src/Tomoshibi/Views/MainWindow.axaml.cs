@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Tomoshibi.ViewModels;
@@ -51,7 +52,37 @@ public partial class MainWindow : Window
             _vm.PropertyChanged += OnVmPropertyChanged;
             ApplyZenState();
             ApplyNavState();
+            ApplyWindowPlacement();
         }
+    }
+
+    /// <summary>Open where the last session ended. Width 0 = first run, keep
+    /// the XAML defaults and the centered startup location.</summary>
+    private void ApplyWindowPlacement()
+    {
+        if (_vm is null) return;
+
+        var (width, height, x, y) = _vm.WindowPlacement;
+        if (width <= 0 || height <= 0)
+            return;
+
+        Width = width;
+        Height = height;
+
+        if (x is { } px && y is { } py)
+        {
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Position = new PixelPoint(px, py);
+        }
+    }
+
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        // Don't capture the fullscreen/zen dimensions as the new normal.
+        if (_vm is not null && WindowState == WindowState.Normal)
+            _vm.SaveWindowPlacement(Width, Height, Position.X, Position.Y);
+
+        base.OnClosing(e);
     }
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)

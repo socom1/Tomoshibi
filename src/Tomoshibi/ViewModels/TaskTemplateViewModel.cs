@@ -91,6 +91,17 @@ public partial class TaskTemplateViewModel : ViewModelBase
     [RelayCommand]
     private void ToggleEditor() => IsEditorVisible = !IsEditorVisible;
 
+    /// <summary>Tick a task done (or back to open) straight from the list —
+    /// edits the underlying source so the editor view stays in sync.</summary>
+    [RelayCommand]
+    private void ToggleDone(TaskBlock? task)
+    {
+        if (task is null)
+            return;
+
+        Source = TaskTemplateParser.ToggleDone(Source ?? string.Empty, task.Title);
+    }
+
     [RelayCommand]
     private void OpenAddTask()
     {

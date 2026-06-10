@@ -194,6 +194,12 @@
                        Foreground="{DynamicResource MatchaBrush}"
                        HorizontalAlignment="Center"
                        IsVisible="{Binding Today.HasActiveTask}" />
+
+            <!-- The day's intention follows you into zen -->
+            <TextBlock Text="{Binding Today.DailyIntention}" Classes="caption"
+                       HorizontalAlignment="Center" Margin="0,24,0,0"
+                       MaxWidth="560" TextWrapping="Wrap" TextAlignment="Center"
+                       IsVisible="{Binding Today.DailyIntention, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal"

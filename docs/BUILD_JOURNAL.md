@@ -540,3 +540,33 @@ credited the wrong duration to the day's stats. The phase length is now
 captured when the phase starts (`_phaseFocusMinutes`, `_phaseTotalSeconds`)
 and used for both the stats event and the progress fraction — a phase keeps
 the length it began with, full stop.
+
+---
+
+## Daily-use polish (2026-06-10)
+
+A follow-up pass of small frictions found by actually using the app:
+
+- **Tick tasks done from the list.** The biggest gap since tasks became
+  code: marking one done meant opening the editor and typing `done`. Each
+  row now has a checkbox; clicking it calls a `ToggleDone` on the parser
+  that edits the source *surgically* — find the block by its title comment,
+  walk to its blank-line boundaries, insert or remove the `done` line, and
+  leave every other character of the user's formatting alone. The editor
+  view stays in sync automatically because the edit goes through `Source`,
+  which is what the editor is bound to. The checkbox can't carry a command
+  (Avalonia CheckBox has none), so its Click is forwarded from the view's
+  code-behind — view-layer glue, two lines.
+- **Click the active task again to release it.** `SelectionMode="Single,
+  Toggle"` on the task ListBox lets a second click deselect, returning the
+  timer to the global settings. Before, once you picked a task there was no
+  way back.
+- **The intention follows you into zen.** The day's intention renders in
+  small muted text under the zen clock — the whole point of the line is to
+  anchor the session, and zen is the session.
+- **The window remembers itself.** Size and position persist to `AppState`
+  on close and re-apply at startup (first run keeps the XAML defaults and
+  centering). Closing from zen/fullscreen deliberately skips the save so a
+  fullscreen size never becomes the new normal.
+- **Hand cursors.** Buttons, toggles, checkboxes and task rows now show a
+  pointer on hover. Tiny, but the UI reads as clickable.

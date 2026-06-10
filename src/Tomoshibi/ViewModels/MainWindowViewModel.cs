@@ -162,5 +162,21 @@ public partial class MainWindowViewModel : ViewModelBase
         return changed;
     }
 
+    /// <summary>Saved window placement, applied by the view at startup.
+    /// Width 0 means nothing has been saved yet.</summary>
+    public (double Width, double Height, int? X, int? Y) WindowPlacement =>
+        (_state.WindowWidth, _state.WindowHeight, _state.WindowX, _state.WindowY);
+
+    /// <summary>Called by the view when the window closes so the next launch
+    /// opens where this one left off.</summary>
+    public void SaveWindowPlacement(double width, double height, int x, int y)
+    {
+        _state.WindowWidth = width;
+        _state.WindowHeight = height;
+        _state.WindowX = x;
+        _state.WindowY = y;
+        Save();
+    }
+
     private void Save() => _storage.Save(_state);
 }
