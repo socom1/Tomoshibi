@@ -570,3 +570,69 @@ A follow-up pass of small frictions found by actually using the app:
   fullscreen size never becomes the new normal.
 - **Hand cursors.** Buttons, toggles, checkboxes and task rows now show a
   pointer on hover. Tiny, but the UI reads as clickable.
+
+---
+
+## The big sweep (2026-06-10)
+
+One long session knocking out everything on the "what's missing" list except
+the tests (which stay on hold — it is what it is).
+
+**Stats history — fixed before it cost more data.** `DailyStats` only ever
+held *today*; the midnight reset threw the old day away. Since the streak
+calendar will need per-day history, every day was permanently losing data.
+The reset now banks the finished day into `AppState.History` (skipping empty
+days, deduping by date, capped at 400 entries) before replacing it.
+
+**Streak, immediately.** With history existing, the stats card grew a third
+number: consecutive days with at least one session. An inactive today doesn't
+break the streak (the day isn't over); an inactive yesterday does. Under the
+numbers, a row of fourteen dots shows the last two weeks at a glance. The
+proper month-grid calendar can come later — the data is now accumulating.
+
+**The todo backlog.** A third destination: やること · todo. Longer-horizon
+coursework that hasn't earned a spot in today's plan — title, optional course
+(autocompleting from everywhere courses exist), optional due date. Open items
+sort by due date; overdue dates go sakura; done sinks to the bottom. The
+reason it lives in the app instead of a notes file: the **→ send-to-today**
+button, which appends the item to the today task template as a new block and
+jumps you there. Planning a thing isn't doing it, so sending keeps the
+backlog entry.
+
+**Edit-in-place for the timetable.** The add-forms in the flyouts now double
+as edit forms: a ✎ on any slot or deadline row loads it into the form, the
+button flips from "add" to "save", and saving mutates the model in place and
+re-sorts. The + button quietly cancels any in-flight edit so a fresh form is
+always fresh. Also renamed the page header from "this week" (a lie — it
+showed everything) to "schedule".
+
+**.ics import, the v1.2 leftover.** An `import .ics` button on the timetable
+opens a file picker; `IcsImporter` does deliberately small parsing — RFC 5545
+line unfolding, VEVENT extraction, then: weekly RRULEs (with or without
+BYDAY, including multi-day BYDAY=MO,WE) become class slots, one-off events
+become deadlines, CATEGORIES doubles as the course tag, and everything else
+is counted and skipped rather than guessed at. Times are read as wall-clock —
+timezone conversion is out of scope for a study timetable. Re-importing the
+same file is harmless: exact duplicates are skipped, and a one-line summary
+("imported 5 classes · 2 deadlines · 1 skipped") shows under the header.
+
+**Native notifications.** The other half of the chime: `NotificationService`
+shells out to `osascript` on macOS and `notify-send` on Linux when a phase
+completes naturally. Windows is a silent no-op for now — toast notifications
+want an app identity that a bare unpackaged EXE doesn't have, and faking it
+isn't worth a dependency; the chime still covers Windows audibly. Same
+"never crash over a side effect" wrapping as the sound service.
+
+**Packaging scripts for the other two platforms.** `pack-win.ps1` (publish +
+zip) and `pack-linux.sh` (publish + tar.gz with a .desktop launcher). Both
+written on macOS and honestly labelled as not yet run on their target OSes —
+they're thin wrappers over `dotnet publish`, so the risk is small.
+
+**Housekeeping.** The README had drifted into fiction — it described the old
+checkbox task list, called zen mode "planned", and recommended the exact
+`PublishSingleFile` flag that breaks SkiaSharp on macOS. Rewrote it against
+reality. ARCHITECTURE.md got the same treatment (the "view models never
+reference Avalonia" claim is now the honest "no Avalonia *UI* types;
+DispatcherTimer is the deliberate exception"). Added the MIT LICENSE the
+README had been promising, and cut the v1.1/v1.2 tags that the versioned
+roadmap implied but I'd never actually created.

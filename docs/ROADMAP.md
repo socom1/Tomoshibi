@@ -15,9 +15,9 @@ sensible order of work.
   sidebar, refactor the existing app into a "today" destination behind it,
   and add a "timetable" destination with a recurring class schedule and
   upcoming deadlines, plus `.ics` import.
-- **v1.3 and on — the standout features**, each as its own release: streak
-  calendar, system tray + notifications, ambient soundscapes, and packaged
-  self-contained downloads.
+- **v1.3 — the daily companion.** Tasks as code driving the timer, chime +
+  notifications, stats history with streaks, the todo backlog, and packaging.
+- **Later** — streak calendar view, tray icon, soundscapes, a public release.
 
 ## v1.0 — core
 
@@ -57,21 +57,38 @@ class-schedule timetable with deadlines.
       tasks, slots and deadlines
 - [x] Responsive week-grid view (7-day columns, slots placed by hour) +
       deadlines list above
-- [ ] `.ics` import — file picker, `VEVENT`/`RRULE` parsing, recurring → slots, one-shots → deadlines
+- [x] `.ics` import — file picker, weekly `RRULE`s → slots, one-shots → deadlines
+- [x] Edit slots and deadlines in place
 
-## After v1.2 — feature releases
+## v1.3 — the daily companion
 
-- **Streak calendar** — days with at least one completed session.
-- **System tray + notifications** — native alerts on phase change.
-- **Ambient soundscapes** — rain / café / waves / night.
-- **Packaging** — self-contained publish for Windows, macOS and Linux, an app icon,
-  and a tagged public release.
+Everything that turned the timer into something that talks back, plus the
+backlog. Shipped, untagged so far.
+
+- [x] Tasks as code: the template grammar, the editor, the simple form modal
+- [x] Active task drives the pomodoro phase lengths
+- [x] Chime + native notification on phase change (notification: macOS/Linux;
+      Windows pending an app identity)
+- [x] Auto-continue, paused dimming, round dots, live window title, Space
+- [x] Daily stats history + day streak with a 14-day dot strip
+- [x] "やること · todo" backlog destination with send-to-today
+- [x] App icon, title, macOS .app packaging; Windows/Linux pack scripts
+      (written, unverified on those OSes)
+
+## Later
+
+- **Streak calendar view** — a proper month grid over the saved history.
+- **System tray icon** — quick start/pause from the tray.
+- **Ambient soundscapes** — rain / café / waves / night (needs real audio
+  assets; synthesis won't cut it).
+- **Bundle a coding font** — pixel-identical look across OSes.
+- **A tagged public release** — signed/notarized builds.
 
 ## Testing
 
-The logic worth testing has no UI: the Pomodoro state machine (round counting,
-when a long break is due) and the daily-reset rules. Those get plain unit tests as
-the first thing after v1.0.
+Deliberately on hold. The candidates when that changes are all pure logic:
+the Pomodoro state machine, the daily-reset/history rules, the task-template
+parser (including the done-toggle source surgery) and the `.ics` importer.
 
 ## Out of scope (for now)
 
