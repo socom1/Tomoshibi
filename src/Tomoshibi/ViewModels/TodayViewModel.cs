@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Tomoshibi.Models;
@@ -40,6 +42,15 @@ public partial class TodayViewModel : ViewModelBase
     [ObservableProperty]
     private bool _hasActiveTask;
 
+    /// <summary>Consecutive days (ending today or yesterday) with at least
+    /// one completed session. Today not counting yet doesn't break it.</summary>
+    [ObservableProperty]
+    private int _streakDays;
+
+    /// <summary>The last 14 days as dots, oldest first — ● focused, ○ not.</summary>
+    [ObservableProperty]
+    private string _streakDots = string.Empty;
+
     /// <summary>The Pomodoro timer.</summary>
     public PomodoroViewModel Pomodoro { get; }
 
@@ -51,7 +62,8 @@ public partial class TodayViewModel : ViewModelBase
     public SettingsViewModel Settings { get; }
 
     public TodayViewModel(AppState state, Action save, Action toggleZen,
-                          SettingsViewModel settings, ISoundService? sound = null)
+                          SettingsViewModel settings, ISoundService? sound = null,
+                          INotificationService? notify = null)
     {
         _state = state;
         _save = save;
@@ -63,10 +75,12 @@ public partial class TodayViewModel : ViewModelBase
         _focusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);
         _greeting = GreetingFor(DateTime.Now);
 
-        Pomodoro = new PomodoroViewModel(ComposeEffectiveSettings, sound);
+        Pomodoro = new PomodoroViewModel(ComposeEffectiveSettings, sound, notify);
         Pomodoro.FocusSessionCompleted += OnFocusSessionCompleted;
 
         Tasks = new TaskTemplateViewModel(_state, _save, OnActiveTaskChanged);
+
+        RecomputeStreak();
     }
 
     /// <summary>The timer reads its phase lengths through this every time it
@@ -109,6 +123,35 @@ public partial class TodayViewModel : ViewModelBase
         DailyIntention = _state.DailyIntention;
         CompletedSessions = _state.Today.CompletedSessions;
         FocusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);
+        RecomputeStreak();
+    }
+
+    /// <summary>Rebuild the streak count and the last-14-days dots from
+    /// history + today. A day counts when it had at least one session.</summary>
+    private void RecomputeStreak()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+
+        var focusedDays = new HashSet<DateOnly>(
+            _state.History.Where(d => d.CompletedSessions > 0).Select(d => d.Date));
+        if (_state.Today.CompletedSessions > 0)
+            focusedDays.Add(_state.Today.Date);
+
+        // Streak counts back from today; an inactive today doesn't break it
+        // (the day isn't over), but an inactive yesterday does.
+        var cursor = focusedDays.Contains(today) ? today : today.AddDays(-1);
+        var streak = 0;
+        while (focusedDays.Contains(cursor))
+        {
+            streak++;
+            cursor = cursor.AddDays(-1);
+        }
+        StreakDays = streak;
+
+        StreakDots = string.Join(" ",
+            Enumerable.Range(0, 14)
+                      .Select(i => today.AddDays(i - 13))
+                      .Select(d => focusedDays.Contains(d) ? "●" : "○"));
     }
 
     /// <summary>Passes the click through to the shell so this view model
@@ -130,6 +173,7 @@ public partial class TodayViewModel : ViewModelBase
 
         CompletedSessions = _state.Today.CompletedSessions;
         FocusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);
+        RecomputeStreak();
 
         _save();
     }

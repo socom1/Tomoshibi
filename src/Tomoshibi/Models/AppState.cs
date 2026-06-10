@@ -13,6 +13,11 @@ public class AppState
     public DateOnly IntentionDate { get; set; }
 
     public DailyStats Today { get; set; } = new();
+
+    /// <summary>Past days' stats, appended at the midnight rollover. The
+    /// streak display reads this; the future streak calendar will too.</summary>
+    public List<DailyStats> History { get; set; } = new();
+
     public PomodoroSettings Settings { get; set; } = new();
 
     /// <summary>The user's "task code" — what they've typed in the today
@@ -38,4 +43,7 @@ public class AppState
     public List<ClassSlot> ClassSlots { get; set; } = new();
     public List<Deadline> Deadlines { get; set; } = new();
     public ClassesView ClassesView { get; set; } = ClassesView.Grid;
+
+    // Todo backlog
+    public List<TodoItem> Todos { get; set; } = new();
 }

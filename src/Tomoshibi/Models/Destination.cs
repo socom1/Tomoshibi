@@ -8,5 +8,6 @@ namespace Tomoshibi.Models;
 public enum Destination
 {
     Today,
-    Timetable
+    Timetable,
+    Todo
 }

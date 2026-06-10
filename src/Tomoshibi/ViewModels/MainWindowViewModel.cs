@@ -29,6 +29,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsTodayActive))]
     [NotifyPropertyChangedFor(nameof(IsTimetableActive))]
+    [NotifyPropertyChangedFor(nameof(IsTodoActive))]
     [NotifyPropertyChangedFor(nameof(ActiveContent))]
     private Destination _activeDestination;
 
@@ -44,16 +45,21 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>The timetable destination's content.</summary>
     public TimetableViewModel Timetable { get; }
 
+    /// <summary>The todo backlog destination's content.</summary>
+    public TodoViewModel Todo { get; }
+
     /// <summary>The view model the main content area is currently bound to.
     /// Resolved through <see cref="ViewLocator"/> to the right view.</summary>
     public ViewModelBase ActiveContent => ActiveDestination switch
     {
         Destination.Timetable => Timetable,
+        Destination.Todo => Todo,
         _ => Today
     };
 
     public bool IsTodayActive => ActiveDestination == Destination.Today;
     public bool IsTimetableActive => ActiveDestination == Destination.Timetable;
+    public bool IsTodoActive => ActiveDestination == Destination.Todo;
 
     public MainWindowViewModel(IStorageService storage)
     {
@@ -66,8 +72,10 @@ public partial class MainWindowViewModel : ViewModelBase
         _activeDestination = _state.ActiveDestination;
 
         var settings = new SettingsViewModel(_state.Settings, OnSettingsChanged);
-        Today = new TodayViewModel(_state, Save, () => IsZenMode = !IsZenMode, settings, new SoundService());
+        Today = new TodayViewModel(_state, Save, () => IsZenMode = !IsZenMode, settings,
+                                   new SoundService(), new NotificationService());
         Timetable = new TimetableViewModel(_state, Save);
+        Todo = new TodoViewModel(_state, Save, SendTodoToToday);
 
         Today.Pomodoro.PropertyChanged += OnPomodoroPropertyChanged;
 
@@ -117,6 +125,23 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void NavigateToTimetable() => ActiveDestination = Destination.Timetable;
 
+    [RelayCommand]
+    private void NavigateToTodo() => ActiveDestination = Destination.Todo;
+
+    /// <summary>Append a backlog item to today's task template as a new block
+    /// and jump to the today page so the user sees it land.</summary>
+    private void SendTodoToToday(TodoItem todo)
+    {
+        var block = $"// {todo.Title}";
+        if (!string.IsNullOrWhiteSpace(todo.Course))
+            block += $"\ncourse: {todo.Course}";
+
+        var existing = (Today.Tasks.Source ?? string.Empty).TrimEnd();
+        Today.Tasks.Source = string.IsNullOrEmpty(existing) ? block : $"{existing}\n\n{block}";
+
+        ActiveDestination = Destination.Today;
+    }
+
     partial void OnIsNavOpenChanged(bool value)
     {
         _state.IsNavOpen = value;
@@ -148,6 +173,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (_state.Today.Date != today)
         {
+            // Bank the finished day before replacing it — the streak and the
+            // future calendar need the history. Empty days aren't recorded.
+            if (_state.Today.CompletedSessions > 0 || _state.Today.FocusedMinutes > 0)
+            {
+                _state.History.RemoveAll(d => d.Date == _state.Today.Date);
+                _state.History.Add(_state.Today);
+
+                // A year of history is plenty; keep the file small.
+                if (_state.History.Count > 400)
+                    _state.History.RemoveRange(0, _state.History.Count - 400);
+            }
+
             _state.Today = new DailyStats { Date = today };
             changed = true;
         }

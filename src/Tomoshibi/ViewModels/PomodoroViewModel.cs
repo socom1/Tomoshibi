@@ -17,6 +17,7 @@ public partial class PomodoroViewModel : ViewModelBase
 {
     private readonly Func<PomodoroSettings> _getSettings;
     private readonly ISoundService? _sound;
+    private readonly INotificationService? _notify;
     private readonly DispatcherTimer _timer;
 
     private int _remainingSeconds;
@@ -66,10 +67,13 @@ public partial class PomodoroViewModel : ViewModelBase
     /// <summary>Constructs the timer with a callback that returns the current
     /// effective settings (global, optionally overridden by the active task).
     /// The callback is called fresh each time a phase starts.</summary>
-    public PomodoroViewModel(Func<PomodoroSettings> getSettings, ISoundService? sound = null)
+    public PomodoroViewModel(Func<PomodoroSettings> getSettings,
+                             ISoundService? sound = null,
+                             INotificationService? notify = null)
     {
         _getSettings = getSettings;
         _sound = sound;
+        _notify = notify;
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _timer.Tick += OnTick;
 
@@ -167,6 +171,10 @@ public partial class PomodoroViewModel : ViewModelBase
         if (natural)
         {
             _sound?.PlayPhaseChime();
+
+            _notify?.Notify("灯火 · tomoshibi", Phase == PomodoroPhase.Focus
+                ? "break over — back to focus 集中"
+                : $"focus done — {PhaseShortLabel} 休憩");
 
             if (_getSettings().AutoContinue)
             {

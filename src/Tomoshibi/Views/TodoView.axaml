@@ -1,0 +1,85 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tomoshibi.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="Tomoshibi.Views.TodoView"
+             x:DataType="vm:TodoViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="28,4,28,28" MaxWidth="760">
+
+        <!-- Page header -->
+        <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,20">
+            <TextBlock Text="やること · todo" Classes="jp" />
+            <TextBlock Classes="h1">
+                <Run Text="{Binding OpenCount, Mode=OneWay}" />
+                <Run Text=" open" />
+            </TextBlock>
+        </StackPanel>
+
+        <!-- Add form -->
+        <Border Grid.Row="1" Classes="card">
+            <Grid ColumnDefinitions="*,110,140,Auto">
+                <TextBox Grid.Column="0" Text="{Binding NewTitle}"
+                         Watermark="what needs doing?">
+                    <TextBox.KeyBindings>
+                        <KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+                    </TextBox.KeyBindings>
+                </TextBox>
+                <AutoCompleteBox Grid.Column="1" Text="{Binding NewCourse}"
+                                 ItemsSource="{Binding KnownCourses}"
+                                 FilterMode="Contains"
+                                 Watermark="course" Margin="8,0,0,0" />
+                <CalendarDatePicker Grid.Column="2" SelectedDate="{Binding NewDue}"
+                                    Watermark="due (optional)" Margin="8,0,0,0" />
+                <Button Grid.Column="3" Content="+" Classes="accent" Margin="8,0,0,0"
+                        Command="{Binding AddCommand}" />
+            </Grid>
+        </Border>
+
+        <!-- Backlog -->
+        <Border Grid.Row="2" Classes="card" Margin="0,20,0,0">
+            <Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              IsVisible="{Binding HasItems}">
+                    <ItemsControl ItemsSource="{Binding Items}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TodoItemViewModel">
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" Margin="0,6,0,0">
+                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsDone}"
+                                              MinHeight="0" Padding="0"
+                                              VerticalAlignment="Center" Margin="0,0,8,0" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                               Classes.done="{Binding IsDone}"
+                                               VerticalAlignment="Center" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Column="2" Text="{Binding DueLabel}"
+                                               Classes="caption" Margin="8,0,0,0"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource MutedTextBrush}"
+                                               Classes.overdue="{Binding IsOverdue}"
+                                               IsVisible="{Binding HasDue}" />
+                                    <Border Grid.Column="3" Classes="tag" Margin="8,0,0,0"
+                                            IsVisible="{Binding HasCourse}">
+                                        <TextBlock Text="{Binding Course}" />
+                                    </Border>
+                                    <Button Grid.Column="4" Content="→" Classes="icon" Margin="4,0,0,0"
+                                            ToolTip.Tip="send to today"
+                                            Command="{Binding $parent[ItemsControl].((vm:TodoViewModel)DataContext).SendToTodayCommand}"
+                                            CommandParameter="{Binding}" />
+                                    <Button Grid.Column="5" Content="✕" Classes="icon"
+                                            Command="{Binding $parent[ItemsControl].((vm:TodoViewModel)DataContext).RemoveCommand}"
+                                            CommandParameter="{Binding}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <TextBlock Text="やることはまだない · nothing on the list"
+                           Classes="jp" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           IsVisible="{Binding !HasItems}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

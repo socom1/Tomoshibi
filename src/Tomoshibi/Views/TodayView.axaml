@@ -133,7 +133,7 @@
                 <Border Grid.Row="0" Classes="card">
                     <StackPanel Spacing="12">
                         <TextBlock Text="記録 · today" Classes="jp" />
-                        <Grid ColumnDefinitions="*,*">
+                        <Grid ColumnDefinitions="*,*,*">
                             <StackPanel Grid.Column="0" Spacing="2">
                                 <TextBlock Text="{Binding CompletedSessions}"
                                            FontSize="30"
@@ -146,7 +146,15 @@
                                            Foreground="{DynamicResource AmberBrush}" />
                                 <TextBlock Text="hours" Classes="caption" />
                             </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="2">
+                                <TextBlock Text="{Binding StreakDays}"
+                                           FontSize="30"
+                                           Foreground="{DynamicResource MatchaBrush}" />
+                                <TextBlock Text="day streak" Classes="caption" />
+                            </StackPanel>
                         </Grid>
+                        <TextBlock Text="{Binding StreakDots}" Classes="caption"
+                                   ToolTip.Tip="the last 14 days" />
                     </StackPanel>
                 </Border>
 

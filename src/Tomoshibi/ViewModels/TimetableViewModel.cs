@@ -33,6 +33,10 @@ public partial class TimetableViewModel : ViewModelBase
 
     [ObservableProperty] private bool _hasDeadlines;
 
+    /// <summary>One-line result of the last .ics import, shown in the header
+    /// area ("imported 5 classes · 2 deadlines · 1 skipped").</summary>
+    [ObservableProperty] private string _importSummary = string.Empty;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsClassesGridView))]
     [NotifyPropertyChangedFor(nameof(IsClassesListView))]
@@ -49,17 +53,21 @@ public partial class TimetableViewModel : ViewModelBase
     public bool IsClassesGridShown => HasSlots && IsClassesGridView;
     public bool IsClassesListShown => HasSlots && IsClassesListView;
 
-    // ---- New deadline form ----
+    // ---- New deadline form (doubles as the edit form) ----
     [ObservableProperty] private DateTime? _newDeadlineDate = DateTime.Now;
     [ObservableProperty] private string _newDeadlineTitle = string.Empty;
     [ObservableProperty] private string _newDeadlineCourse = string.Empty;
+    [ObservableProperty] private string _deadlineFormLabel = "add";
+    private Deadline? _editingDeadline;
 
-    // ---- New class slot form ----
+    // ---- New class slot form (doubles as the edit form) ----
     [ObservableProperty] private WeekDay _newSlotDay = WeekDay.Mon;
     [ObservableProperty] private TimeSpan _newSlotStart = new(9, 0, 0);
     [ObservableProperty] private TimeSpan _newSlotEnd = new(10, 0, 0);
     [ObservableProperty] private string _newSlotTitle = string.Empty;
     [ObservableProperty] private string _newSlotCourse = string.Empty;
+    [ObservableProperty] private string _slotFormLabel = "add";
+    private ClassSlot? _editingSlot;
 
     /// <summary>The seven weekdays as picker options for the new-slot form.</summary>
     public IReadOnlyList<WeekDay> WeekDays { get; } = Enum.GetValues<WeekDay>();
@@ -99,19 +107,35 @@ public partial class TimetableViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(title) || NewDeadlineDate is null)
             return;
 
-        var model = new Deadline
+        var course = string.IsNullOrWhiteSpace(NewDeadlineCourse) ? null : NewDeadlineCourse.Trim();
+
+        if (_editingDeadline is { } editing)
         {
-            Date = DateOnly.FromDateTime(NewDeadlineDate.Value),
-            Title = title,
-            Course = string.IsNullOrWhiteSpace(NewDeadlineCourse) ? null : NewDeadlineCourse.Trim()
-        };
+            // Saving an in-place edit: mutate the model, rewrap its row so the
+            // computed labels refresh, and re-sort.
+            editing.Date = DateOnly.FromDateTime(NewDeadlineDate.Value);
+            editing.Title = title;
+            editing.Course = course;
 
-        _state.Deadlines.Add(model);
-        InsertSorted(Deadlines, new DeadlineItemViewModel(model), (a, b) => a.Model.Date.CompareTo(b.Model.Date));
+            var row = Deadlines.FirstOrDefault(r => r.Model == editing);
+            if (row is not null)
+                Deadlines.Remove(row);
+            InsertSorted(Deadlines, new DeadlineItemViewModel(editing), (a, b) => a.Model.Date.CompareTo(b.Model.Date));
+        }
+        else
+        {
+            var model = new Deadline
+            {
+                Date = DateOnly.FromDateTime(NewDeadlineDate.Value),
+                Title = title,
+                Course = course
+            };
 
-        NewDeadlineTitle = string.Empty;
-        NewDeadlineCourse = string.Empty;
+            _state.Deadlines.Add(model);
+            InsertSorted(Deadlines, new DeadlineItemViewModel(model), (a, b) => a.Model.Date.CompareTo(b.Model.Date));
+        }
 
+        CancelEdits();
         RebuildKnownCourses();
         UpdateFlags();
         _save();
@@ -122,6 +146,9 @@ public partial class TimetableViewModel : ViewModelBase
     {
         if (item is null)
             return;
+
+        if (item.Model == _editingDeadline)
+            CancelEdits();
 
         _state.Deadlines.Remove(item.Model);
         Deadlines.Remove(item);
@@ -141,27 +168,124 @@ public partial class TimetableViewModel : ViewModelBase
         if (NewSlotEnd <= NewSlotStart)
             return;
 
-        var model = new ClassSlot
+        var course = string.IsNullOrWhiteSpace(NewSlotCourse) ? null : NewSlotCourse.Trim();
+
+        if (_editingSlot is { } editing)
         {
-            Day = NewSlotDay,
-            Start = TimeOnly.FromTimeSpan(NewSlotStart),
-            End = TimeOnly.FromTimeSpan(NewSlotEnd),
-            Title = title,
-            Course = string.IsNullOrWhiteSpace(NewSlotCourse) ? null : NewSlotCourse.Trim()
-        };
+            editing.Day = NewSlotDay;
+            editing.Start = TimeOnly.FromTimeSpan(NewSlotStart);
+            editing.End = TimeOnly.FromTimeSpan(NewSlotEnd);
+            editing.Title = title;
+            editing.Course = course;
 
-        _state.ClassSlots.Add(model);
-        InsertSorted(Slots, new ClassSlotItemViewModel(model),
-            (a, b) => a.Model.Day != b.Model.Day
-                ? a.Model.Day.CompareTo(b.Model.Day)
-                : a.Model.Start.CompareTo(b.Model.Start));
+            var row = Slots.FirstOrDefault(r => r.Model == editing);
+            if (row is not null)
+                Slots.Remove(row);
+            InsertSorted(Slots, new ClassSlotItemViewModel(editing), CompareSlots);
+        }
+        else
+        {
+            var model = new ClassSlot
+            {
+                Day = NewSlotDay,
+                Start = TimeOnly.FromTimeSpan(NewSlotStart),
+                End = TimeOnly.FromTimeSpan(NewSlotEnd),
+                Title = title,
+                Course = course
+            };
 
-        NewSlotTitle = string.Empty;
-        NewSlotCourse = string.Empty;
+            _state.ClassSlots.Add(model);
+            InsertSorted(Slots, new ClassSlotItemViewModel(model), CompareSlots);
+        }
+
+        CancelEdits();
+        RebuildKnownCourses();
+        UpdateFlags();
+        _save();
+    }
+
+    private static int CompareSlots(ClassSlotItemViewModel a, ClassSlotItemViewModel b) =>
+        a.Model.Day != b.Model.Day
+            ? a.Model.Day.CompareTo(b.Model.Day)
+            : a.Model.Start.CompareTo(b.Model.Start);
+
+    /// <summary>Load a slot into the entry form for in-place editing; the
+    /// form's add button becomes "save" until it lands or is cancelled.</summary>
+    public void BeginEditSlot(ClassSlotItemViewModel item)
+    {
+        _editingSlot = item.Model;
+        NewSlotDay = item.Model.Day;
+        NewSlotStart = item.Model.Start.ToTimeSpan();
+        NewSlotEnd = item.Model.End.ToTimeSpan();
+        NewSlotTitle = item.Model.Title;
+        NewSlotCourse = item.Model.Course ?? string.Empty;
+        SlotFormLabel = "save";
+    }
+
+    public void BeginEditDeadline(DeadlineItemViewModel item)
+    {
+        _editingDeadline = item.Model;
+        NewDeadlineDate = item.Model.Date.ToDateTime(TimeOnly.MinValue);
+        NewDeadlineTitle = item.Model.Title;
+        NewDeadlineCourse = item.Model.Course ?? string.Empty;
+        DeadlineFormLabel = "save";
+    }
+
+    /// <summary>Merge a parsed .ics file into the timetable. Exact duplicates
+    /// (same day/time/title for slots, same date/title for deadlines) are
+    /// skipped so re-importing the same file is harmless.</summary>
+    public void ImportIcs(string text)
+    {
+        var parsed = IcsImporter.Parse(text);
+        var added = 0;
+        var addedDeadlines = 0;
+
+        foreach (var slot in parsed.Slots)
+        {
+            var dupe = _state.ClassSlots.Any(s =>
+                s.Day == slot.Day && s.Start == slot.Start &&
+                s.End == slot.End && s.Title == slot.Title);
+            if (dupe)
+                continue;
+
+            _state.ClassSlots.Add(slot);
+            InsertSorted(Slots, new ClassSlotItemViewModel(slot), CompareSlots);
+            added++;
+        }
+
+        foreach (var deadline in parsed.Deadlines)
+        {
+            var dupe = _state.Deadlines.Any(d =>
+                d.Date == deadline.Date && d.Title == deadline.Title);
+            if (dupe)
+                continue;
+
+            _state.Deadlines.Add(deadline);
+            InsertSorted(Deadlines, new DeadlineItemViewModel(deadline),
+                (a, b) => a.Model.Date.CompareTo(b.Model.Date));
+            addedDeadlines++;
+        }
+
+        ImportSummary = $"imported {added} classes · {addedDeadlines} deadlines" +
+                        (parsed.Skipped > 0 ? $" · {parsed.Skipped} skipped" : string.Empty);
 
         RebuildKnownCourses();
         UpdateFlags();
         _save();
+    }
+
+    /// <summary>Drop any in-flight edit and reset both entry forms — called
+    /// when a + button opens a fresh form, and after every save.</summary>
+    public void CancelEdits()
+    {
+        _editingSlot = null;
+        _editingDeadline = null;
+        SlotFormLabel = "add";
+        DeadlineFormLabel = "add";
+        NewSlotTitle = string.Empty;
+        NewSlotCourse = string.Empty;
+        NewDeadlineTitle = string.Empty;
+        NewDeadlineCourse = string.Empty;
     }
 
     [RelayCommand]
@@ -169,6 +293,9 @@ public partial class TimetableViewModel : ViewModelBase
     {
         if (item is null)
             return;
+
+        if (item.Model == _editingSlot)
+            CancelEdits();
 
         _state.ClassSlots.Remove(item.Model);
         Slots.Remove(item);

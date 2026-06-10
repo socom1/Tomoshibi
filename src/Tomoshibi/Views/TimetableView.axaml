@@ -12,22 +12,33 @@
         <StackPanel Spacing="20">
 
             <!-- Page header -->
-            <StackPanel Spacing="2">
-                <TextBlock Text="時間割 · timetable" Classes="jp" />
-                <TextBlock Text="this week" Classes="h1" />
-            </StackPanel>
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="2">
+                    <TextBlock Text="時間割 · timetable" Classes="jp" />
+                    <TextBlock Text="schedule" Classes="h1" />
+                    <TextBlock Text="{Binding ImportSummary}" Classes="caption"
+                               IsVisible="{Binding ImportSummary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+                <Button Grid.Column="1" Content="import .ics" Classes="seg"
+                        VerticalAlignment="Top" Margin="0,6,0,0"
+                        Click="OnImportIcsClick"
+                        ToolTip.Tip="bring in a timetable export — weekly events become classes, one-offs become deadlines" />
+            </Grid>
 
             <!-- ============ Deadlines ============ -->
             <Border Classes="card">
                 <DockPanel>
                     <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto">
                         <TextBlock Text="締切 · deadlines" Classes="jp" VerticalAlignment="Center" />
-                        <Button Grid.Column="1" Classes="icon" Content="+" FontSize="18"
+                        <Button x:Name="AddDeadlineButton" Grid.Column="1" Classes="icon"
+                                Content="+" FontSize="18"
+                                Click="OnAddDeadlineOpen"
                                 ToolTip.Tip="add a deadline">
                             <Button.Flyout>
                                 <Flyout Placement="BottomEdgeAlignedRight">
                                     <StackPanel Width="260" Spacing="10" Margin="8">
-                                        <TextBlock Text="新しい締切 · new deadline" Classes="jp" />
+                                        <TextBlock Text="締切 · deadline" Classes="jp" />
 
                                         <CalendarDatePicker SelectedDate="{Binding NewDeadlineDate}" />
                                         <TextBox Watermark="what's due?"
@@ -36,7 +47,7 @@
                                                          Text="{Binding NewDeadlineCourse}"
                                                          ItemsSource="{Binding KnownCourses}"
                                                          FilterMode="Contains" />
-                                        <Button Content="add" Classes="accent"
+                                        <Button Content="{Binding DeadlineFormLabel}" Classes="accent"
                                                 HorizontalAlignment="Stretch"
                                                 Command="{Binding AddDeadlineCommand}" />
                                     </StackPanel>
@@ -52,7 +63,7 @@
                     <ItemsControl ItemsSource="{Binding Deadlines}" Margin="0,8,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:DeadlineItemViewModel">
-                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,6,0,0">
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" Margin="0,6,0,0">
                                     <TextBlock Grid.Column="0" Text="{Binding DateLabel}"
                                                Classes="caption" VerticalAlignment="Center"
                                                Width="80" />
@@ -64,7 +75,10 @@
                                             IsVisible="{Binding HasCourse}">
                                         <TextBlock Text="{Binding Course}" />
                                     </Border>
-                                    <Button Grid.Column="3" Content="✕" Classes="icon" Margin="4,0,0,0"
+                                    <Button Grid.Column="3" Content="✎" Classes="icon" Margin="4,0,0,0"
+                                            Click="OnEditDeadlineClick"
+                                            ToolTip.Tip="edit" />
+                                    <Button Grid.Column="4" Content="✕" Classes="icon"
                                             Command="{Binding $parent[ItemsControl].((vm:TimetableViewModel)DataContext).RemoveDeadlineCommand}"
                                             CommandParameter="{Binding}" />
                                 </Grid>
@@ -90,13 +104,15 @@
                                 Content="list"
                                 Command="{Binding ShowListClassesCommand}" />
 
-                        <Button Grid.Column="3" Classes="icon" Content="+" FontSize="18"
+                        <Button x:Name="AddSlotButton" Grid.Column="3" Classes="icon"
+                                Content="+" FontSize="18"
                                 Margin="8,0,0,0"
+                                Click="OnAddSlotOpen"
                                 ToolTip.Tip="add a class slot">
                             <Button.Flyout>
                                 <Flyout Placement="BottomEdgeAlignedRight">
                                     <StackPanel Width="260" Spacing="10" Margin="8">
-                                        <TextBlock Text="新しい授業 · new class" Classes="jp" />
+                                        <TextBlock Text="授業 · class" Classes="jp" />
 
                                         <ComboBox SelectedItem="{Binding NewSlotDay}"
                                                   ItemsSource="{Binding WeekDays}"
@@ -115,7 +131,7 @@
                                                          Text="{Binding NewSlotCourse}"
                                                          ItemsSource="{Binding KnownCourses}"
                                                          FilterMode="Contains" />
-                                        <Button Content="add" Classes="accent"
+                                        <Button Content="{Binding SlotFormLabel}" Classes="accent"
                                                 HorizontalAlignment="Stretch"
                                                 Command="{Binding AddSlotCommand}" />
                                     </StackPanel>
@@ -134,7 +150,7 @@
                                   IsVisible="{Binding IsClassesListShown}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:ClassSlotItemViewModel">
-                                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" Margin="0,6,0,0">
+                                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" Margin="0,6,0,0">
                                     <TextBlock Grid.Column="0" Text="{Binding DayLabel}"
                                                Classes="caption" VerticalAlignment="Center"
                                                Width="34" />
@@ -148,7 +164,10 @@
                                             IsVisible="{Binding HasCourse}">
                                         <TextBlock Text="{Binding Course}" />
                                     </Border>
-                                    <Button Grid.Column="4" Content="✕" Classes="icon" Margin="4,0,0,0"
+                                    <Button Grid.Column="4" Content="✎" Classes="icon" Margin="4,0,0,0"
+                                            Click="OnEditSlotClick"
+                                            ToolTip.Tip="edit" />
+                                    <Button Grid.Column="5" Content="✕" Classes="icon"
                                             Command="{Binding $parent[ItemsControl].((vm:TimetableViewModel)DataContext).RemoveSlotCommand}"
                                             CommandParameter="{Binding}" />
                                 </Grid>

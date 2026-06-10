@@ -60,6 +60,14 @@
                         <TextBlock Text="timetable" Opacity="0.55" />
                     </StackPanel>
                 </Button>
+
+                <Button Classes="nav" Classes.active="{Binding IsTodoActive}"
+                        Command="{Binding NavigateToTodoCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="やること" />
+                        <TextBlock Text="todo" Opacity="0.55" />
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </Border>
 

@@ -43,6 +43,9 @@
         <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
         <Setter Property="FontSize" Value="12" />
     </Style>
+    <Style Selector="TextBlock.caption.overdue">
+        <Setter Property="Foreground" Value="{DynamicResource SakuraBrush}" />
+    </Style>
 
     <!-- Completed task title -->
     <Style Selector="TextBlock.done">
