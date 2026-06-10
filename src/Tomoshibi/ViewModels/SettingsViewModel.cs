@@ -26,6 +26,9 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private decimal _roundsBeforeLongBreak;
 
+    [ObservableProperty]
+    private bool _autoContinue;
+
     public SettingsViewModel(PomodoroSettings settings, Action onChanged)
     {
         _settings = settings;
@@ -35,6 +38,7 @@ public partial class SettingsViewModel : ViewModelBase
         _shortBreakMinutes = settings.ShortBreakMinutes;
         _longBreakMinutes = settings.LongBreakMinutes;
         _roundsBeforeLongBreak = settings.RoundsBeforeLongBreak;
+        _autoContinue = settings.AutoContinue;
     }
 
     partial void OnFocusMinutesChanged(decimal value)
@@ -58,6 +62,12 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnRoundsBeforeLongBreakChanged(decimal value)
     {
         _settings.RoundsBeforeLongBreak = (int)value;
+        _onChanged();
+    }
+
+    partial void OnAutoContinueChanged(bool value)
+    {
+        _settings.AutoContinue = value;
         _onChanged();
     }
 }

@@ -2,6 +2,7 @@ using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Tomoshibi.Models;
+using Tomoshibi.Services;
 
 namespace Tomoshibi.ViewModels;
 
@@ -31,6 +32,14 @@ public partial class TodayViewModel : ViewModelBase
     [ObservableProperty]
     private string _greeting;
 
+    /// <summary>"now · maths" under the timer when a task is active, empty
+    /// otherwise — confirms which task is driving the phase lengths.</summary>
+    [ObservableProperty]
+    private string _activeTaskLabel = string.Empty;
+
+    [ObservableProperty]
+    private bool _hasActiveTask;
+
     /// <summary>The Pomodoro timer.</summary>
     public PomodoroViewModel Pomodoro { get; }
 
@@ -41,7 +50,8 @@ public partial class TodayViewModel : ViewModelBase
     /// gear since the settings only ever affect the pomodoro.</summary>
     public SettingsViewModel Settings { get; }
 
-    public TodayViewModel(AppState state, Action save, Action toggleZen, SettingsViewModel settings)
+    public TodayViewModel(AppState state, Action save, Action toggleZen,
+                          SettingsViewModel settings, ISoundService? sound = null)
     {
         _state = state;
         _save = save;
@@ -53,7 +63,7 @@ public partial class TodayViewModel : ViewModelBase
         _focusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);
         _greeting = GreetingFor(DateTime.Now);
 
-        Pomodoro = new PomodoroViewModel(ComposeEffectiveSettings);
+        Pomodoro = new PomodoroViewModel(ComposeEffectiveSettings, sound);
         Pomodoro.FocusSessionCompleted += OnFocusSessionCompleted;
 
         Tasks = new TaskTemplateViewModel(_state, _save, OnActiveTaskChanged);
@@ -72,13 +82,21 @@ public partial class TodayViewModel : ViewModelBase
             FocusMinutes = t?.Study ?? s.FocusMinutes,
             ShortBreakMinutes = t?.Short ?? s.ShortBreakMinutes,
             LongBreakMinutes = t?.Long ?? s.LongBreakMinutes,
-            RoundsBeforeLongBreak = s.RoundsBeforeLongBreak
+            RoundsBeforeLongBreak = s.RoundsBeforeLongBreak,
+            AutoContinue = s.AutoContinue
         };
     }
 
     /// <summary>When the user picks a different task, the timer needs to
     /// reload the new effective settings — same path the settings flyout uses.</summary>
-    private void OnActiveTaskChanged() => Pomodoro.ApplySettings();
+    private void OnActiveTaskChanged()
+    {
+        Pomodoro.ApplySettings();
+
+        var active = Tasks?.ActiveTask;
+        HasActiveTask = active is not null;
+        ActiveTaskLabel = active is null ? string.Empty : $"now · {active.Title}";
+    }
 
     /// <summary>Called by the shell's day-watcher every minute so the greeting
     /// keeps up with the time of day.</summary>

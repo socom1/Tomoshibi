@@ -484,3 +484,59 @@ No overlap handling — two slots on the same day and hour overlap visually;
 rare in practice and obvious when it happens. No clip for slots outside
 08:00–22:00 (start is clamped; ends are bounded by the grid). And no `.ics`
 import — that's the next focused commit.
+
+---
+
+## Making the pomodoro feel alive (2026-06-10)
+
+A pass over the timer driven by one observation: a pomodoro you have to
+*watch* isn't doing its job. Six changes, one theme — the timer should tell
+you things instead of waiting to be looked at.
+
+**It chimes now.** When a phase completes naturally the app plays a soft
+two-note bell (E5 → A5, synthesised sine with a fast decay — generated once
+with a Python script, shipped as `Assets/chime.wav`). No audio library:
+a `SoundService` behind an `ISoundService` interface shells out to the OS
+player — `afplay` on macOS, `paplay`/`aplay` on Linux, PowerShell's
+`SoundPlayer` on Windows. A missing player or file means silence, never a
+crash. The wav is excluded from `AvaloniaResource` embedding and copied to
+the output folder instead, because the OS player needs a real file path.
+Skips don't chime — the user is already at the controls.
+
+**Auto-continue.** New `AutoContinue` bool on `PomodoroSettings`, surfaced
+as a checkbox in the settings flyout. When on, a naturally-completed phase
+starts the next one immediately. Skips still land paused — a skip is the
+user intervening, so they choose when to resume.
+
+**Paused looks paused.** New `IsPaused` on the timer view model (stopped
+mid-phase, as opposed to stopped at a fresh phase). The clock digits dim to
+45% opacity through a `timer.paused` style class with an opacity
+transition, so paused and not-started stop being visually identical.
+
+**Round dots.** `round 2 of 4` became `● ● ○ ○` — filled for the current
+round and the ones behind it. Breaks keep their text labels. Reads at a
+glance, fits the aesthetic.
+
+**The active task shows under the clock.** Selecting a task already drove
+the phase lengths, but nothing confirmed it. Now a matcha `now · maths`
+line sits under the round dots (and in zen mode too), bound to a label the
+today view model rebuilds whenever the active task changes.
+
+**The window title counts down.** While running, the title becomes
+`14:32 · focus — tomoshibi`, so the dock/taskbar/Cmd+Tab shows progress
+when the app is in the background. The shell view model subscribes to the
+timer's property changes and rebuilds a `WindowTitle` property the Window
+binds to; idle returns to `灯火 · tomoshibi`.
+
+**Space toggles the timer.** Handled in the window code-behind rather than
+a `KeyBinding`, because space needs guards a gesture can't express: it
+must do nothing while a text field has focus, while the add-task modal is
+open, or when a control that consumes space (button, checkbox) already
+handled the event.
+
+**Stats bug fixed along the way.** Focus minutes were read from the
+settings at *completion* time, so switching the active task mid-block
+credited the wrong duration to the day's stats. The phase length is now
+captured when the phase starts (`_phaseFocusMinutes`, `_phaseTotalSeconds`)
+and used for both the stats event and the progress fraction — a phase keeps
+the length it began with, full stop.

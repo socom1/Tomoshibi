@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Tomoshibi.ViewModels;
 
 namespace Tomoshibi.Views;
@@ -13,6 +14,29 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
+    }
+
+    /// <summary>
+    /// Space toggles the timer from anywhere — except while typing in a text
+    /// field or while the add-task modal is up, where space means space.
+    /// Controls that consume space themselves (buttons, checkboxes) mark the
+    /// event handled before it bubbles here, so they're unaffected.
+    /// </summary>
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+
+        if (e.Handled || e.Key != Key.Space || _vm is null)
+            return;
+
+        if (_vm.Today.Tasks.IsAddTaskModalOpen)
+            return;
+
+        if (FocusManager?.GetFocusedElement() is TextBox)
+            return;
+
+        _vm.Today.Pomodoro.ToggleRunCommand.Execute(null);
+        e.Handled = true;
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)

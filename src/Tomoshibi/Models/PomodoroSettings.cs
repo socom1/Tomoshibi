@@ -10,4 +10,8 @@ public class PomodoroSettings
     public int ShortBreakMinutes { get; set; } = 5;
     public int LongBreakMinutes { get; set; } = 15;
     public int RoundsBeforeLongBreak { get; set; } = 4;
+
+    /// <summary>When a phase completes naturally, start the next one without
+    /// waiting for the user to press start.</summary>
+    public bool AutoContinue { get; set; }
 }

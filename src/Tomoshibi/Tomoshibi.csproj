@@ -25,7 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaResource Include="Assets/**" />
+    <!-- chime.wav is excluded from embedding: the sound service plays it via
+         the OS player, which needs a real file on disk next to the binary. -->
+    <AvaloniaResource Include="Assets/**" Exclude="Assets/chime.wav" />
+    <Content Include="Assets/chime.wav" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

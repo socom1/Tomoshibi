@@ -32,6 +32,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(ActiveContent))]
     private Destination _activeDestination;
 
+    /// <summary>Window title: the app name when idle, the countdown while the
+    /// timer runs so the dock/taskbar shows progress at a glance.</summary>
+    [ObservableProperty]
+    private string _windowTitle = "灯火 · tomoshibi";
+
     /// <summary>The "today" destination's content. Owns the pomodoro settings
     /// flyout since the settings only matter for the timer.</summary>
     public TodayViewModel Today { get; }
@@ -61,8 +66,10 @@ public partial class MainWindowViewModel : ViewModelBase
         _activeDestination = _state.ActiveDestination;
 
         var settings = new SettingsViewModel(_state.Settings, OnSettingsChanged);
-        Today = new TodayViewModel(_state, Save, () => IsZenMode = !IsZenMode, settings);
+        Today = new TodayViewModel(_state, Save, () => IsZenMode = !IsZenMode, settings, new SoundService());
         Timetable = new TimetableViewModel(_state, Save);
+
+        Today.Pomodoro.PropertyChanged += OnPomodoroPropertyChanged;
 
         // Catches the date rollover when the app is left running through midnight.
         _dayWatcher = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
@@ -70,6 +77,16 @@ public partial class MainWindowViewModel : ViewModelBase
         _dayWatcher.Start();
 
         Save();
+    }
+
+    private void OnPomodoroPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(PomodoroViewModel.TimeDisplay) or nameof(PomodoroViewModel.IsRunning))
+        {
+            WindowTitle = Today.Pomodoro.IsRunning
+                ? $"{Today.Pomodoro.TimeDisplay} · {Today.Pomodoro.PhaseShortLabel} — tomoshibi"
+                : "灯火 · tomoshibi";
+        }
     }
 
     /// <summary>Parameterless ctor for the XAML designer preview only.</summary>

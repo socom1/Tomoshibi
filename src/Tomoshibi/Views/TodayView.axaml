@@ -55,6 +55,9 @@
                                                Minimum="1" Maximum="12" Increment="1" FormatString="0" />
                             </Grid>
 
+                            <CheckBox IsChecked="{Binding Settings.AutoContinue}"
+                                      Content="auto-continue phases" />
+
                             <TextBlock Text="applies live · running phase finishes first" Classes="caption" />
                         </StackPanel>
                     </Flyout>
@@ -85,10 +88,12 @@
                                 HorizontalAlignment="Center" Spacing="10">
                         <TextBlock Text="{Binding Pomodoro.TimeDisplay}" FontSize="86" FontWeight="Light"
                                    Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
+                                   Classes="timer" Classes.paused="{Binding Pomodoro.IsPaused}"
                                    HorizontalAlignment="Center">
                             <TextBlock.Transitions>
                                 <Transitions>
                                     <BrushTransition Property="Foreground" Duration="0:0:0.45" />
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
                                 </Transitions>
                             </TextBlock.Transitions>
                         </TextBlock>
@@ -105,6 +110,10 @@
                         </ProgressBar>
                         <TextBlock Text="{Binding Pomodoro.RoundLabel}" Classes="caption"
                                    HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding ActiveTaskLabel}" Classes="caption"
+                                   Foreground="{DynamicResource MatchaBrush}"
+                                   HorizontalAlignment="Center"
+                                   IsVisible="{Binding HasActiveTask}" />
                     </StackPanel>
 
                     <StackPanel Grid.Row="2" Orientation="Horizontal"

@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         x:Class="Tomoshibi.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="灯火 · tomoshibi"
+        Title="{Binding WindowTitle}"
         Icon="avares://Tomoshibi/Assets/icon.png"
         Width="980" Height="680"
         MinWidth="820" MinHeight="560"
@@ -168,10 +168,12 @@
                        HorizontalAlignment="Center" />
             <TextBlock Text="{Binding Today.Pomodoro.TimeDisplay}" FontSize="180" FontWeight="Light"
                        Foreground="{Binding Today.Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
+                       Classes="timer" Classes.paused="{Binding Today.Pomodoro.IsPaused}"
                        HorizontalAlignment="Center">
                 <TextBlock.Transitions>
                     <Transitions>
                         <BrushTransition Property="Foreground" Duration="0:0:0.45" />
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
                     </Transitions>
                 </TextBlock.Transitions>
             </TextBlock>
@@ -188,6 +190,10 @@
             </ProgressBar>
             <TextBlock Text="{Binding Today.Pomodoro.RoundLabel}" Classes="caption"
                        HorizontalAlignment="Center" />
+            <TextBlock Text="{Binding Today.ActiveTaskLabel}" Classes="caption"
+                       Foreground="{DynamicResource MatchaBrush}"
+                       HorizontalAlignment="Center"
+                       IsVisible="{Binding Today.HasActiveTask}" />
         </StackPanel>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal"

@@ -50,6 +50,13 @@
         <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
     </Style>
 
+    <!-- The pomodoro clock dims while paused so paused and not-started don't
+         look identical. The opacity transition lives inline on the TextBlock
+         (its Transitions are already set there for the phase-colour fade). -->
+    <Style Selector="TextBlock.timer.paused">
+        <Setter Property="Opacity" Value="0.45" />
+    </Style>
+
     <!-- Inputs: consistent shape across TextBox and AutoCompleteBox so the
          Fluent defaults stop fighting the Tokyo Night look. -->
     <Style Selector="TextBox">
