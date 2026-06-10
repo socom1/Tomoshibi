@@ -46,4 +46,5 @@ public class AppState
 
     // Todo backlog
     public List<TodoItem> Todos { get; set; } = new();
+    public int NextTodoNumber { get; set; } = 1;
 }

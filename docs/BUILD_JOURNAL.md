@@ -636,3 +636,43 @@ reference Avalonia" claim is now the honest "no Avalonia *UI* types;
 DispatcherTimer is the deliberate exception"). Added the MIT LICENSE the
 README had been promising, and cut the v1.1/v1.2 tags that the versioned
 roadmap implied but I'd never actually created.
+
+---
+
+## The todo grows up into a ticket tracker (2026-06-10)
+
+The first cut of the backlog was a one-line list — title, course, due date,
+checkbox. Too thin to be worth a page. Rebuilt it as a small issue tracker,
+which is the version of "more structure" that fits a coding-aesthetic app:
+
+- **Ticket numbers.** Every item gets a sequential `#N` from a counter on
+  `AppState`, assigned at creation and stable forever. Old items are migrated
+  in creation order on first load.
+- **A status lifecycle, not a checkbox.** `○ backlog → ◐ doing → ● done`,
+  cycled by clicking the status glyph (muted / blue / matcha). `done` stamps
+  `CompletedAt`; leaving it clears it. The old `IsDone` flag is kept in sync
+  for state-file compatibility and migrated on load.
+- **Priority.** low / normal / high. Normal is invisible — only the
+  exceptions get a chip (high in sakura, low muted), so the list stays calm.
+- **Descriptions and subtasks.** Each row expands (chevron, rotates open) to
+  show free-form notes, a subtask checklist with its own add/remove, and a
+  meta line (`#12 · created jun 9 · est 3 sessions`). Subtask progress shows
+  on the collapsed row as `2/5`.
+- **Effort estimates.** Estimated focus sessions (`×3` on the row) — a
+  planning aid next to the timer, not a timer input.
+- **Search + filters.** A search box matching title/notes/course, and
+  open / done / all segments. Default view is open.
+- **A real add/edit modal** replacing the inline form — same centered-card
+  pattern as the new-task modal, used for both create and edit (✎).
+
+The interesting plumbing bit: rebuilds versus row identity. The list
+re-sorts on status changes (doing floats up), and the cheap way to do that
+is to rebuild the whole collection — but that recreates row view models,
+which would collapse any expanded row and eat half-typed subtask text. So a
+row distinguishes two signals: subtask edits call plain `save` (the row
+stays alive, no resort needed), while status changes call `saveAndResort`,
+and the rebuild carries expansion state across by item id.
+
+Send-to-today survives unchanged: it still copies title + course into the
+task template. Estimates deliberately don't flow through — an estimate of
+three sessions isn't a `study:` length.

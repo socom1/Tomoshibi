@@ -1,85 +1,233 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Tomoshibi.ViewModels"
+             xmlns:conv="using:Tomoshibi.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              x:Class="Tomoshibi.Views.TodoView"
              x:DataType="vm:TodoViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="28,4,28,28" MaxWidth="760">
+    <UserControl.Resources>
+        <conv:LowercaseConverter x:Key="Lower" />
+    </UserControl.Resources>
+
+    <Grid>
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="28,4,28,28" MaxWidth="860">
 
         <!-- Page header -->
-        <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,20">
-            <TextBlock Text="やること · todo" Classes="jp" />
-            <TextBlock Classes="h1">
-                <Run Text="{Binding OpenCount, Mode=OneWay}" />
-                <Run Text=" open" />
-            </TextBlock>
-        </StackPanel>
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <StackPanel Spacing="2">
+                <TextBlock Text="やること · todo" Classes="jp" />
+                <TextBlock Classes="h1">
+                    <Run Text="{Binding OpenCount, Mode=OneWay}" />
+                    <Run Text=" backlog · " />
+                    <Run Text="{Binding DoingCount, Mode=OneWay}" />
+                    <Run Text=" doing" />
+                </TextBlock>
+                <TextBlock Classes="caption">
+                    <Run Text="{Binding DoneCount, Mode=OneWay}" />
+                    <Run Text=" shipped all-time" />
+                </TextBlock>
+            </StackPanel>
 
-        <!-- Add form -->
-        <Border Grid.Row="1" Classes="card">
-            <Grid ColumnDefinitions="*,110,140,Auto">
-                <TextBox Grid.Column="0" Text="{Binding NewTitle}"
-                         Watermark="what needs doing?">
-                    <TextBox.KeyBindings>
-                        <KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
-                    </TextBox.KeyBindings>
-                </TextBox>
-                <AutoCompleteBox Grid.Column="1" Text="{Binding NewCourse}"
-                                 ItemsSource="{Binding KnownCourses}"
-                                 FilterMode="Contains"
-                                 Watermark="course" Margin="8,0,0,0" />
-                <CalendarDatePicker Grid.Column="2" SelectedDate="{Binding NewDue}"
-                                    Watermark="due (optional)" Margin="8,0,0,0" />
-                <Button Grid.Column="3" Content="+" Classes="accent" Margin="8,0,0,0"
-                        Command="{Binding AddCommand}" />
-            </Grid>
-        </Border>
+            <Button Grid.Column="1" Classes="accent" Content="+ new"
+                    VerticalAlignment="Top"
+                    Command="{Binding OpenAddCommand}" />
+        </Grid>
 
-        <!-- Backlog -->
-        <Border Grid.Row="2" Classes="card" Margin="0,20,0,0">
+        <!-- Filter bar -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,16,*" Margin="0,0,0,12">
+            <Button Grid.Column="0" Classes="seg" Content="open"
+                    Classes.active="{Binding IsOpenFilter}"
+                    Command="{Binding ShowOpenCommand}" />
+            <Button Grid.Column="1" Classes="seg" Content="done"
+                    Classes.active="{Binding IsDoneFilter}"
+                    Command="{Binding ShowDoneCommand}" />
+            <Button Grid.Column="2" Classes="seg" Content="all"
+                    Classes.active="{Binding IsAllFilter}"
+                    Command="{Binding ShowAllCommand}" />
+
+            <TextBox Grid.Column="4" Text="{Binding SearchText}"
+                     Watermark="search title, notes, course…" />
+        </Grid>
+
+        <!-- Tickets -->
+        <Border Grid.Row="2" Classes="card">
             <Grid>
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              IsVisible="{Binding HasItems}">
+                              IsVisible="{Binding HasVisibleItems}">
                     <ItemsControl ItemsSource="{Binding Items}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:TodoItemViewModel">
-                                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" Margin="0,6,0,0">
-                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsDone}"
-                                              MinHeight="0" Padding="0"
-                                              VerticalAlignment="Center" Margin="0,0,8,0" />
-                                    <TextBlock Grid.Column="1" Text="{Binding Title}"
-                                               Classes.done="{Binding IsDone}"
-                                               VerticalAlignment="Center" TextWrapping="Wrap" />
-                                    <TextBlock Grid.Column="2" Text="{Binding DueLabel}"
-                                               Classes="caption" Margin="8,0,0,0"
-                                               VerticalAlignment="Center"
-                                               Foreground="{DynamicResource MutedTextBrush}"
-                                               Classes.overdue="{Binding IsOverdue}"
-                                               IsVisible="{Binding HasDue}" />
-                                    <Border Grid.Column="3" Classes="tag" Margin="8,0,0,0"
-                                            IsVisible="{Binding HasCourse}">
-                                        <TextBlock Text="{Binding Course}" />
+                                <StackPanel Margin="0,2,0,2">
+
+                                    <!-- Row line -->
+                                    <Border Classes="trow">
+                                    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                                        <ToggleButton Grid.Column="0" Classes="icon chev" Content="▸"
+                                                      FontSize="11" Padding="4,2"
+                                                      IsChecked="{Binding IsExpanded}"
+                                                      ToolTip.Tip="details" />
+                                        <Button Grid.Column="1" Classes="icon status"
+                                                Classes.doing="{Binding IsDoing}"
+                                                Classes.donestat="{Binding IsDone}"
+                                                Content="{Binding StatusGlyph}" FontSize="14"
+                                                Command="{Binding CycleStatusCommand}"
+                                                ToolTip.Tip="{Binding StatusTip}" />
+                                        <TextBlock Grid.Column="2" Text="{Binding NumberLabel}"
+                                                   Classes="caption" VerticalAlignment="Center"
+                                                   MinWidth="32" Margin="2,0,8,0" />
+                                        <TextBlock Grid.Column="3" Text="{Binding Title}"
+                                                   Classes.done="{Binding IsDone}"
+                                                   VerticalAlignment="Center" TextWrapping="Wrap" />
+                                        <TextBlock Grid.Column="4" Text="{Binding DueLabel}"
+                                                   Classes="caption" Margin="8,0,0,0"
+                                                   Classes.overdue="{Binding IsOverdue}"
+                                                   VerticalAlignment="Center"
+                                                   IsVisible="{Binding HasDue}" />
+                                        <Border Grid.Column="5" Classes="tag prio" Margin="8,0,0,0"
+                                                Classes.high="{Binding IsHighPriority}"
+                                                IsVisible="{Binding HasPriorityChip}">
+                                            <TextBlock Text="{Binding PriorityLabel}" />
+                                        </Border>
+                                        <TextBlock Grid.Column="6" Text="{Binding SubtaskProgress}"
+                                                   Classes="caption" Margin="8,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   IsVisible="{Binding HasSubtasks}" />
+                                        <Border Grid.Column="7" Classes="tag" Margin="8,0,0,0"
+                                                IsVisible="{Binding HasCourse}">
+                                            <TextBlock Text="{Binding Course}" />
+                                        </Border>
+                                        <Button Grid.Column="8" Content="→" Classes="icon" Margin="4,0,0,0"
+                                                ToolTip.Tip="send to today"
+                                                Command="{Binding $parent[ItemsControl].((vm:TodoViewModel)DataContext).SendToTodayCommand}"
+                                                CommandParameter="{Binding}" />
+                                        <Button Grid.Column="9" Content="✎" Classes="icon"
+                                                ToolTip.Tip="edit"
+                                                Click="OnEditClick" />
+                                        <Button Grid.Column="10" Content="✕" Classes="icon"
+                                                Command="{Binding $parent[ItemsControl].((vm:TodoViewModel)DataContext).RemoveCommand}"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
                                     </Border>
-                                    <Button Grid.Column="4" Content="→" Classes="icon" Margin="4,0,0,0"
-                                            ToolTip.Tip="send to today"
-                                            Command="{Binding $parent[ItemsControl].((vm:TodoViewModel)DataContext).SendToTodayCommand}"
-                                            CommandParameter="{Binding}" />
-                                    <Button Grid.Column="5" Content="✕" Classes="icon"
-                                            Command="{Binding $parent[ItemsControl].((vm:TodoViewModel)DataContext).RemoveCommand}"
-                                            CommandParameter="{Binding}" />
-                                </Grid>
+
+                                    <!-- Expanded details -->
+                                    <Border IsVisible="{Binding IsExpanded}"
+                                            Margin="26,4,0,6" Padding="12,10"
+                                            Background="{DynamicResource InkBrush}"
+                                            CornerRadius="6">
+                                        <StackPanel Spacing="10">
+                                            <TextBlock Text="{Binding Description}"
+                                                       TextWrapping="Wrap" FontSize="13"
+                                                       IsVisible="{Binding HasDescription}" />
+
+                                            <!-- Subtasks -->
+                                            <ItemsControl ItemsSource="{Binding Subtasks}"
+                                                          IsVisible="{Binding HasSubtasks}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:SubtaskViewModel">
+                                                        <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,2,0,0">
+                                                            <CheckBox Grid.Column="0" IsChecked="{Binding IsDone}"
+                                                                      MinHeight="0" Padding="0"
+                                                                      VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                            <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                                                       Classes.done="{Binding IsDone}"
+                                                                       FontSize="13"
+                                                                       VerticalAlignment="Center" TextWrapping="Wrap" />
+                                                            <Button Grid.Column="2" Content="✕" Classes="icon"
+                                                                    FontSize="11" Padding="4,2"
+                                                                    Command="{Binding $parent[ItemsControl].((vm:TodoItemViewModel)DataContext).RemoveSubtaskCommand}"
+                                                                    CommandParameter="{Binding}" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+
+                                            <!-- Add subtask -->
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBox Text="{Binding NewSubtaskTitle}"
+                                                         Watermark="add a step…"
+                                                         FontSize="13" Padding="10,6">
+                                                    <TextBox.KeyBindings>
+                                                        <KeyBinding Gesture="Enter" Command="{Binding AddSubtaskCommand}" />
+                                                    </TextBox.KeyBindings>
+                                                </TextBox>
+                                                <Button Grid.Column="1" Content="+" Classes="icon" Margin="4,0,0,0"
+                                                        Command="{Binding AddSubtaskCommand}" />
+                                            </Grid>
+
+                                            <TextBlock Text="{Binding MetaLabel}" Classes="caption" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
 
-                <TextBlock Text="やることはまだない · nothing on the list"
+                <TextBlock Text="何もない · nothing here"
                            Classes="jp" HorizontalAlignment="Center" VerticalAlignment="Center"
-                           IsVisible="{Binding !HasItems}" />
+                           IsVisible="{Binding !HasVisibleItems}" />
             </Grid>
         </Border>
+    </Grid>
+
+    <!-- Add / edit modal -->
+    <Border Classes="modal-backdrop"
+            IsVisible="{Binding IsModalOpen}"
+            Background="#A0000000">
+        <Border Classes="card modal-card"
+                Width="420" Padding="22"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+            </Border.RenderTransform>
+            <StackPanel Spacing="12">
+                <TextBlock Text="{Binding ModalTitle}" Classes="jp" />
+
+                <TextBox Text="{Binding FormTitle}" Watermark="what needs doing?" />
+                <TextBox Text="{Binding FormDescription}"
+                         Watermark="notes — why, where, what 'done' means…"
+                         AcceptsReturn="True" TextWrapping="Wrap"
+                         MinHeight="84" VerticalContentAlignment="Top" />
+
+                <Grid ColumnDefinitions="*,8,*">
+                    <AutoCompleteBox Grid.Column="0" Text="{Binding FormCourse}"
+                                     ItemsSource="{Binding KnownCourses}"
+                                     FilterMode="Contains" Watermark="course" />
+                    <CalendarDatePicker Grid.Column="2" SelectedDate="{Binding FormDue}"
+                                        Watermark="due" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,8,*">
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding Priorities}"
+                              SelectedItem="{Binding FormPriority}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding, Converter={StaticResource Lower}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <NumericUpDown Grid.Column="2" Value="{Binding FormEstimate}"
+                                   Watermark="est. sessions"
+                                   Minimum="1" Maximum="50" FormatString="0" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                    <Button Grid.Column="0" Content="cancel"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding CancelModalCommand}" />
+                    <Button Grid.Column="1" Content="{Binding ModalAction}" Classes="accent"
+                            HorizontalAlignment="Stretch" Margin="8,0,0,0"
+                            Command="{Binding ConfirmModalCommand}" />
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Border>
+
     </Grid>
 </UserControl>

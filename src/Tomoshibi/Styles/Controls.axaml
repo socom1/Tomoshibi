@@ -219,6 +219,83 @@
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
     </Style>
 
+    <!-- ComboBox: same box as the other inputs, surface popup, no accent blue -->
+    <Style Selector="ComboBox">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    </Style>
+    <Style Selector="ComboBox:pointerover /template/ Border#Background">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+    <Style Selector="ComboBox:focus /template/ Border#Background">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
+    </Style>
+    <Style Selector="ComboBox /template/ Border#PopupBorder">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="ComboBoxItem">
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+    <Style Selector="ComboBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource MatchaBrush}" />
+    </Style>
+
+    <!-- CheckBox: matcha tick instead of the Fluent accent blue -->
+    <Style Selector="CheckBox /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="CornerRadius" Value="4" />
+    </Style>
+    <Style Selector="CheckBox:pointerover /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+    <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource MatchaBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
+    </Style>
+    <Style Selector="CheckBox:checked:pointerover /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource MatchaDeepBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource MatchaDeepBrush}" />
+    </Style>
+    <Style Selector="CheckBox:checked /template/ Path#CheckGlyph">
+        <Setter Property="Fill" Value="{DynamicResource InkBrush}" />
+        <Setter Property="Stroke" Value="{DynamicResource InkBrush}" />
+    </Style>
+
+    <!-- Todo row: subtle hover so the dense ticket rows feel interactive -->
+    <Style Selector="Border.trow">
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="4,3" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.12" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.trow:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+
     <!-- Buttons -->
     <Style Selector="Button">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
@@ -327,6 +404,35 @@
     <Style Selector="Border.tag > TextBlock">
         <Setter Property="FontSize" Value="11" />
         <Setter Property="Foreground" Value="{DynamicResource BlueBrush}" />
+    </Style>
+
+    <!-- Priority chip: low is muted, high is sakura -->
+    <Style Selector="Border.tag.prio > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+    </Style>
+    <Style Selector="Border.tag.prio.high > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource SakuraBrush}" />
+    </Style>
+
+    <!-- Todo status glyph button: ○ backlog / ◐ doing / ● done -->
+    <Style Selector="Button.status.doing">
+        <Setter Property="Foreground" Value="{DynamicResource BlueBrush}" />
+    </Style>
+    <Style Selector="Button.status.donestat">
+        <Setter Property="Foreground" Value="{DynamicResource MatchaBrush}" />
+    </Style>
+
+    <!-- Expand chevron: rotates when open -->
+    <Style Selector="ToggleButton.chev">
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="ToggleButton.chev:checked">
+        <Setter Property="RenderTransform" Value="rotate(90deg)" />
     </Style>
 
     <!-- Segmented toggle button (e.g. list / grid view picker) -->
