@@ -28,6 +28,11 @@ public class TodoItem
     /// <summary>Estimated focus sessions to finish this. 0 = no estimate.</summary>
     public int EstimatePomos { get; set; }
 
+    /// <summary>Focus sessions actually completed against this ticket —
+    /// counted when a session finishes while a today-task with the same
+    /// title is active. Closes the loop on the estimate.</summary>
+    public int SessionsSpent { get; set; }
+
     public List<Subtask> Subtasks { get; set; } = new();
 
     /// <summary>Kept in sync with Status for backwards compatibility with

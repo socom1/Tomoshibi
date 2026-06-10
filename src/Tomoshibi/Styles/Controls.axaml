@@ -46,6 +46,9 @@
     <Style Selector="TextBlock.caption.overdue">
         <Setter Property="Foreground" Value="{DynamicResource SakuraBrush}" />
     </Style>
+    <Style Selector="TextBlock.caption.overest">
+        <Setter Property="Foreground" Value="{DynamicResource AmberBrush}" />
+    </Style>
 
     <!-- Completed task title -->
     <Style Selector="TextBlock.done">

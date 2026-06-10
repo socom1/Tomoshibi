@@ -83,6 +83,15 @@ public partial class TodoViewModel : ViewModelBase
         RebuildKnownCourses();
     }
 
+    /// <summary>Re-read everything from state — called when the user
+    /// navigates to this page, so session counts credited from the timer
+    /// and courses added elsewhere show without a restart.</summary>
+    public void Refresh()
+    {
+        Rebuild();
+        RebuildKnownCourses();
+    }
+
     /// <summary>State files from before the ticket upgrade: map the old
     /// IsDone flag onto Status and hand out numbers in creation order.</summary>
     private void MigrateLegacyItems()

@@ -51,6 +51,22 @@ public partial class TodayViewModel : ViewModelBase
     [ObservableProperty]
     private string _streakDots = string.Empty;
 
+    /// <summary>"next · algebra at 14:00" (or "now · algebra until 15:00")
+    /// from today's class slots. Empty when nothing's left today.</summary>
+    [ObservableProperty]
+    private string _nextClassLabel = string.Empty;
+
+    [ObservableProperty]
+    private bool _hasNextClass;
+
+    /// <summary>The soonest deadlines within a week, e.g.
+    /// "essay due tomorrow · quiz due fri". Empty when nothing's close.</summary>
+    [ObservableProperty]
+    private string _deadlinesLabel = string.Empty;
+
+    [ObservableProperty]
+    private bool _hasUpcomingDeadlines;
+
     /// <summary>The Pomodoro timer.</summary>
     public PomodoroViewModel Pomodoro { get; }
 
@@ -81,6 +97,7 @@ public partial class TodayViewModel : ViewModelBase
         Tasks = new TaskTemplateViewModel(_state, _save, OnActiveTaskChanged);
 
         RecomputeStreak();
+        RefreshScheduleInfo();
     }
 
     /// <summary>The timer reads its phase lengths through this every time it
@@ -113,8 +130,64 @@ public partial class TodayViewModel : ViewModelBase
     }
 
     /// <summary>Called by the shell's day-watcher every minute so the greeting
-    /// keeps up with the time of day.</summary>
-    public void Tick(DateTime now) => Greeting = GreetingFor(now);
+    /// and the schedule line keep up with the time of day.</summary>
+    public void Tick(DateTime now)
+    {
+        Greeting = GreetingFor(now);
+        RefreshScheduleInfo();
+    }
+
+    /// <summary>Rebuild the "up next" class line and the upcoming-deadlines
+    /// line from the timetable. Called on launch, every minute, and when the
+    /// user navigates back from editing the timetable.</summary>
+    public void RefreshScheduleInfo()
+    {
+        var now = DateTime.Now;
+        var today = DateOnly.FromDateTime(now);
+        var time = TimeOnly.FromDateTime(now);
+        var weekday = (WeekDay)(((int)now.DayOfWeek + 6) % 7);
+
+        // A class running right now beats one coming later.
+        var current = _state.ClassSlots
+            .Where(s => s.Day == weekday && s.Start <= time && time < s.End)
+            .OrderBy(s => s.End)
+            .FirstOrDefault();
+
+        if (current is not null)
+        {
+            NextClassLabel = $"now · {current.Title} until {current.End:HH\\:mm}";
+        }
+        else
+        {
+            var next = _state.ClassSlots
+                .Where(s => s.Day == weekday && s.Start > time)
+                .OrderBy(s => s.Start)
+                .FirstOrDefault();
+
+            NextClassLabel = next is null
+                ? string.Empty
+                : $"next · {next.Title} at {next.Start:HH\\:mm}";
+        }
+        HasNextClass = NextClassLabel.Length > 0;
+
+        var soon = _state.Deadlines
+            .Where(d => d.Date >= today && d.Date <= today.AddDays(7))
+            .OrderBy(d => d.Date)
+            .Take(2)
+            .Select(d => $"{d.Title} due {DueWord(d.Date, today)}")
+            .ToList();
+
+        DeadlinesLabel = string.Join(" · ", soon);
+        HasUpcomingDeadlines = soon.Count > 0;
+    }
+
+    private static string DueWord(DateOnly due, DateOnly today)
+    {
+        if (due == today) return "today";
+        if (due == today.AddDays(1)) return "tomorrow";
+        if (due <= today.AddDays(6)) return $"{due:ddd}".ToLowerInvariant();
+        return $"{due:MMM d}".ToLowerInvariant();
+    }
 
     /// <summary>Pull the latest stats and intention back out of state after
     /// the day-watcher's midnight reset.</summary>
@@ -170,6 +243,17 @@ public partial class TodayViewModel : ViewModelBase
     {
         _state.Today.CompletedSessions++;
         _state.Today.FocusedMinutes += focusMinutes;
+
+        // If the active task came from (or shares a title with) a backlog
+        // ticket, credit the session against its estimate.
+        if (Tasks.ActiveTask is { } active)
+        {
+            var ticket = _state.Todos.FirstOrDefault(t =>
+                t.Status != TodoStatus.Done &&
+                string.Equals(t.Title, active.Title, StringComparison.OrdinalIgnoreCase));
+            if (ticket is not null)
+                ticket.SessionsSpent++;
+        }
 
         CompletedSessions = _state.Today.CompletedSessions;
         FocusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);

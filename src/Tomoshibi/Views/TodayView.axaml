@@ -20,6 +20,12 @@
             <StackPanel Grid.Column="0" Spacing="2">
                 <TextBlock Text="今日 · today" Classes="jp" />
                 <TextBlock Text="{Binding Greeting}" Classes="h1" />
+                <TextBlock Text="{Binding NextClassLabel}" Classes="caption"
+                           Foreground="{DynamicResource BlueBrush}"
+                           IsVisible="{Binding HasNextClass}" />
+                <TextBlock Text="{Binding DeadlinesLabel}" Classes="caption"
+                           Foreground="{DynamicResource AmberBrush}"
+                           IsVisible="{Binding HasUpcomingDeadlines}" />
             </StackPanel>
 
             <Button Grid.Column="1" Classes="icon" Content="⛶" FontSize="20"

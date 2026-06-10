@@ -65,7 +65,7 @@
 
                                     <!-- Row line -->
                                     <Border Classes="trow">
-                                    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                                    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                                         <ToggleButton Grid.Column="0" Classes="icon chev" Content="▸"
                                                       FontSize="11" Padding="4,2"
                                                       IsChecked="{Binding IsExpanded}"
@@ -96,18 +96,24 @@
                                                    Classes="caption" Margin="8,0,0,0"
                                                    VerticalAlignment="Center"
                                                    IsVisible="{Binding HasSubtasks}" />
-                                        <Border Grid.Column="7" Classes="tag" Margin="8,0,0,0"
+                                        <TextBlock Grid.Column="7" Text="{Binding EffortLabel}"
+                                                   Classes="caption" Margin="8,0,0,0"
+                                                   Classes.overest="{Binding IsOverEstimate}"
+                                                   VerticalAlignment="Center"
+                                                   ToolTip.Tip="focus sessions spent / estimated"
+                                                   IsVisible="{Binding HasEffort}" />
+                                        <Border Grid.Column="8" Classes="tag" Margin="8,0,0,0"
                                                 IsVisible="{Binding HasCourse}">
                                             <TextBlock Text="{Binding Course}" />
                                         </Border>
-                                        <Button Grid.Column="8" Content="→" Classes="icon" Margin="4,0,0,0"
+                                        <Button Grid.Column="9" Content="→" Classes="icon" Margin="4,0,0,0"
                                                 ToolTip.Tip="send to today"
                                                 Command="{Binding $parent[ItemsControl].((vm:TodoViewModel)DataContext).SendToTodayCommand}"
                                                 CommandParameter="{Binding}" />
-                                        <Button Grid.Column="9" Content="✎" Classes="icon"
+                                        <Button Grid.Column="10" Content="✎" Classes="icon"
                                                 ToolTip.Tip="edit"
                                                 Click="OnEditClick" />
-                                        <Button Grid.Column="10" Content="✕" Classes="icon"
+                                        <Button Grid.Column="11" Content="✕" Classes="icon"
                                                 Command="{Binding $parent[ItemsControl].((vm:TodoViewModel)DataContext).RemoveCommand}"
                                                 CommandParameter="{Binding}" />
                                     </Grid>

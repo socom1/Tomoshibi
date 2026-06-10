@@ -74,8 +74,25 @@ public partial class TodoItemViewModel : ViewModelBase
         !IsDone && Model.Due is { } due && due < DateOnly.FromDateTime(DateTime.Now);
 
     // ---- Effort / progress ----
-    public bool HasEstimate => Model.EstimatePomos > 0;
-    public string EstimateLabel => $"×{Model.EstimatePomos}";
+    public bool HasEffort => Model.EstimatePomos > 0 || Model.SessionsSpent > 0;
+
+    /// <summary>"2/×3" spent/estimated; just "×3" untouched; "2 done" when
+    /// sessions landed on a ticket that never had an estimate.</summary>
+    public string EffortLabel
+    {
+        get
+        {
+            if (Model.EstimatePomos > 0)
+                return Model.SessionsSpent > 0
+                    ? $"{Model.SessionsSpent}/×{Model.EstimatePomos}"
+                    : $"×{Model.EstimatePomos}";
+            return $"{Model.SessionsSpent} done";
+        }
+    }
+
+    /// <summary>Over the estimate and still open — the chip turns amber.</summary>
+    public bool IsOverEstimate =>
+        !IsDone && Model.EstimatePomos > 0 && Model.SessionsSpent > Model.EstimatePomos;
 
     public bool HasSubtasks => Subtasks.Count > 0;
     public string SubtaskProgress =>
@@ -88,8 +105,10 @@ public partial class TodoItemViewModel : ViewModelBase
             var meta = $"{NumberLabel} · created {Model.CreatedAt:MMM d}".ToLowerInvariant();
             if (Model.CompletedAt is { } done)
                 meta += $" · done {done:MMM d}".ToLowerInvariant();
-            if (HasEstimate)
+            if (Model.EstimatePomos > 0)
                 meta += $" · est {Model.EstimatePomos} sessions";
+            if (Model.SessionsSpent > 0)
+                meta += $" · spent {Model.SessionsSpent}";
             return meta;
         }
     }

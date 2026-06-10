@@ -676,3 +676,35 @@ and the rebuild carries expansion state across by item id.
 Send-to-today survives unchanged: it still copies title + course into the
 task template. Estimates deliberately don't flow through — an estimate of
 three sessions isn't a `study:` length.
+
+---
+
+## Crash-safe saves and a today page that knows things (2026-06-10)
+
+**The storage timebomb, defused.** `Save` used to write straight over
+`tomoshibi.json` — a crash mid-write would truncate the file, and `Load`'s
+catch-all would then silently start fresh, throwing away every todo, class
+and day of history without a word. Now the save serialises to a `.tmp`
+file, copies the previous good state to `.bak`, and renames the temp into
+place; load tries main → backup → fresh, in that order. Verified the whole
+path end-to-end by deliberately corrupting the live file and watching the
+app come back with everything intact.
+
+**Today finally looks at the timetable.** Two caption lines under the
+greeting: the next class today ("next · algebra at 14:00", or
+"now · algebra until 15:00" mid-class, in blue) and the soonest deadlines
+within a week ("essay due tomorrow · quiz due fri", in amber). Both refresh
+every minute off the existing day-watcher tick and when navigating back
+from the timetable. Empty when there's nothing — no placeholder noise.
+
+**Estimates now meet reality.** When a focus session completes while the
+active task shares a title with an open ticket, the ticket's
+`SessionsSpent` increments. The row's effort chip reads `2/×3`
+(spent/estimated) and goes amber once an open ticket runs over its
+estimate; tickets that collected sessions without ever being estimated
+show "2 done". Title matching is deliberately simple — send-to-today
+copies the title verbatim, so the common path just works.
+
+Navigating to a page now re-reads shared state (`Todo.Refresh()`,
+`Today.RefreshScheduleInfo()`), so cross-page effects show up without a
+restart.

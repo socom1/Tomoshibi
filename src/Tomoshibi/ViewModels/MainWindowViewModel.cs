@@ -151,6 +151,19 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnActiveDestinationChanged(Destination value)
     {
         _state.ActiveDestination = value;
+
+        // Landing on a page re-reads anything other pages may have changed —
+        // schedule edits show on today, timer sessions show on tickets.
+        switch (value)
+        {
+            case Destination.Today:
+                Today.RefreshScheduleInfo();
+                break;
+            case Destination.Todo:
+                Todo.Refresh();
+                break;
+        }
+
         Save();
     }
 
