@@ -82,6 +82,15 @@ public partial class MainWindow : Window
         if (_vm is not null && WindowState == WindowState.Normal)
             _vm.SaveWindowPlacement(Width, Height, Position.X, Position.Y);
 
+        // The close button hides the window instead of quitting — the timer
+        // keeps running and the tray icon is the way back. Real shutdowns
+        // (tray quit, Cmd+Q) carry a different close reason and pass through.
+        if (e.CloseReason == WindowCloseReason.WindowClosing)
+        {
+            e.Cancel = true;
+            Hide();
+        }
+
         base.OnClosing(e);
     }
 

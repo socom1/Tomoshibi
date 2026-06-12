@@ -749,3 +749,28 @@ history + today each time. Best streak is one ordered pass over the active
 dates counting consecutive runs. The summary card and the today page's
 14-dot strip now share the same underlying data but compute independently;
 if a third consumer appears, that's the cue to extract a stats service.
+
+---
+
+## The lamp moves into the menu bar (2026-06-12)
+
+A tray icon — the matcha 灯 on transparency (the boxed app icon would be a
+dark blob against a dark menu bar), generated as its own `Assets/tray.png`.
+Avalonia's built-in `TrayIcon` made this dependency-free: a native menu
+with start/pause · skip · reset · show tomoshibi · quit, a tooltip that
+carries the live countdown while running ("14:32 · focus — tomoshibi"),
+and the start/pause entry relabels itself off the timer's IsRunning.
+Clicking the icon brings the window back.
+
+The bigger behavioural change rides along: **closing the window no longer
+quits the app**. `ShutdownMode.OnExplicitShutdown` plus an `OnClosing`
+override that cancels and hides when the close reason is the window button
+— so a running timer keeps ticking with no window at all, which on macOS
+is how apps are expected to behave anyway. Real quits (tray menu, Cmd+Q)
+carry a different close reason and pass straight through, saving window
+placement on the way out as before.
+
+What Avalonia's TrayIcon can't do: a live text label next to the icon
+(menu-bar countdown) and macOS template-icon adaptation. The tooltip
+carries the countdown instead, and the matcha glyph reads fine on both
+light and dark menu bars.
