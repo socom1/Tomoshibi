@@ -28,10 +28,26 @@ public partial class SubjectsViewModel : ViewModelBase
     [ObservableProperty] private string _gpaLabel = "no grades yet";
     [ObservableProperty] private string _gpaCaption = string.Empty;
 
+    // ---- Detail page (master → detail within this destination) ----
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDetailOpen))]
+    [NotifyCanExecuteChangedFor(nameof(CloseDetailCommand))]
+    private SubjectViewModel? _selectedSubject;
+
+    public bool IsDetailOpen => SelectedSubject is not null;
+
+    /// <summary>Cross-app context for the open subject, linked by course
+    /// code: open tickets, sessions logged against them, the next class.</summary>
+    [ObservableProperty] private string _linkedTicketsLabel = string.Empty;
+    [ObservableProperty] private string _linkedClassLabel = string.Empty;
+    [ObservableProperty] private bool _hasLinkedInfo;
+    [ObservableProperty] private bool _hasNoCode;
+
     // ---- Add/edit subject modal ----
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(CancelModalCommand))]
     [NotifyCanExecuteChangedFor(nameof(ConfirmModalCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CloseDetailCommand))]
     private bool _isModalOpen;
 
     [ObservableProperty] private string _modalTitle = "新しい科目 · new subject";
@@ -54,8 +70,70 @@ public partial class SubjectsViewModel : ViewModelBase
     }
 
     /// <summary>Called on navigation here — picks up course codes added on
-    /// other pages for the autocomplete.</summary>
-    public void Refresh() => RebuildKnownCourses();
+    /// other pages for the autocomplete, and re-links the open detail.</summary>
+    public void Refresh()
+    {
+        RebuildKnownCourses();
+        if (IsDetailOpen)
+            RefreshLinkedInfo();
+    }
+
+    /// <summary>Open the full page for one subject.</summary>
+    public void OpenDetail(SubjectViewModel row)
+    {
+        SelectedSubject = row;
+        RefreshLinkedInfo();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanCloseDetail))]
+    private void CloseDetail() => SelectedSubject = null;
+
+    // Gated off while the modal is up so Escape closes the modal first.
+    private bool CanCloseDetail() => IsDetailOpen && !IsModalOpen;
+
+    /// <summary>Everything else in the app that carries this subject's
+    /// course code: tickets (and the sessions logged on them) and the next
+    /// class slot in the coming week.</summary>
+    private void RefreshLinkedInfo()
+    {
+        var code = SelectedSubject?.Code;
+        HasNoCode = string.IsNullOrWhiteSpace(code);
+        if (HasNoCode)
+        {
+            HasLinkedInfo = false;
+            LinkedTicketsLabel = string.Empty;
+            LinkedClassLabel = string.Empty;
+            return;
+        }
+
+        var matches = (string? c) => string.Equals(c, code, StringComparison.OrdinalIgnoreCase);
+
+        var tickets = _state.Todos.Where(t => matches(t.Course)).ToList();
+        var open = tickets.Count(t => t.Status != TodoStatus.Done);
+        var sessions = tickets.Sum(t => t.SessionsSpent);
+        LinkedTicketsLabel = $"{open} open tickets · {sessions} focus sessions logged";
+
+        // The next class within a week, scanning forward from now.
+        var now = DateTime.Now;
+        LinkedClassLabel = string.Empty;
+        for (var offset = 0; offset < 7 && LinkedClassLabel.Length == 0; offset++)
+        {
+            var day = (WeekDay)(((int)now.DayOfWeek + 6 + offset) % 7);
+            var slot = _state.ClassSlots
+                .Where(s => matches(s.Course) && s.Day == day)
+                .Where(s => offset > 0 || s.Start > TimeOnly.FromDateTime(now))
+                .OrderBy(s => s.Start)
+                .FirstOrDefault();
+
+            if (slot is not null)
+            {
+                var dayWord = offset == 0 ? "today" : $"{slot.Day}".ToLowerInvariant();
+                LinkedClassLabel = $"next class · {dayWord} {slot.Start:HH\\:mm} — {slot.Title}";
+            }
+        }
+
+        HasLinkedInfo = true;
+    }
 
     [RelayCommand]
     private void OpenAdd()
@@ -117,6 +195,8 @@ public partial class SubjectsViewModel : ViewModelBase
         HasSubjects = Items.Count > 0;
         RebuildKnownCourses();
         RecomputeGpa();
+        if (IsDetailOpen)
+            RefreshLinkedInfo();
         _save();
     }
 
@@ -133,6 +213,9 @@ public partial class SubjectsViewModel : ViewModelBase
             _editing = null;
             IsModalOpen = false;
         }
+
+        if (row == SelectedSubject)
+            SelectedSubject = null;
 
         _state.Subjects.Remove(row.Model);
         Items.Remove(row);

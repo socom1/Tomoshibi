@@ -9,7 +9,9 @@
 
     <Grid>
 
-    <Grid RowDefinitions="Auto,*" Margin="28,4,28,28" MaxWidth="760">
+    <!-- ================= Master: subject list ================= -->
+    <Grid RowDefinitions="Auto,*" Margin="28,4,28,28" MaxWidth="760"
+          IsVisible="{Binding !IsDetailOpen}">
 
         <!-- Page header -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
@@ -25,118 +27,45 @@
                     Command="{Binding OpenAddCommand}" />
         </Grid>
 
-        <!-- Subject cards -->
+        <!-- Clickable subject cards -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <Grid>
                 <ItemsControl ItemsSource="{Binding Items}"
                               IsVisible="{Binding HasSubjects}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:SubjectViewModel">
-                            <Border Classes="card" Margin="0,0,0,14" Padding="18">
-                                <StackPanel Spacing="8">
-
-                                    <!-- Card header -->
-                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto,Auto">
-                                        <ToggleButton Grid.Column="0" Classes="icon chev" Content="▸"
-                                                      FontSize="11" Padding="4,2"
-                                                      IsChecked="{Binding IsExpanded}"
-                                                      ToolTip.Tip="assessments" />
-                                        <TextBlock Grid.Column="1" Text="{Binding Name}"
-                                                   VerticalAlignment="Center" FontWeight="SemiBold"
-                                                   TextWrapping="Wrap" Margin="4,0,0,0" />
-                                        <Border Grid.Column="2" Classes="tag" Margin="8,0,0,0"
-                                                IsVisible="{Binding HasCode}">
-                                            <TextBlock Text="{Binding Code}" />
-                                        </Border>
-                                        <TextBlock Grid.Column="3" Text="{Binding CreditsLabel}"
-                                                   Classes="caption" Margin="8,0,0,0"
-                                                   VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="4" Text="{Binding GradeLabel}"
-                                                   Margin="12,0,0,0" VerticalAlignment="Center"
-                                                   Foreground="{DynamicResource MatchaBrush}"
-                                                   FontWeight="SemiBold" />
-                                        <Border Grid.Column="5" Classes="tag" Margin="6,0,0,0"
-                                                IsVisible="{Binding HasGrade}">
-                                            <TextBlock Text="{Binding LetterLabel}" />
-                                        </Border>
-                                        <Button Grid.Column="6" Content="✎" Classes="icon" Margin="6,0,0,0"
-                                                ToolTip.Tip="edit subject"
-                                                Click="OnEditClick" />
-                                        <Button Grid.Column="7" Content="✕" Classes="icon"
-                                                ToolTip.Tip="delete subject"
-                                                Command="{Binding $parent[ItemsControl].((vm:SubjectsViewModel)DataContext).RemoveCommand}"
-                                                CommandParameter="{Binding}" />
-                                    </Grid>
-
-                                    <TextBlock Text="{Binding StandingCaption}" Classes="caption"
-                                               Margin="26,0,0,0"
-                                               IsVisible="{Binding StandingCaption, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                                    <TextBlock Text="{Binding WeightWarning}" Classes="caption overest"
-                                               Margin="26,0,0,0"
-                                               IsVisible="{Binding HasWeightWarning}" />
-
-                                    <!-- Assessments -->
-                                    <StackPanel IsVisible="{Binding IsExpanded}"
-                                                Margin="26,4,0,0" Spacing="8">
-
-                                        <ItemsControl ItemsSource="{Binding Assessments}"
-                                                      IsVisible="{Binding HasAssessments}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="vm:AssessmentViewModel">
-                                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="0,2,0,0">
-                                                        <TextBlock Grid.Column="0" Text="{Binding Title}"
-                                                                   VerticalAlignment="Center" TextWrapping="Wrap" />
-                                                        <TextBlock Grid.Column="1" Text="{Binding DateLabel}"
-                                                                   Classes="caption" Margin="8,0,0,0"
-                                                                   VerticalAlignment="Center"
-                                                                   IsVisible="{Binding HasDate}" />
-                                                        <Border Grid.Column="2" Classes="tag" Margin="8,0,0,0">
-                                                            <TextBlock Text="{Binding WeightLabel}" />
-                                                        </Border>
-                                                        <NumericUpDown Grid.Column="3" Value="{Binding Grade}"
-                                                                       Watermark="—" Width="92" Margin="8,0,0,0"
-                                                                       Minimum="0" Maximum="100" FormatString="0.#"
-                                                                       FontSize="13" Padding="10,5"
-                                                                       ToolTip.Tip="grade in percent — type it when results land" />
-                                                        <Button Grid.Column="4" Content="✕" Classes="icon"
-                                                                FontSize="11" Padding="4,2" Margin="4,0,0,0"
-                                                                Command="{Binding $parent[ItemsControl].((vm:SubjectViewModel)DataContext).RemoveAssessmentCommand}"
-                                                                CommandParameter="{Binding}" />
-                                                    </Grid>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-
-                                        <TextBlock Text="add the syllabus pieces — exam 40%, essay 30%…"
-                                                   Classes="caption"
-                                                   IsVisible="{Binding !HasAssessments}" />
-
-                                        <!-- Add assessment -->
-                                        <Grid ColumnDefinitions="*,86,86,150,Auto">
-                                            <TextBox Grid.Column="0" Text="{Binding NewTitle}"
-                                                     Watermark="exam, essay, lab…"
-                                                     FontSize="13" Padding="10,6">
-                                                <TextBox.KeyBindings>
-                                                    <KeyBinding Gesture="Enter" Command="{Binding AddAssessmentCommand}" />
-                                                </TextBox.KeyBindings>
-                                            </TextBox>
-                                            <NumericUpDown Grid.Column="1" Value="{Binding NewWeight}"
-                                                           Watermark="weight %" Margin="6,0,0,0"
-                                                           Minimum="1" Maximum="100" FormatString="0.#"
-                                                           FontSize="13" Padding="10,5" />
-                                            <NumericUpDown Grid.Column="2" Value="{Binding NewGrade}"
-                                                           Watermark="grade" Margin="6,0,0,0"
-                                                           Minimum="0" Maximum="100" FormatString="0.#"
-                                                           FontSize="13" Padding="10,5"
-                                                           ToolTip.Tip="optional — leave empty until results land" />
-                                            <CalendarDatePicker Grid.Column="3" SelectedDate="{Binding NewDate}"
-                                                                Watermark="date" Margin="6,0,0,0"
-                                                                FontSize="13" />
-                                            <Button Grid.Column="4" Content="+" Classes="icon" Margin="4,0,0,0"
-                                                    Command="{Binding AddAssessmentCommand}" />
-                                        </Grid>
+                            <Border Classes="card subjcard" Margin="0,0,0,12" Padding="18,14"
+                                    PointerPressed="OnCardPressed">
+                                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,Auto">
+                                    <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding StandingCaption}" Classes="caption"
+                                                   IsVisible="{Binding StandingCaption, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                     </StackPanel>
-                                </StackPanel>
+                                    <Border Grid.Column="1" Classes="tag" Margin="8,0,0,0"
+                                            IsVisible="{Binding HasCode}">
+                                        <TextBlock Text="{Binding Code}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="2" Text="{Binding CreditsLabel}"
+                                               Classes="caption" Margin="8,0,0,0"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="3" Text="{Binding GradeLabel}"
+                                               Margin="14,0,0,0" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource MatchaBrush}"
+                                               FontWeight="SemiBold" FontSize="16" />
+                                    <Border Grid.Column="4" Classes="tag" Margin="6,0,0,0"
+                                            IsVisible="{Binding HasGrade}">
+                                        <TextBlock Text="{Binding LetterLabel}" />
+                                    </Border>
+                                    <Button Grid.Column="5" Content="✎" Classes="icon" Margin="8,0,0,0"
+                                            ToolTip.Tip="edit subject"
+                                            Click="OnEditClick" />
+                                    <Button Grid.Column="6" Content="✕" Classes="icon"
+                                            ToolTip.Tip="delete subject"
+                                            Command="{Binding $parent[ItemsControl].((vm:SubjectsViewModel)DataContext).RemoveCommand}"
+                                            CommandParameter="{Binding}" />
+                                </Grid>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -149,6 +78,156 @@
             </Grid>
         </ScrollViewer>
     </Grid>
+
+    <!-- ================= Detail: one subject ================= -->
+    <ScrollViewer IsVisible="{Binding IsDetailOpen}" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="16" Margin="28,4,28,28" MaxWidth="760">
+            <StackPanel Spacing="16" DataContext="{Binding SelectedSubject}"
+                        x:DataType="vm:SubjectViewModel">
+
+                <!-- Detail header -->
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Button Grid.Column="0" Classes="icon" Content="←" FontSize="18"
+                            VerticalAlignment="Top" Margin="0,2,8,0"
+                            Command="{Binding $parent[UserControl].((vm:SubjectsViewModel)DataContext).CloseDetailCommand}"
+                            ToolTip.Tip="back to subjects · esc" />
+                    <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock Text="科目 · subject" Classes="jp" />
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="{Binding Name}" Classes="h1" />
+                            <Border Classes="tag" VerticalAlignment="Center"
+                                    IsVisible="{Binding HasCode}">
+                                <TextBlock Text="{Binding Code}" />
+                            </Border>
+                            <TextBlock Text="{Binding CreditsLabel}" Classes="caption"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Grid.Column="2" Classes="icon" Content="✎" FontSize="16"
+                            VerticalAlignment="Top"
+                            ToolTip.Tip="edit subject"
+                            Click="OnEditClick" />
+                </Grid>
+
+                <!-- Standing -->
+                <Border Classes="card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="成績 · standing" Classes="jp" />
+                        <StackPanel Orientation="Horizontal" Spacing="14">
+                            <TextBlock Text="{Binding GradeLabel}" FontSize="44" FontWeight="Light"
+                                       Foreground="{DynamicResource MatchaBrush}" />
+                            <Border Classes="tag" VerticalAlignment="Center"
+                                    IsVisible="{Binding HasGrade}">
+                                <TextBlock Text="{Binding LetterLabel}" FontSize="14" />
+                            </Border>
+                            <TextBlock Text="{Binding PointsLabel}" Classes="caption"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding StandingCaption}" Classes="caption"
+                                   IsVisible="{Binding StandingCaption, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        <TextBlock Text="{Binding WeightWarning}" Classes="caption overest"
+                                   IsVisible="{Binding HasWeightWarning}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Outlook -->
+                <Border Classes="card" IsVisible="{Binding HasOutlook}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="見通し · outlook" Classes="jp" />
+                        <ItemsControl ItemsSource="{Binding OutlookLines}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" FontSize="13" Margin="0,2,0,0" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Assessments -->
+                <Border Classes="card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="評価 · assessments" Classes="jp" />
+
+                        <ItemsControl ItemsSource="{Binding Assessments}"
+                                      IsVisible="{Binding HasAssessments}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AssessmentViewModel">
+                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" Margin="0,3,0,0">
+                                        <TextBlock Grid.Column="0" Text="{Binding Title}"
+                                                   VerticalAlignment="Center" TextWrapping="Wrap" />
+                                        <TextBlock Grid.Column="1" Text="{Binding DateLabel}"
+                                                   Classes="caption" Margin="8,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   IsVisible="{Binding HasDate}" />
+                                        <Border Grid.Column="2" Classes="tag" Margin="8,0,0,0">
+                                            <TextBlock Text="{Binding WeightLabel}" />
+                                        </Border>
+                                        <Border Grid.Column="3" Classes="tag" Margin="6,0,0,0"
+                                                IsVisible="{Binding IsGraded}">
+                                            <TextBlock Text="{Binding LetterLabel}" />
+                                        </Border>
+                                        <NumericUpDown Grid.Column="4" Value="{Binding Grade}"
+                                                       Watermark="—" Width="92" Margin="8,0,0,0"
+                                                       Minimum="0" Maximum="100" FormatString="0.#"
+                                                       FontSize="13" Padding="10,5"
+                                                       ToolTip.Tip="grade in percent — type it when results land" />
+                                        <Button Grid.Column="5" Content="✕" Classes="icon"
+                                                FontSize="11" Padding="4,2" Margin="4,0,0,0"
+                                                Command="{Binding $parent[ItemsControl].((vm:SubjectViewModel)DataContext).RemoveAssessmentCommand}"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="add the syllabus pieces — exam 40%, essay 30%…"
+                                   Classes="caption"
+                                   IsVisible="{Binding !HasAssessments}" />
+
+                        <!-- Add assessment -->
+                        <Grid ColumnDefinitions="*,86,86,150,Auto">
+                            <TextBox Grid.Column="0" Text="{Binding NewTitle}"
+                                     Watermark="exam, essay, lab…"
+                                     FontSize="13" Padding="10,6">
+                                <TextBox.KeyBindings>
+                                    <KeyBinding Gesture="Enter" Command="{Binding AddAssessmentCommand}" />
+                                </TextBox.KeyBindings>
+                            </TextBox>
+                            <NumericUpDown Grid.Column="1" Value="{Binding NewWeight}"
+                                           Watermark="weight %" Margin="6,0,0,0"
+                                           Minimum="1" Maximum="100" FormatString="0.#"
+                                           FontSize="13" Padding="10,5" />
+                            <NumericUpDown Grid.Column="2" Value="{Binding NewGrade}"
+                                           Watermark="grade" Margin="6,0,0,0"
+                                           Minimum="0" Maximum="100" FormatString="0.#"
+                                           FontSize="13" Padding="10,5"
+                                           ToolTip.Tip="optional — leave empty until results land" />
+                            <CalendarDatePicker Grid.Column="3" SelectedDate="{Binding NewDate}"
+                                                Watermark="date" Margin="6,0,0,0"
+                                                FontSize="13" />
+                            <Button Grid.Column="4" Content="+" Classes="icon" Margin="4,0,0,0"
+                                    Command="{Binding AddAssessmentCommand}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Around the app: linked by course code -->
+            <Border Classes="card">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="関連 · around the app" Classes="jp" />
+                    <TextBlock Text="{Binding LinkedTicketsLabel}" FontSize="13"
+                               IsVisible="{Binding HasLinkedInfo}" />
+                    <TextBlock Text="{Binding LinkedClassLabel}" FontSize="13"
+                               Foreground="{DynamicResource BlueBrush}"
+                               IsVisible="{Binding LinkedClassLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <TextBlock Text="add a course code to link tickets and classes"
+                               Classes="caption" IsVisible="{Binding HasNoCode}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
 
     <!-- Add / edit subject modal -->
     <Border Classes="modal-backdrop"

@@ -374,6 +374,19 @@
         <Setter Property="Stroke" Value="{DynamicResource InkBrush}" />
     </Style>
 
+    <!-- Subject card: the whole card is clickable, so it hovers like a row -->
+    <Style Selector="Border.subjcard">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.12" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.subjcard:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+
     <!-- Todo row: subtle hover so the dense ticket rows feel interactive -->
     <Style Selector="Border.trow">
         <Setter Property="CornerRadius" Value="6" />

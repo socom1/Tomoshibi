@@ -804,3 +804,30 @@ Editing reuses the established patterns: the centered modal for add/edit
 subject (Esc closes), chevron-expanded cards like the ticket rows, and a
 `Refresh()` on navigation so course codes added elsewhere reach the
 autocomplete.
+
+---
+
+## Subjects get a real page each (2026-06-12)
+
+The expandable subject cards were cramped — the syllabus, the math and the
+add-form all squeezed into a dropdown. Replaced with master → detail inside
+the subjects destination: the list view is now compact clickable cards
+(name, standing caption, code, credits, grade, letter), and clicking one
+opens a full page for that subject. Esc or ← goes back; the navigation
+state is just a SelectedSubject property on the page view model, so no new
+destination was needed.
+
+The detail page is where the "many things" live:
+
+- **成績 · standing** — the grade at 44pt with letter and grade points,
+  the graded-weight caption, and the weight warning.
+- **見通し · outlook** — new math, only shown while partially graded: best
+  case if you ace the rest, floor if the rest goes to zero, and for fixed
+  targets (70/80/90% overall) the average needed on the remaining weight —
+  including "already secured" and "out of reach" when the algebra says so.
+- **評価 · assessments** — the editable list, now with a letter chip per
+  graded piece, and the add form.
+- **関連 · around the app** — the course code links outward: open tickets
+  carrying this code and the focus sessions logged on them, plus the next
+  class in the coming week from the timetable. No code set → a hint to add
+  one.

@@ -25,6 +25,9 @@ public partial class AssessmentViewModel : ViewModelBase
     public bool HasDate => Model.Date is not null;
     public string DateLabel => Model.Date is { } d ? $"{d:MMM d}".ToLowerInvariant() : string.Empty;
 
+    public bool IsGraded => Model.Grade is not null;
+    public string LetterLabel => Model.Grade is { } g ? Services.GradeScale.ToLetter(g) : string.Empty;
+
     public AssessmentViewModel(Assessment model)
     {
         Model = model;
@@ -34,6 +37,8 @@ public partial class AssessmentViewModel : ViewModelBase
     partial void OnGradeChanged(decimal? value)
     {
         Model.Grade = value is { } g ? Math.Clamp((double)g, 0, 100) : null;
+        OnPropertyChanged(nameof(IsGraded));
+        OnPropertyChanged(nameof(LetterLabel));
         Changed?.Invoke();
     }
 }

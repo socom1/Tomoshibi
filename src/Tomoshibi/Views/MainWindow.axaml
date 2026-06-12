@@ -22,6 +22,7 @@
         <KeyBinding Gesture="Escape" Command="{Binding Today.Tasks.CancelAddTaskCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Todo.CancelModalCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Subjects.CancelModalCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding Subjects.CloseDetailCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding ExitZenCommand}" />
     </Window.KeyBindings>
 
