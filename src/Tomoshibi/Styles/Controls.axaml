@@ -211,6 +211,96 @@
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
     </Style>
 
+    <!-- Calendar popup (the CalendarDatePicker dropdown): surface card,
+         rounded day cells, matcha selection — instead of the Fluent black. -->
+    <Style Selector="Calendar">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="HeaderBackground" Value="Transparent" />
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    </Style>
+    <Style Selector="CalendarItem">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="HeaderBackground" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    </Style>
+
+    <!-- "june 2026" header + the ‹ › arrows -->
+    <Style Selector="CalendarItem /template/ Button#PART_HeaderButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+    </Style>
+    <Style Selector="CalendarItem /template/ Button#PART_HeaderButton:pointerover">
+        <Setter Property="Foreground" Value="{DynamicResource MatchaBrush}" />
+    </Style>
+    <Style Selector="CalendarItem /template/ Button#PART_PreviousButton,
+                     CalendarItem /template/ Button#PART_NextButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+    </Style>
+    <Style Selector="CalendarItem /template/ Button#PART_PreviousButton:pointerover,
+                     CalendarItem /template/ Button#PART_NextButton:pointerover">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    </Style>
+
+    <!-- Day cells -->
+    <Style Selector="CalendarDayButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+        <Setter Property="Margin" Value="1" />
+        <Setter Property="MinWidth" Value="34" />
+        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="CalendarDayButton:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+    <Style Selector="CalendarDayButton:selected">
+        <Setter Property="Background" Value="{DynamicResource MatchaBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="CalendarDayButton:selected:pointerover">
+        <Setter Property="Background" Value="{DynamicResource MatchaDeepBrush}" />
+    </Style>
+    <Style Selector="CalendarDayButton:today">
+        <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="CalendarDayButton:inactive">
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+        <Setter Property="Opacity" Value="0.5" />
+    </Style>
+
+    <!-- Month/year picker cells (after clicking the header) -->
+    <Style Selector="CalendarButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="CalendarButton:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+    <Style Selector="CalendarButton:selected">
+        <Setter Property="Background" Value="{DynamicResource MatchaBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+    </Style>
+
     <!-- TimePicker shares the look — boxed, matcha focus -->
     <Style Selector="TimePicker">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
