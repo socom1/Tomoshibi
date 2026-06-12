@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -66,6 +67,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _storage = storage;
         _state = storage.Load();
 
+        MigrateDeadlinesToTickets();
         ApplyDailyReset(DateOnly.FromDateTime(DateTime.Now));
 
         _isNavOpen = _state.IsNavOpen;
@@ -100,6 +102,33 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>Parameterless ctor for the XAML designer preview only.</summary>
     public MainWindowViewModel() : this(new JsonStorageService())
     {
+    }
+
+    /// <summary>One-time migration: standalone deadlines became todo tickets
+    /// with due dates. Old state files may still carry a deadlines list —
+    /// convert each to a ticket (skipping ones that already exist) and empty
+    /// the legacy list.</summary>
+    private void MigrateDeadlinesToTickets()
+    {
+        if (_state.Deadlines.Count == 0)
+            return;
+
+        foreach (var d in _state.Deadlines)
+        {
+            var exists = _state.Todos.Any(t => t.Due == d.Date && t.Title == d.Title);
+            if (!exists)
+            {
+                _state.Todos.Add(new TodoItem
+                {
+                    Number = _state.NextTodoNumber++,
+                    Title = d.Title,
+                    Course = d.Course,
+                    Due = d.Date
+                });
+            }
+        }
+
+        _state.Deadlines.Clear();
     }
 
     private void OnSettingsChanged()
@@ -161,6 +190,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 break;
             case Destination.Todo:
                 Todo.Refresh();
+                break;
+            case Destination.Timetable:
+                Timetable.RefreshDeadlines();
                 break;
         }
 

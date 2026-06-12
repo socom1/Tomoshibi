@@ -170,11 +170,12 @@ public partial class TodayViewModel : ViewModelBase
         }
         HasNextClass = NextClassLabel.Length > 0;
 
-        var soon = _state.Deadlines
-            .Where(d => d.Date >= today && d.Date <= today.AddDays(7))
-            .OrderBy(d => d.Date)
+        var soon = _state.Todos
+            .Where(t => t.Status != TodoStatus.Done && t.Due is { } due &&
+                        due >= today && due <= today.AddDays(7))
+            .OrderBy(t => t.Due)
             .Take(2)
-            .Select(d => $"{d.Title} due {DueWord(d.Date, today)}")
+            .Select(t => $"{t.Title} due {DueWord(t.Due!.Value, today)}")
             .ToList();
 
         DeadlinesLabel = string.Join(" · ", soon);

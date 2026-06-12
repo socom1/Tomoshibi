@@ -41,8 +41,12 @@ public class AppState
 
     // Timetable
     public List<ClassSlot> ClassSlots { get; set; } = new();
-    public List<Deadline> Deadlines { get; set; } = new();
     public ClassesView ClassesView { get; set; } = ClassesView.Grid;
+
+    /// <summary>Legacy: standalone deadlines were folded into the todo
+    /// backlog as tickets with due dates. Kept so old state files still
+    /// deserialise; migrated and emptied on load.</summary>
+    public List<Deadline> Deadlines { get; set; } = new();
 
     // Todo backlog
     public List<TodoItem> Todos { get; set; } = new();

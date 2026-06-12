@@ -4,20 +4,25 @@ using Tomoshibi.Models;
 namespace Tomoshibi.ViewModels;
 
 /// <summary>
-/// Read-only row representation of a <see cref="Deadline"/>. Past deadlines
-/// are flagged so the row can dim them.
+/// A row in the timetable's deadlines card. Since deadlines were folded into
+/// the todo backlog, this wraps an open <see cref="TodoItem"/> that has a due
+/// date — the card is just a date-ordered window onto the same tickets.
 /// </summary>
 public class DeadlineItemViewModel : ViewModelBase
 {
-    public Deadline Model { get; }
+    public TodoItem Model { get; }
 
-    public string DateLabel => $"{Model.Date:ddd MMM d}".ToLowerInvariant();
+    public string NumberLabel => $"#{Model.Number}";
+    public string DateLabel => Model.Due is { } d ? $"{d:ddd MMM d}".ToLowerInvariant() : string.Empty;
     public string Title => Model.Title;
     public string? Course => Model.Course;
     public bool HasCourse => !string.IsNullOrWhiteSpace(Model.Course);
-    public bool IsPast => Model.Date < DateOnly.FromDateTime(DateTime.Now);
 
-    public DeadlineItemViewModel(Deadline model)
+    /// <summary>Due date already behind us — the date goes sakura.</summary>
+    public bool IsOverdue =>
+        Model.Due is { } due && due < DateOnly.FromDateTime(DateTime.Now);
+
+    public DeadlineItemViewModel(TodoItem model)
     {
         Model = model;
     }

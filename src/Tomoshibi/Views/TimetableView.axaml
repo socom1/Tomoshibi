@@ -52,9 +52,11 @@
                                                          Text="{Binding NewDeadlineCourse}"
                                                          ItemsSource="{Binding KnownCourses}"
                                                          FilterMode="Contains" />
-                                        <Button Content="{Binding DeadlineFormLabel}" Classes="accent"
+                                        <Button Content="add" Classes="accent"
                                                 HorizontalAlignment="Stretch"
                                                 Command="{Binding AddDeadlineCommand}" />
+                                        <TextBlock Text="lands on the todo backlog as a ticket"
+                                                   Classes="caption" />
                                     </StackPanel>
                                 </Flyout>
                             </Button.Flyout>
@@ -68,22 +70,23 @@
                     <ItemsControl ItemsSource="{Binding Deadlines}" Margin="0,8,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:DeadlineItemViewModel">
-                                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" Margin="0,6,0,0">
+                                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" Margin="0,6,0,0">
                                     <TextBlock Grid.Column="0" Text="{Binding DateLabel}"
                                                Classes="caption" VerticalAlignment="Center"
-                                               Width="80" />
-                                    <TextBlock Grid.Column="1" Text="{Binding Title}"
-                                               Classes.done="{Binding IsPast}"
-                                               VerticalAlignment="Center" TextWrapping="Wrap"
-                                               Margin="4,0,0,0" />
-                                    <Border Grid.Column="2" Classes="tag" Margin="8,0,0,0"
+                                               Classes.overdue="{Binding IsOverdue}"
+                                               Width="92" />
+                                    <TextBlock Grid.Column="1" Text="{Binding NumberLabel}"
+                                               Classes="caption" VerticalAlignment="Center"
+                                               Margin="0,0,8,0"
+                                               ToolTip.Tip="a todo ticket — edit it on the todo page" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Title}"
+                                               VerticalAlignment="Center" TextWrapping="Wrap" />
+                                    <Border Grid.Column="3" Classes="tag" Margin="8,0,0,0"
                                             IsVisible="{Binding HasCourse}">
                                         <TextBlock Text="{Binding Course}" />
                                     </Border>
-                                    <Button Grid.Column="3" Content="✎" Classes="icon" Margin="4,0,0,0"
-                                            Click="OnEditDeadlineClick"
-                                            ToolTip.Tip="edit" />
-                                    <Button Grid.Column="4" Content="✕" Classes="icon"
+                                    <Button Grid.Column="4" Content="✕" Classes="icon" Margin="4,0,0,0"
+                                            ToolTip.Tip="delete the ticket"
                                             Command="{Binding $parent[ItemsControl].((vm:TimetableViewModel)DataContext).RemoveDeadlineCommand}"
                                             CommandParameter="{Binding}" />
                                 </Grid>

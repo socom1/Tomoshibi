@@ -708,3 +708,24 @@ copies the title verbatim, so the common path just works.
 Navigating to a page now re-reads shared state (`Todo.Refresh()`,
 `Today.RefreshScheduleInfo()`), so cross-page effects show up without a
 restart.
+
+---
+
+## One concept for "due" + quiet toggles (2026-06-12)
+
+**Deadlines are tickets now.** The timetable's deadline card and the todo
+backlog had grown into two parallel ways of saying "this is due Friday" —
+the same essay could reasonably be entered in both. Resolution: a deadline
+*is* a todo ticket with a due date. The timetable card is now a date-ordered
+window onto open tickets that have due dates: adding there creates a ticket
+(numbered, trackable, with all the ticket machinery), deleting there deletes
+the ticket, and editing happens on the todo page where the full modal lives.
+One-off .ics events import as tickets too, and old state files migrate their
+standalone deadlines into tickets on first load (deduped by title + date).
+The today page's amber "due" line reads from the same source, so a deadline
+ticked done on the todo page disappears everywhere at once.
+
+**Chime and notification toggles.** Both were always-on; now they're
+checkboxes in the settings flyout, on by default, persisted with the other
+timer settings. Old state files keep them on (the JSON defaults survive
+missing properties).

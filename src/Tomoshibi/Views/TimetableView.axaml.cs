@@ -29,15 +29,6 @@ public partial class TimetableView : UserControl
         }
     }
 
-    private void OnEditDeadlineClick(object? sender, RoutedEventArgs e)
-    {
-        if (sender is Button { DataContext: DeadlineItemViewModel item } && Vm is { } vm)
-        {
-            vm.BeginEditDeadline(item);
-            AddDeadlineButton.Flyout?.ShowAt(AddDeadlineButton);
-        }
-    }
-
     private async void OnImportIcsClick(object? sender, RoutedEventArgs e)
     {
         if (Vm is not { } vm)

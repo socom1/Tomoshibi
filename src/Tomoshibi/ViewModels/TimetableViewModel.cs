@@ -10,9 +10,10 @@ using Tomoshibi.Services;
 namespace Tomoshibi.ViewModels;
 
 /// <summary>
-/// The timetable side panel: a recurring weekly class schedule and a list of
-/// upcoming deadlines, both editable by hand. Wraps the same model lists that
-/// live on <see cref="AppState"/> so saves go through one path.
+/// The timetable destination: a recurring weekly class schedule, plus a
+/// deadlines card that is a date-ordered window onto the todo backlog —
+/// every "deadline" is an open ticket with a due date. Adding one here
+/// creates a ticket; the full editing surface lives on the todo page.
 /// </summary>
 public partial class TimetableViewModel : ViewModelBase
 {
@@ -53,12 +54,10 @@ public partial class TimetableViewModel : ViewModelBase
     public bool IsClassesGridShown => HasSlots && IsClassesGridView;
     public bool IsClassesListShown => HasSlots && IsClassesListView;
 
-    // ---- New deadline form (doubles as the edit form) ----
+    // ---- New deadline form (creates a todo ticket with a due date) ----
     [ObservableProperty] private DateTime? _newDeadlineDate = DateTime.Now;
     [ObservableProperty] private string _newDeadlineTitle = string.Empty;
     [ObservableProperty] private string _newDeadlineCourse = string.Empty;
-    [ObservableProperty] private string _deadlineFormLabel = "add";
-    private Deadline? _editingDeadline;
 
     // ---- New class slot form (doubles as the edit form) ----
     [ObservableProperty] private WeekDay _newSlotDay = WeekDay.Mon;
@@ -81,11 +80,26 @@ public partial class TimetableViewModel : ViewModelBase
         foreach (var slot in _state.ClassSlots.OrderBy(s => s.Day).ThenBy(s => s.Start))
             Slots.Add(new ClassSlotItemViewModel(slot));
 
-        foreach (var d in _state.Deadlines.OrderBy(d => d.Date))
-            Deadlines.Add(new DeadlineItemViewModel(d));
-
+        RefreshDeadlines();
         RebuildKnownCourses();
         UpdateFlags();
+    }
+
+    /// <summary>Re-window the deadlines card onto the backlog: open tickets
+    /// with a due date, soonest first. Called on construction, after local
+    /// changes, and when the user navigates here (tickets may have changed
+    /// on the todo page).</summary>
+    public void RefreshDeadlines()
+    {
+        Deadlines.Clear();
+        foreach (var ticket in _state.Todos
+                     .Where(t => t.Due is not null && t.Status != TodoStatus.Done)
+                     .OrderBy(t => t.Due))
+        {
+            Deadlines.Add(new DeadlineItemViewModel(ticket));
+        }
+
+        HasDeadlines = Deadlines.Count > 0;
     }
 
     [RelayCommand]
@@ -100,6 +114,8 @@ public partial class TimetableViewModel : ViewModelBase
         _save();
     }
 
+    /// <summary>Adding a deadline creates an open ticket on the todo backlog
+    /// with the due date set — one concept, two views.</summary>
     [RelayCommand]
     private void AddDeadline()
     {
@@ -107,54 +123,30 @@ public partial class TimetableViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(title) || NewDeadlineDate is null)
             return;
 
-        var course = string.IsNullOrWhiteSpace(NewDeadlineCourse) ? null : NewDeadlineCourse.Trim();
-
-        if (_editingDeadline is { } editing)
+        _state.Todos.Add(new TodoItem
         {
-            // Saving an in-place edit: mutate the model, rewrap its row so the
-            // computed labels refresh, and re-sort.
-            editing.Date = DateOnly.FromDateTime(NewDeadlineDate.Value);
-            editing.Title = title;
-            editing.Course = course;
-
-            var row = Deadlines.FirstOrDefault(r => r.Model == editing);
-            if (row is not null)
-                Deadlines.Remove(row);
-            InsertSorted(Deadlines, new DeadlineItemViewModel(editing), (a, b) => a.Model.Date.CompareTo(b.Model.Date));
-        }
-        else
-        {
-            var model = new Deadline
-            {
-                Date = DateOnly.FromDateTime(NewDeadlineDate.Value),
-                Title = title,
-                Course = course
-            };
-
-            _state.Deadlines.Add(model);
-            InsertSorted(Deadlines, new DeadlineItemViewModel(model), (a, b) => a.Model.Date.CompareTo(b.Model.Date));
-        }
+            Number = _state.NextTodoNumber++,
+            Title = title,
+            Course = string.IsNullOrWhiteSpace(NewDeadlineCourse) ? null : NewDeadlineCourse.Trim(),
+            Due = DateOnly.FromDateTime(NewDeadlineDate.Value)
+        });
 
         CancelEdits();
+        RefreshDeadlines();
         RebuildKnownCourses();
-        UpdateFlags();
         _save();
     }
 
+    /// <summary>Removing a deadline deletes the underlying ticket.</summary>
     [RelayCommand]
     private void RemoveDeadline(DeadlineItemViewModel? item)
     {
         if (item is null)
             return;
 
-        if (item.Model == _editingDeadline)
-            CancelEdits();
-
-        _state.Deadlines.Remove(item.Model);
-        Deadlines.Remove(item);
-
+        _state.Todos.Remove(item.Model);
+        RefreshDeadlines();
         RebuildKnownCourses();
-        UpdateFlags();
         _save();
     }
 
@@ -222,18 +214,9 @@ public partial class TimetableViewModel : ViewModelBase
         SlotFormLabel = "save";
     }
 
-    public void BeginEditDeadline(DeadlineItemViewModel item)
-    {
-        _editingDeadline = item.Model;
-        NewDeadlineDate = item.Model.Date.ToDateTime(TimeOnly.MinValue);
-        NewDeadlineTitle = item.Model.Title;
-        NewDeadlineCourse = item.Model.Course ?? string.Empty;
-        DeadlineFormLabel = "save";
-    }
-
-    /// <summary>Merge a parsed .ics file into the timetable. Exact duplicates
-    /// (same day/time/title for slots, same date/title for deadlines) are
-    /// skipped so re-importing the same file is harmless.</summary>
+    /// <summary>Merge a parsed .ics file into the timetable. Weekly events
+    /// become class slots; one-offs become open tickets with due dates.
+    /// Exact duplicates are skipped so re-importing the same file is harmless.</summary>
     public void ImportIcs(string text)
     {
         var parsed = IcsImporter.Parse(text);
@@ -255,20 +238,25 @@ public partial class TimetableViewModel : ViewModelBase
 
         foreach (var deadline in parsed.Deadlines)
         {
-            var dupe = _state.Deadlines.Any(d =>
-                d.Date == deadline.Date && d.Title == deadline.Title);
+            var dupe = _state.Todos.Any(t =>
+                t.Due == deadline.Date && t.Title == deadline.Title);
             if (dupe)
                 continue;
 
-            _state.Deadlines.Add(deadline);
-            InsertSorted(Deadlines, new DeadlineItemViewModel(deadline),
-                (a, b) => a.Model.Date.CompareTo(b.Model.Date));
+            _state.Todos.Add(new TodoItem
+            {
+                Number = _state.NextTodoNumber++,
+                Title = deadline.Title,
+                Course = deadline.Course,
+                Due = deadline.Date
+            });
             addedDeadlines++;
         }
 
         ImportSummary = $"imported {added} classes · {addedDeadlines} deadlines" +
                         (parsed.Skipped > 0 ? $" · {parsed.Skipped} skipped" : string.Empty);
 
+        RefreshDeadlines();
         RebuildKnownCourses();
         UpdateFlags();
         _save();
@@ -279,9 +267,7 @@ public partial class TimetableViewModel : ViewModelBase
     public void CancelEdits()
     {
         _editingSlot = null;
-        _editingDeadline = null;
         SlotFormLabel = "add";
-        DeadlineFormLabel = "add";
         NewSlotTitle = string.Empty;
         NewSlotCourse = string.Empty;
         NewDeadlineTitle = string.Empty;
@@ -306,8 +292,8 @@ public partial class TimetableViewModel : ViewModelBase
     }
 
     /// <summary>Rebuild the autocomplete source from every place a course can
-    /// have been entered — class slots, deadlines, and the parsed today
-    /// task template.</summary>
+    /// have been entered — class slots, the todo backlog, and the parsed
+    /// today task template.</summary>
     private void RebuildKnownCourses()
     {
         var fromTemplate = TaskTemplateParser.Parse(_state.TaskTemplate)
@@ -315,7 +301,7 @@ public partial class TimetableViewModel : ViewModelBase
 
         var courses = fromTemplate
             .Concat(_state.ClassSlots.Select(s => s.Course))
-            .Concat(_state.Deadlines.Select(d => d.Course))
+            .Concat(_state.Todos.Select(t => t.Course))
             .Where(c => !string.IsNullOrWhiteSpace(c))
             .Select(c => c!.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -330,7 +316,6 @@ public partial class TimetableViewModel : ViewModelBase
     private void UpdateFlags()
     {
         HasSlots = Slots.Count > 0;
-        HasDeadlines = Deadlines.Count > 0;
     }
 
     private static void InsertSorted<T>(ObservableCollection<T> list, T item, Comparison<T> compare)

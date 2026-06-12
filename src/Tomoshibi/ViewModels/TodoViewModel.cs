@@ -278,7 +278,6 @@ public partial class TodoViewModel : ViewModelBase
     {
         var courses = _state.Todos.Select(t => t.Course)
             .Concat(_state.ClassSlots.Select(s => s.Course))
-            .Concat(_state.Deadlines.Select(d => d.Course))
             .Where(c => !string.IsNullOrWhiteSpace(c))
             .Select(c => c!.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)
