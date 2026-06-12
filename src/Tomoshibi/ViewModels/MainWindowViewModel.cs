@@ -31,6 +31,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsTodayActive))]
     [NotifyPropertyChangedFor(nameof(IsTimetableActive))]
     [NotifyPropertyChangedFor(nameof(IsTodoActive))]
+    [NotifyPropertyChangedFor(nameof(IsSubjectsActive))]
     [NotifyPropertyChangedFor(nameof(IsStatsActive))]
     [NotifyPropertyChangedFor(nameof(ActiveContent))]
     private Destination _activeDestination;
@@ -50,6 +51,9 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>The todo backlog destination's content.</summary>
     public TodoViewModel Todo { get; }
 
+    /// <summary>The subjects + grades destination's content.</summary>
+    public SubjectsViewModel Subjects { get; }
+
     /// <summary>The streak-calendar stats destination's content.</summary>
     public StatsViewModel Stats { get; }
 
@@ -59,6 +63,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Destination.Timetable => Timetable,
         Destination.Todo => Todo,
+        Destination.Subjects => Subjects,
         Destination.Stats => Stats,
         _ => Today
     };
@@ -66,6 +71,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsTodayActive => ActiveDestination == Destination.Today;
     public bool IsTimetableActive => ActiveDestination == Destination.Timetable;
     public bool IsTodoActive => ActiveDestination == Destination.Todo;
+    public bool IsSubjectsActive => ActiveDestination == Destination.Subjects;
     public bool IsStatsActive => ActiveDestination == Destination.Stats;
 
     public MainWindowViewModel(IStorageService storage)
@@ -84,6 +90,7 @@ public partial class MainWindowViewModel : ViewModelBase
                                    new SoundService(), new NotificationService());
         Timetable = new TimetableViewModel(_state, Save);
         Todo = new TodoViewModel(_state, Save, SendTodoToToday);
+        Subjects = new SubjectsViewModel(_state, Save);
         Stats = new StatsViewModel(_state);
 
         Today.Pomodoro.PropertyChanged += OnPomodoroPropertyChanged;
@@ -165,6 +172,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private void NavigateToTodo() => ActiveDestination = Destination.Todo;
 
     [RelayCommand]
+    private void NavigateToSubjects() => ActiveDestination = Destination.Subjects;
+
+    [RelayCommand]
     private void NavigateToStats() => ActiveDestination = Destination.Stats;
 
     /// <summary>Append a backlog item to today's task template as a new block
@@ -203,6 +213,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 break;
             case Destination.Timetable:
                 Timetable.RefreshDeadlines();
+                break;
+            case Destination.Subjects:
+                Subjects.Refresh();
                 break;
             case Destination.Stats:
                 Stats.Refresh();

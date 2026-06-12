@@ -10,5 +10,6 @@ public enum Destination
     Today,
     Timetable,
     Todo,
+    Subjects,
     Stats
 }

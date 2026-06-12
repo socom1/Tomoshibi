@@ -21,6 +21,7 @@
     <Window.KeyBindings>
         <KeyBinding Gesture="Escape" Command="{Binding Today.Tasks.CancelAddTaskCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Todo.CancelModalCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding Subjects.CancelModalCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding ExitZenCommand}" />
     </Window.KeyBindings>
 
@@ -67,6 +68,14 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <TextBlock Text="やること" />
                         <TextBlock Text="todo" Opacity="0.55" />
+                    </StackPanel>
+                </Button>
+
+                <Button Classes="nav" Classes.active="{Binding IsSubjectsActive}"
+                        Command="{Binding NavigateToSubjectsCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="科目" />
+                        <TextBlock Text="subjects" Opacity="0.55" />
                     </StackPanel>
                 </Button>
 

@@ -774,3 +774,33 @@ What Avalonia's TrayIcon can't do: a live text label next to the icon
 (menu-bar countdown) and macOS template-icon adaptation. The tooltip
 carries the countdown instead, and the matcha glyph reads fine on both
 light and dark menu bars.
+
+---
+
+## Subjects, weighted grades and a GPA (2026-06-12)
+
+A fifth destination: 科目 · subjects — the grades half of student life the
+app didn't cover. Each subject is a card: name, course code (autocompleting
+from the same course tags used everywhere else), and credits. Inside, the
+syllabus as a list of assessments — exam 40%, essay 30% — each with a
+weight, an optional date, and a grade field you type into the day results
+land (an inline NumericUpDown per row, write-through like the ticket
+checkboxes).
+
+**The math, and the one decision that matters:** a subject's standing is
+the weighted average over *graded* assessments only, normalised by graded
+weight — so mid-semester you see "81.4% · B- · based on 70% graded of
+100%" instead of a number dragged down by ungraded finals. A caption warns
+when the syllabus weights don't sum to 100. The GPA is the credit-weighted
+mean of subject grade points over subjects that have any grade at all.
+
+**Scale honesty:** grades are entered as percentages and mapped through
+the standard US table (93+ → 4.0 / A, steps of 3–4 points down to F) in a
+single pure `GradeScale` class. Grading systems differ wildly by country;
+keeping the mapping in one small file means a configurable scale later is
+a drop-in, and the percent-based entry works everywhere regardless.
+
+Editing reuses the established patterns: the centered modal for add/edit
+subject (Esc closes), chevron-expanded cards like the ticket rows, and a
+`Refresh()` on navigation so course codes added elsewhere reach the
+autocomplete.
