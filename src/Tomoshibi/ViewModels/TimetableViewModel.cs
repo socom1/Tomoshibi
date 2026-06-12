@@ -85,10 +85,15 @@ public partial class TimetableViewModel : ViewModelBase
         UpdateFlags();
     }
 
+    /// <summary>Upcoming dated exams from the subjects page, read-only.</summary>
+    public ObservableCollection<string> UpcomingExams { get; } = new();
+
+    [ObservableProperty] private bool _hasUpcomingExams;
+
     /// <summary>Re-window the deadlines card onto the backlog: open tickets
-    /// with a due date, soonest first. Called on construction, after local
-    /// changes, and when the user navigates here (tickets may have changed
-    /// on the todo page).</summary>
+    /// with a due date, soonest first — plus dated, ungraded assessments
+    /// from the subjects page as a read-only exams list. Called on
+    /// construction, after local changes, and when the user navigates here.</summary>
     public void RefreshDeadlines()
     {
         Deadlines.Clear();
@@ -100,6 +105,21 @@ public partial class TimetableViewModel : ViewModelBase
         }
 
         HasDeadlines = Deadlines.Count > 0;
+
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        UpcomingExams.Clear();
+        foreach (var (subject, exam) in _state.Subjects
+                     .SelectMany(s => s.Assessments
+                         .Where(a => a.Grade is null && a.Date is { } d &&
+                                     d >= today && d <= today.AddDays(30))
+                         .Select(a => (s, a)))
+                     .OrderBy(x => x.a.Date))
+        {
+            var date = $"{exam.Date:ddd MMM d}".ToLowerInvariant();
+            UpcomingExams.Add($"{date} · {exam.Title} — {subject.Code ?? subject.Name}");
+        }
+
+        HasUpcomingExams = UpcomingExams.Count > 0;
     }
 
     [RelayCommand]

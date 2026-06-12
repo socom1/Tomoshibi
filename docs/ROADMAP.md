@@ -19,9 +19,11 @@ sensible order of work.
   notifications, stats history with streaks, the todo backlog, and packaging.
 - **v1.4 — stats + tray.** A streak calendar over the saved history, and
   the timer in the menu bar.
-- **v1.5 — subjects.** Weighted grades per subject and a credit-weighted
-  GPA, entered as percentages on the US 4.0 mapping.
-- **Later** — soundscapes, a configurable grade scale, a public release.
+- **v1.5 — subjects.** Weighted grades per subject with targets, drop
+  rules, a what-if simulator, term grouping with a year-weighted degree
+  projection, exam surfacing, transcript export — and a configurable scale
+  (US 4.0 / UK honours / ECTS / percentage).
+- **Later** — soundscapes, a public release.
 
 ## v1.0 — core
 

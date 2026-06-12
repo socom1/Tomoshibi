@@ -172,12 +172,24 @@ public partial class TodayViewModel : ViewModelBase
         }
         HasNextClass = NextClassLabel.Length > 0;
 
-        var soon = _state.Todos
+        // Due things come from two places: open tickets with due dates, and
+        // dated, still-ungraded assessments (exams, essay hand-ins).
+        var dueTickets = _state.Todos
             .Where(t => t.Status != TodoStatus.Done && t.Due is { } due &&
                         due >= today && due <= today.AddDays(7))
-            .OrderBy(t => t.Due)
+            .Select(t => (Date: t.Due!.Value, Label: t.Title));
+
+        var dueExams = _state.Subjects
+            .SelectMany(s => s.Assessments
+                .Where(a => a.Grade is null && a.Date is { } d &&
+                            d >= today && d <= today.AddDays(7))
+                .Select(a => (Date: a.Date!.Value,
+                              Label: $"{a.Title} ({s.Code ?? s.Name})")));
+
+        var soon = dueTickets.Concat(dueExams)
+            .OrderBy(x => x.Date)
             .Take(2)
-            .Select(t => $"{t.Title} due {DueWord(t.Due!.Value, today)}")
+            .Select(x => $"{x.Label} due {DueWord(x.Date, today)}")
             .ToList();
 
         DeadlinesLabel = string.Join(" · ", soon);

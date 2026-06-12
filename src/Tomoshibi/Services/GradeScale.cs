@@ -1,9 +1,12 @@
+using Tomoshibi.Models;
+
 namespace Tomoshibi.Services;
 
 /// <summary>
-/// Percentage → letter / 4.0-scale mapping, the standard US table. Pure
-/// functions so the conversion is testable and lives in exactly one place;
-/// a configurable scale can replace this later without touching callers.
+/// Percentage → label conversion for every supported grading system, in one
+/// pure place. Grades are always stored as percentages; the scale decides
+/// what they're called. US letters/points use the standard table; UK honours
+/// uses the classification bands; ECTS uses the common fixed mapping.
 /// </summary>
 public static class GradeScale
 {
@@ -23,7 +26,37 @@ public static class GradeScale
         _ => 0.0
     };
 
-    public static string ToLetter(double percent) => percent switch
+    /// <summary>The short chip next to a grade: "B+", "2:1", "B" — or empty
+    /// on the plain percentage scale.</summary>
+    public static string Label(GradeScaleKind kind, double percent) => kind switch
+    {
+        GradeScaleKind.UsGpa => UsLetter(percent),
+        GradeScaleKind.UkHonours => percent switch
+        {
+            >= 70 => "first",
+            >= 60 => "2:1",
+            >= 50 => "2:2",
+            >= 40 => "third",
+            _ => "fail"
+        },
+        GradeScaleKind.Ects => percent switch
+        {
+            >= 90 => "A",
+            >= 80 => "B",
+            >= 70 => "C",
+            >= 60 => "D",
+            >= 50 => "E",
+            _ => "F"
+        },
+        _ => string.Empty
+    };
+
+    /// <summary>"3.0 pts" on the US scale; the other scales don't have a
+    /// points concept, so empty.</summary>
+    public static string PointsLabel(GradeScaleKind kind, double percent) =>
+        kind == GradeScaleKind.UsGpa ? $"{ToPoints(percent):0.0} pts" : string.Empty;
+
+    private static string UsLetter(double percent) => percent switch
     {
         >= 93 => "A",
         >= 90 => "A-",

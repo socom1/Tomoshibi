@@ -18,5 +18,8 @@ public class Assessment
     /// <summary>Result in percent (0–100). Null = not graded yet.</summary>
     public double? Grade { get; set; }
 
+    /// <summary>Optional grouping ("quiz", "lab") that drop rules target.</summary>
+    public string? Category { get; set; }
+
     public DateOnly? Date { get; set; }
 }

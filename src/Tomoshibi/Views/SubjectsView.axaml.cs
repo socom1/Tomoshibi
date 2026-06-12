@@ -1,6 +1,8 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Tomoshibi.ViewModels;
 
 namespace Tomoshibi.Views;
@@ -31,5 +33,32 @@ public partial class SubjectsView : UserControl
         {
             vm.BeginEdit(row);
         }
+    }
+
+    private async void OnExportClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is not { } vm)
+            return;
+
+        var top = TopLevel.GetTopLevel(this);
+        if (top is null)
+            return;
+
+        var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "export transcript",
+            SuggestedFileName = $"tomoshibi-transcript-{DateTime.Now:yyyy-MM-dd}.md",
+            FileTypeChoices = new[]
+            {
+                new FilePickerFileType("markdown") { Patterns = new[] { "*.md" } }
+            }
+        });
+
+        if (file is null)
+            return;
+
+        await using var stream = await file.OpenWriteAsync();
+        await using var writer = new System.IO.StreamWriter(stream);
+        await writer.WriteAsync(vm.BuildTranscript());
     }
 }

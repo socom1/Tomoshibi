@@ -54,4 +54,6 @@ public class AppState
 
     // Subjects + grades
     public List<Subject> Subjects { get; set; } = new();
+    public GradeScaleKind GradeScale { get; set; } = GradeScaleKind.UsGpa;
+    public List<YearWeight> YearWeights { get; set; } = new();
 }

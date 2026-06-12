@@ -96,6 +96,22 @@
                 </DockPanel>
             </Border>
 
+            <!-- ============ Upcoming exams (from the subjects page) ============ -->
+            <Border Classes="card" IsVisible="{Binding HasUpcomingExams}">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="試験 · upcoming exams" Classes="jp" />
+                    <ItemsControl ItemsSource="{Binding UpcomingExams}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" FontSize="13" Margin="0,2,0,0" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="dated assessments from the subjects page — grade them there"
+                               Classes="caption" />
+                </StackPanel>
+            </Border>
+
             <!-- ============ Classes ============ -->
             <Border Classes="card">
                 <DockPanel>

@@ -831,3 +831,56 @@ The detail page is where the "many things" live:
   carrying this code and the focus sessions logged on them, plus the next
   class in the coming week from the timetable. No code set → a hint to add
   one.
+
+---
+
+## The grades section learns how university actually works (2026-06-12)
+
+One big pass over 科目 · subjects, eight features deep:
+
+**Grading scales.** Grades are always *entered* as percentages, but the
+labels and the headline figure now speak the user's system — a picker
+offers us 4.0 (GPA + letters), uk honours (weighted average + first/2:1/
+2:2/third classification, "64.2% · on track for a 2:1"), ects letters, or
+plain percentages. One pure `GradeScale` class holds every mapping; the
+choice persists and relabels everything live, including the outlook's
+milestone lines (50/60/70 on UK, 70/80/90 elsewhere).
+
+**Targets.** A subject can carry "I'm aiming for 70%". The outlook leads
+with it — "your 70% target · need avg 74.5% on the rest" — and the target
+chip turns sakura when the required average climbs past 85%, or when a
+fully-graded subject missed it.
+
+**The what-if simulator.** A "simulate" toggle on the detail page adds an
+amber input to every ungraded row. Type hypothetical results and an amber
+"simulated · 67.4% (2:1) — not saved" line appears under the real
+standing. The trick that keeps it honest: real and simulated standings run
+through the same compute core with a different grade selector, so the
+sandbox can never disagree with reality's math. Toggling off forgets
+everything.
+
+**Terms and the degree projection.** Subjects carry a year + semester; the
+master list groups by term with per-term averages. With grades in more
+than one year, a degree card appears: per-year averages with editable
+UK-style year weights (year 1 0%, year 2 40%…), combined into "degree so
+far · 63.8% (2:1)". Years weight equally until any weight is set.
+
+**Drop rules.** "quiz: best 8; lab: best 3" in the subject form — per
+category, only the best N graded results count, and surplus ungraded items
+stop counting toward the remaining weight once N results are in. Works
+best when a category's items share a weight, which is the usual syllabus
+shape.
+
+**Exams flow outward.** Dated, ungraded assessments now surface on the
+today page's amber line ("midterm (MATH101) due fri") and in a read-only
+試験 · upcoming exams card on the timetable — same "dated thing coming up"
+concept everywhere, no duplicate entry.
+
+**Sparkline.** With two or more dated grades, the standing card draws the
+running weighted average over time as a small matcha polyline. The view
+model emits plain "x,y" strings; a tiny converter turns them into points,
+keeping Avalonia geometry out of the view model.
+
+**Transcript export.** An export button saves a markdown transcript — the
+overall figure, the degree projection, every term, subject and assessment —
+through the native save dialog.

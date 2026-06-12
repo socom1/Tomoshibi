@@ -20,5 +20,17 @@ public class Subject
     /// <summary>GPA weight of this subject (credit hours / ECTS / units).</summary>
     public double Credits { get; set; } = 1;
 
+    /// <summary>Which academic year and semester this subject belongs to —
+    /// drives the term grouping and the degree-weighting projection.</summary>
+    public int Year { get; set; } = 1;
+    public int Semester { get; set; } = 1;
+
+    /// <summary>The grade you're aiming for, in percent. Reorients the
+    /// outlook around your goal instead of generic targets.</summary>
+    public double? TargetPercent { get; set; }
+
+    /// <summary>Best-N-of-category rules, e.g. keep the best 8 quizzes.</summary>
+    public List<DropRule> DropRules { get; set; } = new();
+
     public List<Assessment> Assessments { get; set; } = new();
 }
