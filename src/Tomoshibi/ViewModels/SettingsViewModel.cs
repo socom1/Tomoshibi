@@ -29,6 +29,12 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private bool _autoContinue;
 
+    [ObservableProperty]
+    private bool _chimeEnabled;
+
+    [ObservableProperty]
+    private bool _notificationsEnabled;
+
     public SettingsViewModel(PomodoroSettings settings, Action onChanged)
     {
         _settings = settings;
@@ -39,6 +45,8 @@ public partial class SettingsViewModel : ViewModelBase
         _longBreakMinutes = settings.LongBreakMinutes;
         _roundsBeforeLongBreak = settings.RoundsBeforeLongBreak;
         _autoContinue = settings.AutoContinue;
+        _chimeEnabled = settings.ChimeEnabled;
+        _notificationsEnabled = settings.NotificationsEnabled;
     }
 
     partial void OnFocusMinutesChanged(decimal value)
@@ -68,6 +76,18 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnAutoContinueChanged(bool value)
     {
         _settings.AutoContinue = value;
+        _onChanged();
+    }
+
+    partial void OnChimeEnabledChanged(bool value)
+    {
+        _settings.ChimeEnabled = value;
+        _onChanged();
+    }
+
+    partial void OnNotificationsEnabledChanged(bool value)
+    {
+        _settings.NotificationsEnabled = value;
         _onChanged();
     }
 }

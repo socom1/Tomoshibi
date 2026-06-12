@@ -170,13 +170,19 @@ public partial class PomodoroViewModel : ViewModelBase
         // A skip is the user intervening — let them choose when to resume.
         if (natural)
         {
-            _sound?.PlayPhaseChime();
+            var s = _getSettings();
 
-            _notify?.Notify("灯火 · tomoshibi", Phase == PomodoroPhase.Focus
-                ? "break over — back to focus 集中"
-                : $"focus done — {PhaseShortLabel} 休憩");
+            if (s.ChimeEnabled)
+                _sound?.PlayPhaseChime();
 
-            if (_getSettings().AutoContinue)
+            if (s.NotificationsEnabled)
+            {
+                _notify?.Notify("灯火 · tomoshibi", Phase == PomodoroPhase.Focus
+                    ? "break over — back to focus 集中"
+                    : $"focus done — {PhaseShortLabel} 休憩");
+            }
+
+            if (s.AutoContinue)
             {
                 _timer.Start();
                 IsRunning = true;

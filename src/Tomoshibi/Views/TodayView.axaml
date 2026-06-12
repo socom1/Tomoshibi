@@ -63,6 +63,10 @@
 
                             <CheckBox IsChecked="{Binding Settings.AutoContinue}"
                                       Content="auto-continue phases" />
+                            <CheckBox IsChecked="{Binding Settings.ChimeEnabled}"
+                                      Content="chime on phase change" />
+                            <CheckBox IsChecked="{Binding Settings.NotificationsEnabled}"
+                                      Content="notify on phase change" />
 
                             <TextBlock Text="applies live · running phase finishes first" Classes="caption" />
                         </StackPanel>

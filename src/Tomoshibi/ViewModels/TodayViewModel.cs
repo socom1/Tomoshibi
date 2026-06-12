@@ -114,7 +114,9 @@ public partial class TodayViewModel : ViewModelBase
             ShortBreakMinutes = t?.Short ?? s.ShortBreakMinutes,
             LongBreakMinutes = t?.Long ?? s.LongBreakMinutes,
             RoundsBeforeLongBreak = s.RoundsBeforeLongBreak,
-            AutoContinue = s.AutoContinue
+            AutoContinue = s.AutoContinue,
+            ChimeEnabled = s.ChimeEnabled,
+            NotificationsEnabled = s.NotificationsEnabled
         };
     }
 

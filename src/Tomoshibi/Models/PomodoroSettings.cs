@@ -14,4 +14,10 @@ public class PomodoroSettings
     /// <summary>When a phase completes naturally, start the next one without
     /// waiting for the user to press start.</summary>
     public bool AutoContinue { get; set; }
+
+    /// <summary>Play the soft chime when a phase completes.</summary>
+    public bool ChimeEnabled { get; set; } = true;
+
+    /// <summary>Show a native notification when a phase completes.</summary>
+    public bool NotificationsEnabled { get; set; } = true;
 }
