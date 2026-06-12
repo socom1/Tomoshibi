@@ -31,6 +31,7 @@ public class AppState
 
     // Navigation
     public bool IsNavOpen { get; set; } = true;
+    public bool ShowWelcome { get; set; } = true;
     public Destination ActiveDestination { get; set; } = Destination.Today;
 
     // Window placement (0 width = never saved, use the XAML defaults)
@@ -51,6 +52,14 @@ public class AppState
     // Todo backlog
     public List<TodoItem> Todos { get; set; } = new();
     public int NextTodoNumber { get; set; } = 1;
+
+    // Sticky notes
+    public List<StickyNote> Stickies { get; set; } = new();
+
+    // Music player
+    public string? MusicFolder { get; set; }
+    public double MusicVolume { get; set; } = 70;
+    public bool MusicShuffle { get; set; } = true;
 
     // Subjects + grades
     public List<Subject> Subjects { get; set; } = new();

@@ -53,6 +53,19 @@ public partial class SubjectViewModel : ViewModelBase
     [ObservableProperty] private bool _hasSimulation;
     [ObservableProperty] private string _simulationLabel = string.Empty;
 
+    // ---- Visuals: graded share + standing tint ----
+    /// <summary>0..1 — how much of the effective weight has results.</summary>
+    [ObservableProperty] private double _gradedShare;
+    /// <summary>Standing as 0..1 for the detail ring.</summary>
+    [ObservableProperty] private double _standingFraction;
+    [ObservableProperty] private string _gradedShareCaption = string.Empty;
+
+    /// <summary>Standing vs the target (or 65% when none): on track /
+    /// within 10 points / drifting. Drives matcha-amber-sakura tints.</summary>
+    [ObservableProperty] private bool _isStandingGood;
+    [ObservableProperty] private bool _isStandingWarn;
+    [ObservableProperty] private bool _isStandingBad;
+
     // ---- Sparkline (standing after each dated, graded assessment) ----
     [ObservableProperty] private string _sparkPoints = string.Empty;
     [ObservableProperty] private bool _hasSpark;
@@ -265,6 +278,15 @@ public partial class SubjectViewModel : ViewModelBase
             PointsLabel = string.Empty;
             StandingCaption = Model.Assessments.Count > 0 ? "nothing graded yet" : string.Empty;
         }
+
+        GradedShare = totalWeight > 0 ? gradedWeight / totalWeight : 0;
+        GradedShareCaption = totalWeight > 0 ? $"{GradedShare:P0} graded" : string.Empty;
+
+        StandingFraction = (CurrentPercent ?? 0) / 100.0;
+        var reference = Model.TargetPercent ?? 65;
+        IsStandingGood = HasGrade && CurrentPercent >= reference;
+        IsStandingWarn = HasGrade && !IsStandingGood && CurrentPercent >= reference - 10;
+        IsStandingBad = HasGrade && !IsStandingGood && !IsStandingWarn;
 
         HasWeightWarning = Model.Assessments.Count > 0 && Math.Abs(totalWeight - 100) > 0.01;
         WeightWarning = HasWeightWarning

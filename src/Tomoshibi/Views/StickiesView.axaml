@@ -1,0 +1,79 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tomoshibi.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="Tomoshibi.Views.StickiesView"
+             x:DataType="vm:StickiesViewModel">
+
+    <Grid RowDefinitions="Auto,*" Margin="28,4,28,28">
+
+        <!-- Page header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <StackPanel Spacing="2">
+                <TextBlock Text="付箋 · stickies" Classes="jp" />
+                <TextBlock Text="the corkboard" Classes="h1" />
+            </StackPanel>
+            <Button Grid.Column="1" Classes="accent" Content="+ stick one"
+                    VerticalAlignment="Top"
+                    Command="{Binding AddCommand}" />
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <ItemsControl ItemsSource="{Binding Items}" IsVisible="{Binding HasItems}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:StickyNoteViewModel">
+                            <Border Classes="sticky"
+                                    Classes.samber="{Binding IsAmber}"
+                                    Classes.ssakura="{Binding IsSakura}"
+                                    Classes.smatcha="{Binding IsMatcha}"
+                                    Classes.sblue="{Binding IsBlue}"
+                                    RenderTransformOrigin="0.5,0.5">
+                                <Border.RenderTransform>
+                                    <RotateTransform Angle="{Binding Tilt}" />
+                                </Border.RenderTransform>
+                                <Grid RowDefinitions="Auto,*,Auto">
+
+                                    <!-- Top strip: colour dots + delete -->
+                                    <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+                                        <Button Grid.Column="0" Classes="dot damber"
+                                                Command="{Binding SetColorCommand}" CommandParameter="Amber" />
+                                        <Button Grid.Column="1" Classes="dot dsakura"
+                                                Command="{Binding SetColorCommand}" CommandParameter="Sakura" />
+                                        <Button Grid.Column="2" Classes="dot dmatcha"
+                                                Command="{Binding SetColorCommand}" CommandParameter="Matcha" />
+                                        <Button Grid.Column="3" Classes="dot dblue"
+                                                Command="{Binding SetColorCommand}" CommandParameter="Blue" />
+                                        <Button Grid.Column="5" Content="✕" Classes="icon"
+                                                FontSize="11" Padding="4,0"
+                                                Command="{Binding $parent[ItemsControl].((vm:StickiesViewModel)DataContext).RemoveCommand}"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+
+                                    <!-- The note itself -->
+                                    <TextBox Grid.Row="1" Classes="inline stickytext"
+                                             Text="{Binding Text}"
+                                             Watermark="scribble…"
+                                             AcceptsReturn="True" TextWrapping="Wrap"
+                                             VerticalContentAlignment="Top"
+                                             Margin="0,6,0,0" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Text="何もない · empty board — stick one"
+                           Classes="jp" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           IsVisible="{Binding !HasItems}" />
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

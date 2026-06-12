@@ -884,3 +884,46 @@ keeping Avalonia geometry out of the view model.
 **Transcript export.** An export button saves a markdown transcript — the
 overall figure, the degree projection, every term, subject and assessment —
 through the native save dialog.
+
+---
+
+## A welcome, a corkboard, a music bubble and richer grades (2026-06-12)
+
+Four additions in one pass, all aimed at the same complaint: the app worked
+but felt flat.
+
+**The welcome card.** On launch a centered card greets by time of day,
+shows the date, the next class, what's due, the backlog/doing counts and
+the streak — and puts the intention box right there ("what do you want to
+do today?"). Two exits: "just looking" or "start focusing", which closes
+the card and starts the timer. A "greet me on launch" checkbox persists
+the preference. All the data lines reuse the today view model's existing
+computed labels — the card is pure assembly.
+
+**付箋 · stickies.** A corkboard destination of coloured sticky cards —
+amber, sakura, matcha, blue — that you type straight onto. Each sticky
+carries a stable pseudo-random tilt (hashed from its id) for the scatter
+look, colour dots in its corner to restyle it, and writes through on every
+keystroke. Deliberately dumber than the todo tickets: no status, no dates,
+just scraps.
+
+**Grade visuals.** The standing is no longer always-matcha: it tints
+matcha / amber / sakura against the subject's target (65% when none) —
+on track, within ten points, drifting. The detail page gets a standing
+ring (the donut that the timer's old progress ring almost was) tinted the
+same way, and both views show a thin "how much of this module has results"
+bar. The ring reuses the stroke-dash-array trick via a small converter.
+
+**The music bubble.** A floating circle bottom-right with four equaliser
+bars that animate (staggered keyframe loops) while music plays. Click it →
+a slide-up player card: track name, prev/play-pause/next/shuffle/stop,
+volume, and a folder picker — point it at your own music folder and it
+plays through it, shuffled by default, auto-advancing on track end.
+Playback is afplay (macOS) / mpv or ffplay (Linux) with SIGSTOP/SIGCONT
+for pause — still zero dependencies. The honest trade-offs are printed in
+the panel: volume applies from the next track, Windows isn't supported
+until a real audio backend earns its place, and **spotify connect is
+"coming soon"** — real Spotify control needs an OAuth app registration,
+Premium, and a callback flow, which deserves its own focused phase rather
+than a half-working button. The player dies with the app (lifetime Exit
+hook), so no orphan keeps singing after quit.

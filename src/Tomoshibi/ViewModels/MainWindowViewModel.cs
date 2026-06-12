@@ -33,6 +33,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsTodoActive))]
     [NotifyPropertyChangedFor(nameof(IsSubjectsActive))]
     [NotifyPropertyChangedFor(nameof(IsStatsActive))]
+    [NotifyPropertyChangedFor(nameof(IsStickiesActive))]
     [NotifyPropertyChangedFor(nameof(ActiveContent))]
     private Destination _activeDestination;
 
@@ -40,6 +41,18 @@ public partial class MainWindowViewModel : ViewModelBase
     /// timer runs so the dock/taskbar shows progress at a glance.</summary>
     [ObservableProperty]
     private string _windowTitle = "灯火 · tomoshibi";
+
+    // ---- Welcome modal (launch greeting) ----
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CloseWelcomeCommand))]
+    private bool _isWelcomeOpen;
+
+    /// <summary>"greet me on launch" — persisted preference.</summary>
+    [ObservableProperty]
+    private bool _showWelcomeOnLaunch;
+
+    public string WelcomeDateLabel =>
+        $"{DateTime.Now:dddd, MMMM d}".ToLowerInvariant();
 
     /// <summary>The "today" destination's content. Owns the pomodoro settings
     /// flyout since the settings only matter for the timer.</summary>
@@ -57,6 +70,12 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>The streak-calendar stats destination's content.</summary>
     public StatsViewModel Stats { get; }
 
+    /// <summary>The corkboard destination's content.</summary>
+    public StickiesViewModel Stickies { get; }
+
+    /// <summary>The floating music player (bubble + panel, all pages).</summary>
+    public MusicPlayerViewModel Music { get; }
+
     /// <summary>The view model the main content area is currently bound to.
     /// Resolved through <see cref="ViewLocator"/> to the right view.</summary>
     public ViewModelBase ActiveContent => ActiveDestination switch
@@ -65,6 +84,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Destination.Todo => Todo,
         Destination.Subjects => Subjects,
         Destination.Stats => Stats,
+        Destination.Stickies => Stickies,
         _ => Today
     };
 
@@ -73,6 +93,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsTodoActive => ActiveDestination == Destination.Todo;
     public bool IsSubjectsActive => ActiveDestination == Destination.Subjects;
     public bool IsStatsActive => ActiveDestination == Destination.Stats;
+    public bool IsStickiesActive => ActiveDestination == Destination.Stickies;
 
     public MainWindowViewModel(IStorageService storage)
     {
@@ -92,6 +113,11 @@ public partial class MainWindowViewModel : ViewModelBase
         Todo = new TodoViewModel(_state, Save, SendTodoToToday);
         Subjects = new SubjectsViewModel(_state, Save);
         Stats = new StatsViewModel(_state);
+        Stickies = new StickiesViewModel(_state, Save);
+        Music = new MusicPlayerViewModel(_state, Save, new MusicService());
+
+        _showWelcomeOnLaunch = _state.ShowWelcome;
+        _isWelcomeOpen = _state.ShowWelcome;
 
         Today.Pomodoro.PropertyChanged += OnPomodoroPropertyChanged;
 
@@ -151,6 +177,27 @@ public partial class MainWindowViewModel : ViewModelBase
         Save();
     }
 
+    [RelayCommand(CanExecute = nameof(CanCloseWelcome))]
+    private void CloseWelcome() => IsWelcomeOpen = false;
+
+    private bool CanCloseWelcome() => IsWelcomeOpen;
+
+    /// <summary>"start focusing" on the welcome card: close it and run the
+    /// timer if it isn't already going.</summary>
+    [RelayCommand]
+    private void WelcomeStartFocus()
+    {
+        IsWelcomeOpen = false;
+        if (!Today.Pomodoro.IsRunning)
+            Today.Pomodoro.ToggleRunCommand.Execute(null);
+    }
+
+    partial void OnShowWelcomeOnLaunchChanged(bool value)
+    {
+        _state.ShowWelcome = value;
+        Save();
+    }
+
     [RelayCommand]
     private void ToggleZen() => IsZenMode = !IsZenMode;
 
@@ -176,6 +223,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [RelayCommand]
     private void NavigateToStats() => ActiveDestination = Destination.Stats;
+
+    [RelayCommand]
+    private void NavigateToStickies() => ActiveDestination = Destination.Stickies;
 
     /// <summary>Append a backlog item to today's task template as a new block
     /// and jump to the today page so the user sees it land.</summary>

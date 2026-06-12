@@ -19,6 +19,7 @@
     </Window.Resources>
 
     <Window.KeyBindings>
+        <KeyBinding Gesture="Escape" Command="{Binding CloseWelcomeCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Today.Tasks.CancelAddTaskCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Todo.CancelModalCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Subjects.CancelModalCommand}" />
@@ -85,6 +86,14 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <TextBlock Text="記録" />
                         <TextBlock Text="stats" Opacity="0.55" />
+                    </StackPanel>
+                </Button>
+
+                <Button Classes="nav" Classes.active="{Binding IsStickiesActive}"
+                        Command="{Binding NavigateToStickiesCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="付箋" />
+                        <TextBlock Text="stickies" Opacity="0.55" />
                     </StackPanel>
                 </Button>
             </StackPanel>
@@ -177,6 +186,126 @@
                             HorizontalAlignment="Stretch" Margin="8,0,0,0"
                             Command="{Binding ConfirmAddTaskCommand}" />
                 </Grid>
+            </StackPanel>
+        </Border>
+    </Border>
+
+    <!-- Floating music player: equaliser bubble + slide-up panel -->
+    <Border Classes="card musicpanel"
+            Width="300" Padding="16"
+            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+            Margin="0,0,20,84"
+            IsVisible="{Binding Music.IsPanelOpen}">
+        <StackPanel Spacing="10" DataContext="{Binding Music}">
+            <TextBlock Text="音楽 · player" Classes="jp" />
+
+            <TextBlock Text="{Binding TrackLabel}" FontSize="13"
+                       TextTrimming="CharacterEllipsis" />
+
+            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                <Button Classes="icon" Content="⏮" FontSize="16"
+                        Command="{Binding PrevTrackCommand}" ToolTip.Tip="previous" />
+                <Button Classes="icon" Content="{Binding PlayPauseGlyph}" FontSize="18"
+                        Command="{Binding PlayPauseCommand}" ToolTip.Tip="play / pause" />
+                <Button Classes="icon" Content="⏭" FontSize="16"
+                        Command="{Binding NextTrackCommand}" ToolTip.Tip="next" />
+                <Button Classes="icon" Content="⤮" FontSize="14"
+                        Classes.shuffleon="{Binding Shuffle}"
+                        Command="{Binding ToggleShuffleCommand}" ToolTip.Tip="shuffle" />
+                <Button Classes="icon" Content="◼" FontSize="12"
+                        Command="{Binding StopPlaybackCommand}" ToolTip.Tip="stop" />
+            </StackPanel>
+
+            <Grid ColumnDefinitions="Auto,*">
+                <TextBlock Text="vol" Classes="caption" VerticalAlignment="Center"
+                           Margin="0,0,8,0" />
+                <NumericUpDown Grid.Column="1" Value="{Binding Volume}"
+                               Minimum="0" Maximum="100" FormatString="0"
+                               FontSize="12" Padding="8,4"
+                               ToolTip.Tip="applies from the next track" />
+            </Grid>
+
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding FolderLabel}" Classes="caption"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <Button Grid.Column="1" Classes="seg" Content="folder…"
+                        Click="OnChooseMusicFolder" />
+            </Grid>
+
+            <TextBlock Text="spotify connect — coming soon" Classes="caption" Opacity="0.6" />
+            <TextBlock Text="player not supported on this OS yet" Classes="caption overest"
+                       IsVisible="{Binding !IsSupported}" />
+        </StackPanel>
+    </Border>
+
+    <!-- The bubble itself -->
+    <Button Classes="musicbubble"
+            Classes.playing="{Binding Music.IsPlaying}"
+            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+            Margin="0,0,20,20"
+            Command="{Binding Music.TogglePanelCommand}"
+            ToolTip.Tip="音楽 · music">
+        <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center"
+                    HorizontalAlignment="Center" Height="18">
+            <Rectangle Classes="eq eq1" />
+            <Rectangle Classes="eq eq2" />
+            <Rectangle Classes="eq eq3" />
+            <Rectangle Classes="eq eq4" />
+        </StackPanel>
+    </Button>
+
+    <!-- Welcome modal: the launch greeting -->
+    <Border Classes="modal-backdrop"
+            IsVisible="{Binding IsWelcomeOpen}"
+            Background="#A0000000">
+        <Border Classes="card modal-card"
+                Width="430" Padding="26"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+            </Border.RenderTransform>
+            <StackPanel Spacing="14">
+                <StackPanel Spacing="2">
+                    <TextBlock Text="灯火 · tomoshibi" Classes="jp" />
+                    <TextBlock Text="{Binding Today.Greeting}" Classes="h1" />
+                    <TextBlock Text="{Binding WelcomeDateLabel}" Classes="caption" />
+                </StackPanel>
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding Today.NextClassLabel}" FontSize="13"
+                               Foreground="{DynamicResource BlueBrush}"
+                               IsVisible="{Binding Today.HasNextClass}" />
+                    <TextBlock Text="{Binding Today.DeadlinesLabel}" FontSize="13"
+                               Foreground="{DynamicResource AmberBrush}"
+                               IsVisible="{Binding Today.HasUpcomingDeadlines}" />
+                    <TextBlock FontSize="13" Classes="caption">
+                        <Run Text="{Binding Todo.OpenCount, Mode=OneWay}" />
+                        <Run Text=" backlog · " />
+                        <Run Text="{Binding Todo.DoingCount, Mode=OneWay}" />
+                        <Run Text=" doing · " />
+                        <Run Text="{Binding Today.StreakDays, Mode=OneWay}" />
+                        <Run Text=" day streak" />
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Spacing="6">
+                    <TextBlock Text="今日の狙い · what do you want to do today?" Classes="jp" />
+                    <TextBox Text="{Binding Today.DailyIntention}"
+                             Watermark="the one thing…" />
+                </StackPanel>
+
+                <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                    <Button Grid.Column="0" Content="just looking"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding CloseWelcomeCommand}" />
+                    <Button Grid.Column="1" Content="start focusing" Classes="accent"
+                            HorizontalAlignment="Stretch" Margin="8,0,0,0"
+                            Command="{Binding WelcomeStartFocusCommand}" />
+                </Grid>
+
+                <CheckBox IsChecked="{Binding ShowWelcomeOnLaunch}"
+                          Content="greet me on launch" FontSize="12" />
             </StackPanel>
         </Border>
     </Border>

@@ -3,6 +3,8 @@ using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Tomoshibi.ViewModels;
 
 namespace Tomoshibi.Views;
@@ -129,5 +131,21 @@ public partial class MainWindow : Window
             cols[1].Width = new GridLength(0);
             cols[2].Width = new GridLength(1, GridUnitType.Star);
         }
+    }
+
+    /// <summary>Pick the music folder for the floating player.</summary>
+    private async void OnChooseMusicFolder(object? sender, RoutedEventArgs e)
+    {
+        if (_vm is null)
+            return;
+
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "choose your music folder",
+            AllowMultiple = false
+        });
+
+        if (folders.Count > 0 && folders[0].TryGetLocalPath() is { } path)
+            _vm.Music.SetFolder(path);
     }
 }

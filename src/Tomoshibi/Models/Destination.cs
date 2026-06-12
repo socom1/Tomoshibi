@@ -11,5 +11,6 @@ public enum Destination
     Timetable,
     Todo,
     Subjects,
-    Stats
+    Stats,
+    Stickies
 }
