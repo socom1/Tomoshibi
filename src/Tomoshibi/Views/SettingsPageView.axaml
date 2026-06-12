@@ -1,0 +1,123 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tomoshibi.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="Tomoshibi.Views.SettingsPageView"
+             x:DataType="vm:SettingsPageViewModel">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="16" Margin="28,4,28,28" MaxWidth="620">
+
+            <!-- Page header -->
+            <StackPanel Spacing="2" Margin="0,0,0,4">
+                <TextBlock Text="設定 · settings" Classes="jp" />
+                <TextBlock Text="everything tweakable" Classes="h1" />
+            </StackPanel>
+
+            <!-- Timer -->
+            <Border Classes="card">
+                <StackPanel Spacing="12" DataContext="{Binding Timer}">
+                    <TextBlock Text="タイマー · timer" Classes="jp" />
+
+                    <Grid ColumnDefinitions="*,90">
+                        <TextBlock Text="focus (min)" VerticalAlignment="Center" />
+                        <NumericUpDown Grid.Column="1" Value="{Binding FocusMinutes}"
+                                       Minimum="1" Maximum="120" Increment="1" FormatString="0" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,90">
+                        <TextBlock Text="short break" VerticalAlignment="Center" />
+                        <NumericUpDown Grid.Column="1" Value="{Binding ShortBreakMinutes}"
+                                       Minimum="1" Maximum="60" Increment="1" FormatString="0" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,90">
+                        <TextBlock Text="long break" VerticalAlignment="Center" />
+                        <NumericUpDown Grid.Column="1" Value="{Binding LongBreakMinutes}"
+                                       Minimum="1" Maximum="60" Increment="1" FormatString="0" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,90">
+                        <TextBlock Text="rounds / long" VerticalAlignment="Center" />
+                        <NumericUpDown Grid.Column="1" Value="{Binding RoundsBeforeLongBreak}"
+                                       Minimum="1" Maximum="12" Increment="1" FormatString="0" />
+                    </Grid>
+
+                    <CheckBox IsChecked="{Binding AutoContinue}" Content="auto-continue phases" />
+                    <CheckBox IsChecked="{Binding ChimeEnabled}" Content="chime on phase change" />
+                    <CheckBox IsChecked="{Binding NotificationsEnabled}" Content="notify on phase change" />
+
+                    <TextBlock Text="applies live · running phase finishes first · the active task can override the lengths"
+                               Classes="caption" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <!-- Startup & window -->
+            <Border Classes="card">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="起動 · startup &amp; window" Classes="jp" />
+                    <CheckBox IsChecked="{Binding ShowWelcome}"
+                              Content="greet me on launch" />
+                    <CheckBox IsChecked="{Binding CloseToTray}"
+                              Content="keep running in the tray when the window closes" />
+                    <TextBlock Text="with this off, closing the window quits the app (and the timer)"
+                               Classes="caption" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <!-- Grading -->
+            <Border Classes="card">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="成績 · grading" Classes="jp" />
+                    <Grid ColumnDefinitions="*,160">
+                        <TextBlock Text="grading scale" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding Subjects.ScaleOptions}"
+                                  SelectedItem="{Binding Subjects.SelectedScale}"
+                                  HorizontalAlignment="Stretch" Padding="10,6" />
+                    </Grid>
+                    <TextBlock Text="grades are always entered as percentages — the scale only changes the labels"
+                               Classes="caption" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <!-- Music -->
+            <Border Classes="card">
+                <StackPanel Spacing="10" DataContext="{Binding Music}">
+                    <TextBlock Text="音楽 · music" Classes="jp" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding FolderLabel}" Classes="caption"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        <Button Grid.Column="1" Classes="seg" Content="choose folder…"
+                                Click="OnChooseMusicFolder" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,110">
+                        <TextBlock Text="volume (next track)" VerticalAlignment="Center" />
+                        <NumericUpDown Grid.Column="1" Value="{Binding Volume}"
+                                       Minimum="0" Maximum="100" FormatString="0" />
+                    </Grid>
+                    <CheckBox IsChecked="{Binding Shuffle}" IsEnabled="False"
+                              Content="shuffle (toggle in the player panel)" />
+                    <TextBlock Text="spotify connect — coming soon" Classes="caption" />
+                </StackPanel>
+            </Border>
+
+            <!-- Data -->
+            <Border Classes="card">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="データ · your data" Classes="jp" />
+                    <TextBlock Text="{Binding DataLocation}" FontSize="12"
+                               TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Classes="seg" Content="open folder"
+                                Click="OnOpenDataFolder" />
+                    </StackPanel>
+                    <TextBlock Text="saved atomically on every change, with a .bak of the last good state — corrupt files recover automatically"
+                               Classes="caption" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="{Binding VersionLabel}" Classes="caption"
+                       HorizontalAlignment="Center" Margin="0,8,0,0" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

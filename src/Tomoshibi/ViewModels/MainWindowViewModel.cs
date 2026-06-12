@@ -34,6 +34,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsSubjectsActive))]
     [NotifyPropertyChangedFor(nameof(IsStatsActive))]
     [NotifyPropertyChangedFor(nameof(IsStickiesActive))]
+    [NotifyPropertyChangedFor(nameof(IsSettingsActive))]
     [NotifyPropertyChangedFor(nameof(ActiveContent))]
     private Destination _activeDestination;
 
@@ -76,6 +77,12 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>The floating music player (bubble + panel, all pages).</summary>
     public MusicPlayerViewModel Music { get; }
 
+    /// <summary>The settings destination's content.</summary>
+    public SettingsPageViewModel SettingsPage { get; }
+
+    /// <summary>Read live by the window's close handler.</summary>
+    public bool CloseToTray => _state.CloseToTray;
+
     /// <summary>The view model the main content area is currently bound to.
     /// Resolved through <see cref="ViewLocator"/> to the right view.</summary>
     public ViewModelBase ActiveContent => ActiveDestination switch
@@ -85,6 +92,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Destination.Subjects => Subjects,
         Destination.Stats => Stats,
         Destination.Stickies => Stickies,
+        Destination.Settings => SettingsPage,
         _ => Today
     };
 
@@ -94,6 +102,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsSubjectsActive => ActiveDestination == Destination.Subjects;
     public bool IsStatsActive => ActiveDestination == Destination.Stats;
     public bool IsStickiesActive => ActiveDestination == Destination.Stickies;
+    public bool IsSettingsActive => ActiveDestination == Destination.Settings;
 
     public MainWindowViewModel(IStorageService storage)
     {
@@ -115,6 +124,8 @@ public partial class MainWindowViewModel : ViewModelBase
         Stats = new StatsViewModel(_state);
         Stickies = new StickiesViewModel(_state, Save);
         Music = new MusicPlayerViewModel(_state, Save, new MusicService());
+        SettingsPage = new SettingsPageViewModel(_state, Save, settings, Music, Subjects,
+                                                 storage.Location);
 
         _showWelcomeOnLaunch = _state.ShowWelcome;
         _isWelcomeOpen = _state.ShowWelcome;
@@ -226,6 +237,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [RelayCommand]
     private void NavigateToStickies() => ActiveDestination = Destination.Stickies;
+
+    [RelayCommand]
+    private void NavigateToSettings() => ActiveDestination = Destination.Settings;
 
     /// <summary>Append a backlog item to today's task template as a new block
     /// and jump to the today page so the user sees it land.</summary>

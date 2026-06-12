@@ -927,3 +927,25 @@ until a real audio backend earns its place, and **spotify connect is
 Premium, and a callback flow, which deserves its own focused phase rather
 than a half-working button. The player dies with the app (lifetime Exit
 hook), so no orphan keeps singing after quit.
+
+---
+
+## 設定 · a settings page (2026-06-12)
+
+Settings had scattered: timer numbers in the today gear, the grading scale
+on the subjects header, music knobs in the player panel, the welcome
+preference inside the welcome card itself. A new settings destination
+gathers all of them — and because each section binds the *same view model
+instance* as its original home (the gear flyout and the settings page
+literally share one SettingsViewModel), there's no synchronisation code:
+two views, one set of values.
+
+Two controls that didn't exist anywhere before: **close-to-tray on/off**
+(the hide-on-close behaviour from the tray feature was hardwired; with it
+off, the close button genuinely quits via lifetime shutdown), and a
+**data section** showing exactly where tomoshibi.json lives, with an
+"open folder" button and a caption explaining the atomic-save/backup
+behaviour. The storage interface gained a Location property for it.
+
+The settings nav entry sits last with a gap above it — chrome, not a
+destination you live in.

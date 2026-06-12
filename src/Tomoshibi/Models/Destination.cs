@@ -12,5 +12,6 @@ public enum Destination
     Todo,
     Subjects,
     Stats,
-    Stickies
+    Stickies,
+    Settings
 }

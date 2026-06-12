@@ -10,4 +10,7 @@ public interface IStorageService
 {
     AppState Load();
     void Save(AppState state);
+
+    /// <summary>Where the state lives on disk — surfaced on the settings page.</summary>
+    string Location { get; }
 }

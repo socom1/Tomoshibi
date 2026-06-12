@@ -15,6 +15,8 @@ public class JsonStorageService : IStorageService
     private readonly string _tmpPath;
     private readonly string _bakPath;
 
+    public string Location => _filePath;
+
     private static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,

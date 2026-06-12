@@ -96,6 +96,15 @@
                         <TextBlock Text="stickies" Opacity="0.55" />
                     </StackPanel>
                 </Button>
+
+                <Button Classes="nav" Classes.active="{Binding IsSettingsActive}"
+                        Command="{Binding NavigateToSettingsCommand}"
+                        Margin="0,16,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="設定" />
+                        <TextBlock Text="settings" Opacity="0.55" />
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </Border>
 
