@@ -9,5 +9,6 @@ public enum Destination
 {
     Today,
     Timetable,
-    Todo
+    Todo,
+    Stats
 }

@@ -729,3 +729,23 @@ ticked done on the todo page disappears everywhere at once.
 checkboxes in the settings flyout, on by default, persisted with the other
 timer settings. Old state files keep them on (the JSON defaults survive
 missing properties).
+
+---
+
+## The streak calendar (2026-06-12)
+
+The history that started banking at the storage fix finally has a face: a
+記録 · stats destination. The headline number is the current streak; under
+it, the all-time numbers (best streak, total sessions, total hours, days
+focused) and a month calendar in the GitHub-contributions style — each day
+tinted by how many sessions landed on it (surface for none, then three
+matcha tiers for 1 / 2 / 3+). Today wears a matcha ring, future days dim,
+and ‹ › walk the months with forward capped at the current month. Cells
+carry tooltips ("jun 5 · 3 sessions · 1.5h").
+
+The page is read-only and rebuilds wholesale on navigation — no observable
+plumbing, just plain immutable cell view models regenerated from
+history + today each time. Best streak is one ordered pass over the active
+dates counting consecutive runs. The summary card and the today page's
+14-dot strip now share the same underlying data but compute independently;
+if a third consumer appears, that's the cue to extract a stats service.

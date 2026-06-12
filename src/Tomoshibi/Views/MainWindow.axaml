@@ -69,6 +69,14 @@
                         <TextBlock Text="todo" Opacity="0.55" />
                     </StackPanel>
                 </Button>
+
+                <Button Classes="nav" Classes.active="{Binding IsStatsActive}"
+                        Command="{Binding NavigateToStatsCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="記録" />
+                        <TextBlock Text="stats" Opacity="0.55" />
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </Border>
 

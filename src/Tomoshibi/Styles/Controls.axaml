@@ -542,6 +542,43 @@
         </Style.Animations>
     </Style>
 
+    <!-- Streak calendar cells: heat-tinted by sessions that day -->
+    <Style Selector="Border.cal">
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Margin" Value="2" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+    <Style Selector="Border.cal > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+    </Style>
+    <Style Selector="Border.cal.t1">
+        <Setter Property="Background" Value="#339ECE6A" />
+    </Style>
+    <Style Selector="Border.cal.t2">
+        <Setter Property="Background" Value="#809ECE6A" />
+    </Style>
+    <Style Selector="Border.cal.t3">
+        <Setter Property="Background" Value="{DynamicResource MatchaBrush}" />
+    </Style>
+    <Style Selector="Border.cal.t1 > TextBlock, Border.cal.t2 > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    </Style>
+    <Style Selector="Border.cal.t3 > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Border.cal.caltoday">
+        <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="Border.cal.calfuture">
+        <Setter Property="Opacity" Value="0.3" />
+    </Style>
+    <Style Selector="Border.cal.calpad">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
     <!-- Flyout surface (settings) -->
     <Style Selector="FlyoutPresenter">
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />

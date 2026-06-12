@@ -1,0 +1,108 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tomoshibi.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="Tomoshibi.Views.StatsView"
+             x:DataType="vm:StatsViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="28,4,28,28" MaxWidth="640">
+
+        <!-- Page header -->
+        <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,16">
+            <TextBlock Text="記録 · stats" Classes="jp" />
+            <TextBlock Classes="h1">
+                <Run Text="{Binding CurrentStreak, Mode=OneWay}" />
+                <Run Text=" day streak" />
+            </TextBlock>
+        </StackPanel>
+
+        <!-- All-time numbers -->
+        <Border Grid.Row="1" Classes="card">
+            <Grid ColumnDefinitions="*,*,*,*">
+                <StackPanel Grid.Column="0" Spacing="2">
+                    <TextBlock Text="{Binding BestStreak}" FontSize="26"
+                               Foreground="{DynamicResource MatchaBrush}" />
+                    <TextBlock Text="best streak" Classes="caption" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="2">
+                    <TextBlock Text="{Binding TotalSessions}" FontSize="26"
+                               Foreground="{DynamicResource BlueBrush}" />
+                    <TextBlock Text="sessions" Classes="caption" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="2">
+                    <TextBlock Text="{Binding TotalHours}" FontSize="26"
+                               Foreground="{DynamicResource AmberBrush}" />
+                    <TextBlock Text="hours" Classes="caption" />
+                </StackPanel>
+                <StackPanel Grid.Column="3" Spacing="2">
+                    <TextBlock Text="{Binding ActiveDays}" FontSize="26"
+                               Foreground="{DynamicResource TextBrush}" />
+                    <TextBlock Text="days focused" Classes="caption" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Streak calendar -->
+        <Border Grid.Row="2" Classes="card" Margin="0,20,0,0"
+                VerticalAlignment="Top">
+            <StackPanel Spacing="12">
+
+                <!-- Month nav -->
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Button Grid.Column="0" Classes="icon" Content="‹" FontSize="18"
+                            Command="{Binding PrevMonthCommand}"
+                            ToolTip.Tip="previous month" />
+                    <TextBlock Grid.Column="1" Text="{Binding MonthLabel}"
+                               Classes="jp" FontSize="14"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <Button Grid.Column="2" Classes="icon" Content="›" FontSize="18"
+                            Command="{Binding NextMonthCommand}"
+                            ToolTip.Tip="next month" />
+                </Grid>
+
+                <!-- Weekday header -->
+                <UniformGrid Columns="7">
+                    <TextBlock Text="mo" Classes="caption" HorizontalAlignment="Center" />
+                    <TextBlock Text="tu" Classes="caption" HorizontalAlignment="Center" />
+                    <TextBlock Text="we" Classes="caption" HorizontalAlignment="Center" />
+                    <TextBlock Text="th" Classes="caption" HorizontalAlignment="Center" />
+                    <TextBlock Text="fr" Classes="caption" HorizontalAlignment="Center" />
+                    <TextBlock Text="sa" Classes="caption" HorizontalAlignment="Center" />
+                    <TextBlock Text="su" Classes="caption" HorizontalAlignment="Center" />
+                </UniformGrid>
+
+                <!-- Day cells -->
+                <ItemsControl ItemsSource="{Binding Days}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="7" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CalendarDayViewModel">
+                            <Border Classes="cal"
+                                    Classes.t1="{Binding IsTier1}"
+                                    Classes.t2="{Binding IsTier2}"
+                                    Classes.t3="{Binding IsTier3}"
+                                    Classes.caltoday="{Binding IsToday}"
+                                    Classes.calfuture="{Binding IsFuture}"
+                                    Classes.calpad="{Binding IsPlaceholder}"
+                                    ToolTip.Tip="{Binding Tooltip}">
+                                <TextBlock Text="{Binding Label}"
+                                           FontSize="11"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Classes="caption"
+                           Text="○ none · 淡 1 · 中 2 · 濃 3+ sessions"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -17,7 +17,8 @@ sensible order of work.
   upcoming deadlines, plus `.ics` import.
 - **v1.3 — the daily companion.** Tasks as code driving the timer, chime +
   notifications, stats history with streaks, the todo backlog, and packaging.
-- **Later** — streak calendar view, tray icon, soundscapes, a public release.
+- **v1.4 — stats.** A streak calendar over the saved history.
+- **Later** — tray icon, soundscapes, a public release.
 
 ## v1.0 — core
 
@@ -75,9 +76,13 @@ backlog. Shipped, untagged so far.
 - [x] App icon, title, macOS .app packaging; Windows/Linux pack scripts
       (written, unverified on those OSes)
 
+## v1.4 — stats
+
+- [x] 記録 · stats destination: streak calendar (month heat grid), best
+      streak, all-time totals
+
 ## Later
 
-- **Streak calendar view** — a proper month grid over the saved history.
 - **System tray icon** — quick start/pause from the tray.
 - **Ambient soundscapes** — rain / café / waves / night (needs real audio
   assets; synthesis won't cut it).

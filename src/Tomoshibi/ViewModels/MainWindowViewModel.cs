@@ -31,6 +31,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsTodayActive))]
     [NotifyPropertyChangedFor(nameof(IsTimetableActive))]
     [NotifyPropertyChangedFor(nameof(IsTodoActive))]
+    [NotifyPropertyChangedFor(nameof(IsStatsActive))]
     [NotifyPropertyChangedFor(nameof(ActiveContent))]
     private Destination _activeDestination;
 
@@ -49,18 +50,23 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>The todo backlog destination's content.</summary>
     public TodoViewModel Todo { get; }
 
+    /// <summary>The streak-calendar stats destination's content.</summary>
+    public StatsViewModel Stats { get; }
+
     /// <summary>The view model the main content area is currently bound to.
     /// Resolved through <see cref="ViewLocator"/> to the right view.</summary>
     public ViewModelBase ActiveContent => ActiveDestination switch
     {
         Destination.Timetable => Timetable,
         Destination.Todo => Todo,
+        Destination.Stats => Stats,
         _ => Today
     };
 
     public bool IsTodayActive => ActiveDestination == Destination.Today;
     public bool IsTimetableActive => ActiveDestination == Destination.Timetable;
     public bool IsTodoActive => ActiveDestination == Destination.Todo;
+    public bool IsStatsActive => ActiveDestination == Destination.Stats;
 
     public MainWindowViewModel(IStorageService storage)
     {
@@ -78,6 +84,7 @@ public partial class MainWindowViewModel : ViewModelBase
                                    new SoundService(), new NotificationService());
         Timetable = new TimetableViewModel(_state, Save);
         Todo = new TodoViewModel(_state, Save, SendTodoToToday);
+        Stats = new StatsViewModel(_state);
 
         Today.Pomodoro.PropertyChanged += OnPomodoroPropertyChanged;
 
@@ -157,6 +164,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void NavigateToTodo() => ActiveDestination = Destination.Todo;
 
+    [RelayCommand]
+    private void NavigateToStats() => ActiveDestination = Destination.Stats;
+
     /// <summary>Append a backlog item to today's task template as a new block
     /// and jump to the today page so the user sees it land.</summary>
     private void SendTodoToToday(TodoItem todo)
@@ -193,6 +203,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 break;
             case Destination.Timetable:
                 Timetable.RefreshDeadlines();
+                break;
+            case Destination.Stats:
+                Stats.Refresh();
                 break;
         }
 
