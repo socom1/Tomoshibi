@@ -83,7 +83,7 @@
                                                VerticalAlignment="Center" TextWrapping="Wrap" />
                                     <Border Grid.Column="3" Classes="tag" Margin="8,0,0,0"
                                             IsVisible="{Binding HasCourse}">
-                                        <TextBlock Text="{Binding Course}" />
+                                        <TextBlock Text="{Binding Course}" Foreground="{Binding Course, Converter={StaticResource CourseColor}}" />
                                     </Border>
                                     <Button Grid.Column="4" Content="✕" Classes="icon" Margin="4,0,0,0"
                                             ToolTip.Tip="delete the ticket"
@@ -192,7 +192,7 @@
                                                Margin="4,0,0,0" />
                                     <Border Grid.Column="3" Classes="tag" Margin="8,0,0,0"
                                             IsVisible="{Binding HasCourse}">
-                                        <TextBlock Text="{Binding Course}" />
+                                        <TextBlock Text="{Binding Course}" Foreground="{Binding Course, Converter={StaticResource CourseColor}}" />
                                     </Border>
                                     <Button Grid.Column="4" Content="✎" Classes="icon" Margin="4,0,0,0"
                                             Click="OnEditSlotClick"
@@ -256,7 +256,9 @@
                             </ItemsControl.Styles>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:ClassSlotItemViewModel">
-                                    <Border Classes="slot" ToolTip.Tip="{Binding TimeLabel}">
+                                    <Border Classes="slot" ToolTip.Tip="{Binding TimeLabel}"
+                                            Background="{Binding Course, Converter={StaticResource CourseColor}, ConverterParameter=soft}"
+                                            BorderBrush="{Binding Course, Converter={StaticResource CourseColor}}">
                                         <Grid>
                                             <StackPanel Margin="6,4,4,4" VerticalAlignment="Top">
                                                 <TextBlock Text="{Binding Title}"

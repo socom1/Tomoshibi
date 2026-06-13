@@ -47,10 +47,6 @@ public partial class TodayViewModel : ViewModelBase
     [ObservableProperty]
     private int _streakDays;
 
-    /// <summary>The last 14 days as dots, oldest first — ● focused, ○ not.</summary>
-    [ObservableProperty]
-    private string _streakDots = string.Empty;
-
     /// <summary>"next · algebra at 14:00" (or "now · algebra until 15:00")
     /// from today's class slots. Empty when nothing's left today.</summary>
     [ObservableProperty]
@@ -235,11 +231,6 @@ public partial class TodayViewModel : ViewModelBase
             cursor = cursor.AddDays(-1);
         }
         StreakDays = streak;
-
-        StreakDots = string.Join(" ",
-            Enumerable.Range(0, 14)
-                      .Select(i => today.AddDays(i - 13))
-                      .Select(d => focusedDays.Contains(d) ? "●" : "○"));
     }
 
     /// <summary>Passes the click through to the shell so this view model

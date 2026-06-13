@@ -104,7 +104,7 @@
                                                    IsVisible="{Binding HasEffort}" />
                                         <Border Grid.Column="8" Classes="tag" Margin="8,0,0,0"
                                                 IsVisible="{Binding HasCourse}">
-                                            <TextBlock Text="{Binding Course}" />
+                                            <TextBlock Text="{Binding Course}" Foreground="{Binding Course, Converter={StaticResource CourseColor}}" />
                                         </Border>
                                         <Button Grid.Column="9" Content="→" Classes="icon" Margin="4,0,0,0"
                                                 ToolTip.Tip="send to today"

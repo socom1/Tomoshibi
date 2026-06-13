@@ -100,7 +100,7 @@
                                                     </StackPanel>
                                                     <Border Grid.Column="1" Classes="tag" Margin="8,0,0,0"
                                                             IsVisible="{Binding HasCode}">
-                                                        <TextBlock Text="{Binding Code}" />
+                                                        <TextBlock Text="{Binding Code}" Foreground="{Binding Code, Converter={StaticResource CourseColor}}" />
                                                     </Border>
                                                     <Border Grid.Column="2" Classes="tag prio" Margin="6,0,0,0"
                                                             Classes.high="{Binding IsTargetAtRisk}"
@@ -176,7 +176,7 @@
                             <TextBlock Text="{Binding Name}" Classes="h1" />
                             <Border Classes="tag" VerticalAlignment="Center"
                                     IsVisible="{Binding HasCode}">
-                                <TextBlock Text="{Binding Code}" />
+                                <TextBlock Text="{Binding Code}" Foreground="{Binding Code, Converter={StaticResource CourseColor}}" />
                             </Border>
                             <Border Classes="tag prio" VerticalAlignment="Center"
                                     Classes.high="{Binding IsTargetAtRisk}"

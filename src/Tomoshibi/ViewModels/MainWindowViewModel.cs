@@ -382,5 +382,37 @@ public partial class MainWindowViewModel : ViewModelBase
         Save();
     }
 
-    private void Save() => _storage.Save(_state);
+    // Saves are debounced: keystrokes in the intention, the .code editor and
+    // sticky notes each call Save(), and writing the whole state on every one
+    // is needless disk churn. Instead we coalesce — restart a short timer and
+    // write once it goes quiet — and flush immediately on shutdown/close so
+    // nothing is lost.
+    private DispatcherTimer? _saveTimer;
+
+    private void Save()
+    {
+        _saveTimer ??= CreateSaveTimer();
+        _saveTimer.Stop();
+        _saveTimer.Start();
+    }
+
+    private DispatcherTimer CreateSaveTimer()
+    {
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            _storage.Save(_state);
+        };
+        return timer;
+    }
+
+    /// <summary>Write any pending change right now — called on window close
+    /// and app exit so a debounced edit never dies with the process.</summary>
+    public void FlushSave()
+    {
+        if (_saveTimer?.IsEnabled == true)
+            _saveTimer.Stop();
+        _storage.Save(_state);
+    }
 }

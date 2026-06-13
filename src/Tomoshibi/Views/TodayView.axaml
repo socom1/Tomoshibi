@@ -13,19 +13,13 @@
         <conv:PhaseToBrushConverter x:Key="PhaseToBrush" />
     </UserControl.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="28,4,28,28">
+    <Grid RowDefinitions="Auto,*" Margin="28,4,28,28">
 
         <!-- Page header -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,20">
             <StackPanel Grid.Column="0" Spacing="2">
                 <TextBlock Text="今日 · today" Classes="jp" />
                 <TextBlock Text="{Binding Greeting}" Classes="h1" />
-                <TextBlock Text="{Binding NextClassLabel}" Classes="caption"
-                           Foreground="{DynamicResource BlueBrush}"
-                           IsVisible="{Binding HasNextClass}" />
-                <TextBlock Text="{Binding DeadlinesLabel}" Classes="caption"
-                           Foreground="{DynamicResource AmberBrush}"
-                           IsVisible="{Binding HasUpcomingDeadlines}" />
             </StackPanel>
 
             <Button Grid.Column="1" Classes="icon" Content="⛶" FontSize="20"
@@ -75,19 +69,9 @@
             </Button>
         </Grid>
 
-        <!-- Daily intention -->
-        <Border Grid.Row="1" Classes="card">
-            <StackPanel Spacing="8">
-                <TextBlock Text="今日の狙い · today's intention" Classes="jp" />
-                <TextBox Classes="inline"
-                         Text="{Binding DailyIntention}"
-                         Watermark="what do you want to do today?"
-                         FontSize="16" />
-            </StackPanel>
-        </Border>
-
-        <!-- Body: focus on the left, stats + tasks on the right -->
-        <Grid Grid.Row="2" Margin="0,20,0,0" ColumnDefinitions="*,320">
+        <!-- Body: the timer on the left, tasks on the right. The overview
+             (intention, stats, what's next) lives on the dashboard. -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,320">
 
             <!-- Focus / pomodoro -->
             <Border Grid.Column="0" Classes="card" Margin="0,0,20,0">
@@ -136,41 +120,10 @@
                 </Grid>
             </Border>
 
-            <!-- Right column -->
-            <Grid Grid.Column="1" RowDefinitions="Auto,*">
-
-                <!-- Today's stats -->
-                <Border Grid.Row="0" Classes="card">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="記録 · today" Classes="jp" />
-                        <Grid ColumnDefinitions="*,*,*">
-                            <StackPanel Grid.Column="0" Spacing="2">
-                                <TextBlock Text="{Binding CompletedSessions}"
-                                           FontSize="30"
-                                           Foreground="{DynamicResource BlueBrush}" />
-                                <TextBlock Text="sessions" Classes="caption" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="2">
-                                <TextBlock Text="{Binding FocusedHours}"
-                                           FontSize="30"
-                                           Foreground="{DynamicResource AmberBrush}" />
-                                <TextBlock Text="hours" Classes="caption" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Spacing="2">
-                                <TextBlock Text="{Binding StreakDays}"
-                                           FontSize="30"
-                                           Foreground="{DynamicResource MatchaBrush}" />
-                                <TextBlock Text="day streak" Classes="caption" />
-                            </StackPanel>
-                        </Grid>
-                        <TextBlock Text="{Binding StreakDots}" Classes="caption"
-                                   ToolTip.Tip="the last 14 days" />
-                    </StackPanel>
-                </Border>
-
-                <!-- Tasks: a simple list by default; the .code editor is
-                     hidden behind a power-user toggle. -->
-                <Border Grid.Row="1" Classes="card" Margin="0,20,0,0">
+            <!-- Tasks: a simple list by default; the .code editor is
+                 hidden behind a power-user toggle. -->
+            <Grid Grid.Column="1">
+                <Border Classes="card">
                     <DockPanel>
                         <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto">
                             <!-- Title + counter in one TextBlock so they share
@@ -235,7 +188,7 @@
                                         </Border>
                                         <Border Grid.Column="3" Classes="tag" Margin="6,0,0,0"
                                                 IsVisible="{Binding HasCourse}">
-                                            <TextBlock Text="{Binding Course}" />
+                                            <TextBlock Text="{Binding Course}" Foreground="{Binding Course, Converter={StaticResource CourseColor}}" />
                                         </Border>
                                     </Grid>
                                 </DataTemplate>

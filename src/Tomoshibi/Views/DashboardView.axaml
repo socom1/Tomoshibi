@@ -118,7 +118,7 @@
                                                 <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
                                                 <Border Classes="tag" VerticalAlignment="Center"
                                                         IsVisible="{Binding HasCode}">
-                                                    <TextBlock Text="{Binding Code}" />
+                                                    <TextBlock Text="{Binding Code}" Foreground="{Binding Code, Converter={StaticResource CourseColor}}" />
                                                 </Border>
                                             </StackPanel>
                                             <TextBlock Text="{Binding Message}" Classes="caption" />

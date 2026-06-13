@@ -36,7 +36,11 @@ public partial class App : Application
             // Cmd+Q, which goes through Shutdown and is allowed past the
             // hide-on-close guard in MainWindow).
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            desktop.Exit += (_, _) => _vm?.Music.Shutdown();
+            desktop.Exit += (_, _) =>
+            {
+                _vm?.FlushSave();
+                _vm?.Music.Shutdown();
+            };
 
             SetupTray(desktop);
         }

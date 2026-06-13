@@ -985,3 +985,37 @@ the derived numbers on navigation:
 
 The needs-work analysis reuses the subject standings already computed for
 grading, so it costs nothing and can never disagree with the grades page.
+
+---
+
+## Audit pass: debounced saves, course colours, leaner today (2026-06-13)
+
+A read-through of the whole app surfaced three things worth fixing.
+
+**Debounced saves — the real find.** Every keystroke in the daily
+intention, the .code task editor and sticky notes was calling Save(),
+which serialises the *entire* AppState, writes a temp file, copies the old
+file to .bak and renames — three filesystem ops per character, over a state
+that now holds history, todos, subjects and assessments. Save() is now
+debounced: it restarts a 600ms timer and writes once typing goes quiet,
+coalescing a burst into one write. A FlushSave() runs on window close and
+app exit so a pending edit never dies with the process. Typing is instant
+again and the disk stops thrashing.
+
+**Course colours.** The UI was monochrome — everything matcha-or-muted. A
+`CourseColorConverter` now maps a course code to a stable accent from an
+eight-colour Tokyo Night palette, so the same course reads the same
+everywhere: the timetable week-grid blocks tint by course (border + a soft
+fill), and every course/code chip across today, todo, subjects, timetable
+and the dashboard takes its colour. The hash is hand-rolled FNV-1a, not
+`string.GetHashCode()` — the latter is randomised per process in .NET, so
+the colours would have reshuffled on every launch.
+
+**Today vs dashboard.** Adding the dashboard had left two pages saying the
+same thing — both showed the greeting, intention and today's stats. Today
+is now the focus *workspace*: just the timer and the task list. The
+overview — intention, stats, what's next, standing, weak spots — lives on
+the dashboard, which is the landing page anyway. (The intention is still
+edited on the dashboard and the welcome card; the TodayViewModel keeps the
+property, since zen mode and the dashboard still read it.) Dropped the
+now-unbound StreakDots property while I was in there.
