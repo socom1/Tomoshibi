@@ -29,7 +29,22 @@ public partial class MainWindow : Window
     {
         base.OnKeyDown(e);
 
-        if (e.Handled || e.Key != Key.Space || _vm is null)
+        if (e.Handled || _vm is null)
+            return;
+
+        // Cmd/Ctrl + 1…8 jumps between destinations (Meta is Cmd on macOS).
+        var nav = e.KeyModifiers.HasFlag(KeyModifiers.Meta) ||
+                  e.KeyModifiers.HasFlag(KeyModifiers.Control);
+        if (nav && e.Key is >= Key.D1 and <= Key.D8)
+        {
+            _vm.NavigateByIndex(e.Key - Key.D1 + 1);
+            e.Handled = true;
+            return;
+        }
+
+        // Space toggles the timer from anywhere — except while typing in a
+        // text field or while the add-task modal is up.
+        if (e.Key != Key.Space)
             return;
 
         if (_vm.Today.Tasks.IsAddTaskModalOpen)

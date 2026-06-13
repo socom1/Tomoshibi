@@ -31,12 +31,14 @@ public partial class DashboardViewModel : ViewModelBase
 
     public ObservableCollection<WeakSpotViewModel> WeakSpots { get; } = new();
     public ObservableCollection<StudyLinkViewModel> Links { get; } = new();
+    public ObservableCollection<AgendaDayViewModel> Agenda { get; } = new();
 
     [ObservableProperty] private string _dateLabel = string.Empty;
     [ObservableProperty] private int _sessionsThisWeek;
     [ObservableProperty] private string _momentumLabel = string.Empty;
     [ObservableProperty] private bool _hasWeakSpots;
     [ObservableProperty] private string _weakSpotsCaption = string.Empty;
+    [ObservableProperty] private bool _hasAgenda;
     [ObservableProperty] private bool _hasLinks;
 
     // ---- New-link form ----
@@ -71,6 +73,62 @@ public partial class DashboardViewModel : ViewModelBase
 
         RecomputeMomentum();
         RebuildWeakSpots();
+        RebuildAgenda();
+    }
+
+    /// <summary>The next 7 days, each with its classes, due tickets and exams,
+    /// in date order. Empty days are skipped so the card stays tight.</summary>
+    private void RebuildAgenda()
+    {
+        Agenda.Clear();
+        var today = DateOnly.FromDateTime(DateTime.Now);
+
+        for (var offset = 0; offset < 7; offset++)
+        {
+            var date = today.AddDays(offset);
+            var weekday = (Models.WeekDay)(((int)date.DayOfWeek + 6) % 7);
+
+            var day = new AgendaDayViewModel
+            {
+                IsToday = offset == 0,
+                DayLabel = offset == 0 ? "today"
+                         : offset == 1 ? "tomorrow"
+                         : $"{date:ddd MMM d}".ToLowerInvariant()
+            };
+
+            foreach (var slot in _state.ClassSlots
+                         .Where(s => s.Day == weekday)
+                         .OrderBy(s => s.Start))
+            {
+                var course = string.IsNullOrWhiteSpace(slot.Course) ? "" : $" ({slot.Course})";
+                day.Entries.Add(new AgendaEntryViewModel
+                {
+                    IsClass = true,
+                    Text = $"{slot.Start:HH\\:mm}  {slot.Title}{course}"
+                });
+            }
+
+            foreach (var t in _state.Todos
+                         .Where(t => t.Status != Models.TodoStatus.Done && t.Due == date)
+                         .OrderBy(t => t.Title))
+            {
+                day.Entries.Add(new AgendaEntryViewModel { IsDue = true, Text = $"due · {t.Title}" });
+            }
+
+            foreach (var (subject, exam) in _state.Subjects
+                         .SelectMany(s => s.Assessments
+                             .Where(a => a.Grade is null && a.Date == date)
+                             .Select(a => (s, a))))
+            {
+                var code = subject.Code ?? subject.Name;
+                day.Entries.Add(new AgendaEntryViewModel { IsExam = true, Text = $"exam · {exam.Title} ({code})" });
+            }
+
+            if (day.Entries.Count > 0)
+                Agenda.Add(day);
+        }
+
+        HasAgenda = Agenda.Count > 0;
     }
 
     private void RecomputeMomentum()
@@ -140,6 +198,15 @@ public partial class DashboardViewModel : ViewModelBase
 
             if (message is null)
                 continue;
+
+            // Ground it in effort: how long has this course been studied this
+            // week? Low time on a weak subject is the real call to action.
+            if (subject.HasCode)
+            {
+                var mins = Services.FocusLog.MinutesForCourse(_state, subject.Code, 7);
+                message += $" · {Services.FocusLog.HoursLabel(mins)} studied this week";
+                if (mins < 30) score += 5; // nudge the neglected ones up
+            }
 
             var captured = subject;
             spots.Add((score, new WeakSpotViewModel(

@@ -15,6 +15,10 @@
     <Color x:Key="BlueColor">#7AA2F7</Color>
     <Color x:Key="TextColor">#C0CAF5</Color>
     <Color x:Key="MutedTextColor">#565F89</Color>
+    <!-- Text/icon colour for content sitting on an accent fill (the accent
+         button). Dark in the dark theme (accents are light there), light in
+         the light theme (accents darken). -->
+    <Color x:Key="AccentTextColor">#16161E</Color>
 
     <!-- Brushes -->
     <SolidColorBrush x:Key="InkBrush" Color="{StaticResource InkColor}" />
@@ -28,6 +32,7 @@
     <SolidColorBrush x:Key="BlueBrush" Color="{StaticResource BlueColor}" />
     <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
     <SolidColorBrush x:Key="MutedTextBrush" Color="{StaticResource MutedTextColor}" />
+    <SolidColorBrush x:Key="AccentTextBrush" Color="{StaticResource AccentTextColor}" />
 
     <!-- Typography: a coding/monospace family with sensible per-OS fallbacks.
          The CJK families at the end exist so Japanese characters all resolve

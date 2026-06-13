@@ -87,6 +87,9 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>Read live by the window's close handler.</summary>
     public bool CloseToTray => _state.CloseToTray;
 
+    /// <summary>Read by App at startup to apply the saved theme.</summary>
+    public bool LightTheme => _state.LightTheme;
+
     /// <summary>The view model the main content area is currently bound to.
     /// Resolved through <see cref="ViewLocator"/> to the right view.</summary>
     public ViewModelBase ActiveContent => ActiveDestination switch
@@ -229,6 +232,23 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [RelayCommand]
     private void ToggleNav() => IsNavOpen = !IsNavOpen;
+
+    /// <summary>The destinations in nav order, for Cmd/Ctrl+1…8 jumps.</summary>
+    private static readonly Destination[] NavOrder =
+    {
+        Destination.Dashboard, Destination.Today, Destination.Timetable,
+        Destination.Todo, Destination.Subjects, Destination.Stats,
+        Destination.Stickies, Destination.Settings
+    };
+
+    /// <summary>Jump to the nth destination (1-based) — wired to Cmd/Ctrl+digit.
+    /// Ignored in zen mode, which has no navigation.</summary>
+    public void NavigateByIndex(int oneBased)
+    {
+        if (IsZenMode || oneBased < 1 || oneBased > NavOrder.Length)
+            return;
+        ActiveDestination = NavOrder[oneBased - 1];
+    }
 
     [RelayCommand]
     private void NavigateToDashboard() => ActiveDestination = Destination.Dashboard;

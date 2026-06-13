@@ -99,6 +99,35 @@
                 </Border>
             </Grid>
 
+            <!-- This week -->
+            <Border Classes="card" IsVisible="{Binding HasAgenda}">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="今週 · this week" Classes="jp" />
+                    <ItemsControl ItemsSource="{Binding Agenda}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:AgendaDayViewModel">
+                                <Grid ColumnDefinitions="110,*" Margin="0,4,0,0">
+                                    <TextBlock Grid.Column="0" Text="{Binding DayLabel}"
+                                               Classes="jp" VerticalAlignment="Top" Margin="0,1,0,0"
+                                               Classes.today="{Binding IsToday}" />
+                                    <ItemsControl Grid.Column="1" ItemsSource="{Binding Entries}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:AgendaEntryViewModel">
+                                                <TextBlock Text="{Binding Text}" FontSize="13"
+                                                           Margin="0,1,0,1" TextWrapping="Wrap"
+                                                           Classes.agclass="{Binding IsClass}"
+                                                           Classes.agdue="{Binding IsDue}"
+                                                           Classes.agexam="{Binding IsExam}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
             <!-- Needs work -->
             <Border Classes="card">
                 <StackPanel Spacing="10">

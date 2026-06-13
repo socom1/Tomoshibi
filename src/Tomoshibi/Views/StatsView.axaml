@@ -44,8 +44,12 @@
             </Grid>
         </Border>
 
+        <!-- Calendar + focus breakdown, scrollable -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+          <StackPanel>
+
         <!-- Streak calendar -->
-        <Border Grid.Row="2" Classes="card" Margin="0,20,0,0"
+        <Border Classes="card" Margin="0,20,0,0"
                 VerticalAlignment="Top">
             <StackPanel Spacing="12">
 
@@ -104,5 +108,37 @@
                            HorizontalAlignment="Center" />
             </StackPanel>
         </Border>
+
+        <!-- Focus by course (last 7 days) -->
+        <Border Classes="card" Margin="0,20,0,0"
+                VerticalAlignment="Top"
+                IsVisible="{Binding HasFocusByCourse}">
+            <StackPanel Spacing="10">
+                <TextBlock Text="科目別 · focus by course · this week" Classes="jp" />
+                <ItemsControl ItemsSource="{Binding FocusByCourse}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CourseFocusViewModel">
+                            <Grid ColumnDefinitions="90,*,46" Margin="0,3,0,0">
+                                <TextBlock Grid.Column="0" Text="{Binding Course}"
+                                           VerticalAlignment="Center" FontSize="13"
+                                           Foreground="{Binding Course, Converter={StaticResource CourseColor}}"
+                                           TextTrimming="CharacterEllipsis" />
+                                <ProgressBar Grid.Column="1" Value="{Binding Fraction}"
+                                             Minimum="0" Maximum="1" Height="6" MinHeight="0"
+                                             VerticalAlignment="Center"
+                                             Foreground="{Binding Course, Converter={StaticResource CourseColor}}"
+                                             Background="{DynamicResource SurfaceHoverBrush}" />
+                                <TextBlock Grid.Column="2" Text="{Binding HoursLabel}"
+                                           Classes="caption" HorizontalAlignment="Right"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+          </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

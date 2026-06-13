@@ -5,6 +5,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Tomoshibi.Models;
+using Tomoshibi.Services;
 
 namespace Tomoshibi.ViewModels;
 
@@ -22,6 +23,11 @@ public partial class StatsViewModel : ViewModelBase
     private DateOnly _month;
 
     public ObservableCollection<CalendarDayViewModel> Days { get; } = new();
+
+    /// <summary>Focus time by course over the last 7 days, busiest first.</summary>
+    public ObservableCollection<CourseFocusViewModel> FocusByCourse { get; } = new();
+
+    [ObservableProperty] private bool _hasFocusByCourse;
 
     [ObservableProperty] private string _monthLabel = string.Empty;
 
@@ -51,6 +57,30 @@ public partial class StatsViewModel : ViewModelBase
 
         BuildSummary(byDate);
         BuildMonth(byDate);
+        BuildFocusByCourse();
+    }
+
+    private void BuildFocusByCourse()
+    {
+        FocusByCourse.Clear();
+
+        var minutes = FocusLog.MinutesByCourse(_state, 7)
+            .Where(kv => kv.Value > 0)
+            .OrderByDescending(kv => kv.Value)
+            .ToList();
+
+        var max = minutes.Count > 0 ? minutes[0].Value : 0;
+        foreach (var (course, mins) in minutes)
+        {
+            FocusByCourse.Add(new CourseFocusViewModel
+            {
+                Course = course,
+                HoursLabel = FocusLog.HoursLabel(mins),
+                Fraction = max > 0 ? mins / max : 0
+            });
+        }
+
+        HasFocusByCourse = FocusByCourse.Count > 0;
     }
 
     [RelayCommand]

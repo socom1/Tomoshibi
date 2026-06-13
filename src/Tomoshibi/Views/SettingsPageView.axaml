@@ -61,6 +61,10 @@
                               Content="keep running in the tray when the window closes" />
                     <TextBlock Text="with this off, closing the window quits the app (and the timer)"
                                Classes="caption" TextWrapping="Wrap" />
+                    <CheckBox IsChecked="{Binding LightTheme}"
+                              Content="light theme (day mode)" />
+                    <TextBlock Text="swaps the whole palette — applies instantly"
+                               Classes="caption" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
 

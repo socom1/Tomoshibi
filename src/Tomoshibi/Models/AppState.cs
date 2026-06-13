@@ -33,6 +33,7 @@ public class AppState
     public bool IsNavOpen { get; set; } = true;
     public bool ShowWelcome { get; set; } = true;
     public bool CloseToTray { get; set; } = true;
+    public bool LightTheme { get; set; }
     public Destination ActiveDestination { get; set; } = Destination.Dashboard;
 
     // Window placement (0 width = never saved, use the XAML defaults)

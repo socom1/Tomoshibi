@@ -251,7 +251,8 @@ public partial class TodayViewModel : ViewModelBase
         _state.Today.FocusedMinutes += focusMinutes;
 
         // If the active task came from (or shares a title with) a backlog
-        // ticket, credit the session against its estimate.
+        // ticket, credit the session against its estimate; and if it carries
+        // a course, log the minutes against that course for the day.
         if (Tasks.ActiveTask is { } active)
         {
             var ticket = _state.Todos.FirstOrDefault(t =>
@@ -259,6 +260,13 @@ public partial class TodayViewModel : ViewModelBase
                 string.Equals(t.Title, active.Title, StringComparison.OrdinalIgnoreCase));
             if (ticket is not null)
                 ticket.SessionsSpent++;
+
+            if (!string.IsNullOrWhiteSpace(active.Course))
+            {
+                var key = active.Course.Trim();
+                _state.Today.FocusByCourse[key] =
+                    _state.Today.FocusByCourse.GetValueOrDefault(key) + focusMinutes;
+            }
         }
 
         CompletedSessions = _state.Today.CompletedSessions;

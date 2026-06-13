@@ -1019,3 +1019,41 @@ the dashboard, which is the landing page anyway. (The intention is still
 edited on the dashboard and the welcome card; the TodayViewModel keeps the
 property, since zen mode and the dashboard still read it.) Dropped the
 now-unbound StreakDots property while I was in there.
+
+---
+
+## Second audit: focus-by-course, keyboard nav, light theme, agenda (2026-06-13)
+
+The read-through found one real gap and three worthwhile additions.
+
+**Focus time per course — the gap.** Sessions were counted globally and
+per-ticket but never per *course* over time, so the app couldn't answer
+"how long have I studied MATH101?" — the question that links the timer to
+the subjects. `DailyStats` now carries a `FocusByCourse` map, populated on
+session completion when the active task has a course. A `FocusLog` service
+aggregates it over a window, and three places read it: the stats page grew
+a "focus by course · this week" bar chart, the subject detail's
+around-the-app card shows real hours (week + all-time) instead of session
+counts, and the dashboard's weak-spots now end with "· 1.5h studied this
+week" and nudge the *neglected* weak subjects up the list. The loop closes:
+the app points at subjects that are both behind *and* under-studied.
+
+**Keyboard navigation.** Cmd/Ctrl + 1…8 jumps between the eight
+destinations (Meta = Cmd on macOS, Control elsewhere — handled in OnKeyDown
+so one check covers both). Ignored in zen mode.
+
+**Light theme.** The palette was always going to make this cheap — every
+view references the brush keys via DynamicResource. A `ThemeService` swaps
+the brush values at the application level, re-theming everything live. The
+accents darken for white and a new `AccentTextBrush` token flips so the
+accent button keeps its contrast (dark-on-light-green in dark mode,
+white-on-dark-green in light). Applied at startup before the window shows,
+toggled from settings, persisted. Known soft spot: the course-colour
+converter's fixed accents (teal/cyan especially) are a touch light on
+white — fine for now.
+
+**This-week agenda.** Classes, deadlines and exams lived in three separate
+places; the dashboard now has a "今週 · this week" card merging them into
+one chronological 7-day list — each day's classes (blue), due tickets
+(amber) and exams (sakura), empty days skipped. The one view to check each
+morning.

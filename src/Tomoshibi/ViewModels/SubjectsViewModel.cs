@@ -158,8 +158,9 @@ public partial class SubjectsViewModel : ViewModelBase
 
         var tickets = _state.Todos.Where(t => matches(t.Course)).ToList();
         var open = tickets.Count(t => t.Status != TodoStatus.Done);
-        var sessions = tickets.Sum(t => t.SessionsSpent);
-        LinkedTicketsLabel = $"{open} open tickets · {sessions} focus sessions logged";
+        var weekH = FocusLog.HoursLabel(FocusLog.MinutesForCourse(_state, code, 7));
+        var allH = FocusLog.HoursLabel(FocusLog.MinutesForCourse(_state, code, 0));
+        LinkedTicketsLabel = $"{open} open tickets · {weekH} this week · {allH} all-time focus";
 
         var now = DateTime.Now;
         LinkedClassLabel = string.Empty;

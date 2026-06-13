@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Tomoshibi.Models;
 
@@ -10,4 +11,9 @@ public class DailyStats
     public DateOnly Date { get; set; }
     public int CompletedSessions { get; set; }
     public double FocusedMinutes { get; set; }
+
+    /// <summary>Focused minutes broken out by course code (lower-cased) for
+    /// the day — populated when the active task carries a course. Lets the
+    /// app answer "how long have I studied MATH101?".</summary>
+    public Dictionary<string, double> FocusByCourse { get; set; } = new();
 }

@@ -29,6 +29,9 @@ public partial class App : Application
             IStorageService storage = new JsonStorageService();
             _vm = new MainWindowViewModel(storage);
 
+            // Apply the saved theme before the window shows so there's no flash.
+            ThemeService.Apply(_vm.LightTheme);
+
             desktop.MainWindow = new MainWindow { DataContext = _vm };
 
             // Closing the window hides it; the timer keeps running and the
