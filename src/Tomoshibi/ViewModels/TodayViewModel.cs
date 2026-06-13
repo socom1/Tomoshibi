@@ -73,14 +73,17 @@ public partial class TodayViewModel : ViewModelBase
     /// gear since the settings only ever affect the pomodoro.</summary>
     public SettingsViewModel Settings { get; }
 
+    private readonly WalletViewModel _wallet;
+
     public TodayViewModel(AppState state, Action save, Action toggleZen,
-                          SettingsViewModel settings, ISoundService? sound = null,
-                          INotificationService? notify = null)
+                          SettingsViewModel settings, WalletViewModel wallet,
+                          ISoundService? sound = null, INotificationService? notify = null)
     {
         _state = state;
         _save = save;
         _toggleZen = toggleZen;
         Settings = settings;
+        _wallet = wallet;
 
         _dailyIntention = _state.DailyIntention;
         _completedSessions = _state.Today.CompletedSessions;
@@ -268,6 +271,9 @@ public partial class TodayViewModel : ViewModelBase
                     _state.Today.FocusByCourse.GetValueOrDefault(key) + focusMinutes;
             }
         }
+
+        // Earn embers for the focus put in — one per minute.
+        _wallet.Add(focusMinutes);
 
         CompletedSessions = _state.Today.CompletedSessions;
         FocusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);

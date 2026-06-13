@@ -1,65 +1,91 @@
 using System.Collections.Generic;
+using System.Linq;
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Styling;
 
 namespace Tomoshibi.Services;
 
+/// <summary>A named palette the shop can sell and the app can apply.</summary>
+public record AppTheme(string Id, string Jp, string En, int Price, bool IsLight,
+                       IReadOnlyDictionary<string, string> Brushes)
+{
+    public Color Preview(string key) => Color.Parse(Brushes[key]);
+}
+
 /// <summary>
-/// Swaps the palette at runtime between the default dark "Tokyo Night" and a
-/// light "day" variant. The whole UI references the brush keys through
-/// DynamicResource, so overriding those keys at the application level
-/// re-themes every view live — no per-view work.
-///
-/// The accents darken in the light theme so they stay readable on white, and
-/// AccentText flips so the accent button's label keeps its contrast.
+/// The theme catalogue plus the live swap. Every view references the brush
+/// keys through DynamicResource, so overriding those keys at the application
+/// level re-themes the whole UI instantly — no per-view work. Themes are
+/// cosmetic palettes; a couple are free, the rest are bought with embers.
 /// </summary>
 public static class ThemeService
 {
-    private static readonly Dictionary<string, string> Dark = new()
+    private static Dictionary<string, string> Map(
+        string ink, string surface, string hover, string border,
+        string matcha, string matchaDeep, string sakura, string amber, string blue,
+        string text, string muted, string accentText) => new()
     {
-        ["InkBrush"] = "#16161E",
-        ["SurfaceBrush"] = "#1F2335",
-        ["SurfaceHoverBrush"] = "#2A2E42",
-        ["BorderBrush"] = "#2A2E42",
-        ["MatchaBrush"] = "#9ECE6A",
-        ["MatchaDeepBrush"] = "#8DBD59",
-        ["SakuraBrush"] = "#F7768E",
-        ["AmberBrush"] = "#E0AF68",
-        ["BlueBrush"] = "#7AA2F7",
-        ["TextBrush"] = "#C0CAF5",
-        ["MutedTextBrush"] = "#565F89",
-        ["AccentTextBrush"] = "#16161E",
+        ["InkBrush"] = ink,
+        ["SurfaceBrush"] = surface,
+        ["SurfaceHoverBrush"] = hover,
+        ["BorderBrush"] = border,
+        ["MatchaBrush"] = matcha,
+        ["MatchaDeepBrush"] = matchaDeep,
+        ["SakuraBrush"] = sakura,
+        ["AmberBrush"] = amber,
+        ["BlueBrush"] = blue,
+        ["TextBrush"] = text,
+        ["MutedTextBrush"] = muted,
+        ["AccentTextBrush"] = accentText,
     };
 
-    private static readonly Dictionary<string, string> Light = new()
+    public static readonly IReadOnlyList<AppTheme> All = new[]
     {
-        ["InkBrush"] = "#E3E4ED",       // soft paper background
-        ["SurfaceBrush"] = "#FFFFFF",   // cards lift off the bg
-        ["SurfaceHoverBrush"] = "#EBECF3",
-        ["BorderBrush"] = "#CBCDDA",
-        ["MatchaBrush"] = "#5F8F34",    // accents darkened for white
-        ["MatchaDeepBrush"] = "#4E7A28",
-        ["SakuraBrush"] = "#D6536C",
-        ["AmberBrush"] = "#B5832F",
-        ["BlueBrush"] = "#3E68C9",
-        ["TextBrush"] = "#272A3F",
-        ["MutedTextBrush"] = "#7E84A3",
-        ["AccentTextBrush"] = "#FFFFFF",
+        new AppTheme("dark", "夜", "tokyo night", 0, false, Map(
+            "#16161E", "#1F2335", "#2A2E42", "#2A2E42",
+            "#9ECE6A", "#8DBD59", "#F7768E", "#E0AF68", "#7AA2F7",
+            "#C0CAF5", "#565F89", "#16161E")),
+
+        new AppTheme("light", "昼", "day", 0, true, Map(
+            "#E3E4ED", "#FFFFFF", "#EBECF3", "#CBCDDA",
+            "#5F8F34", "#4E7A28", "#D6536C", "#B5832F", "#3E68C9",
+            "#272A3F", "#7E84A3", "#FFFFFF")),
+
+        new AppTheme("matcha", "抹茶", "matcha", 300, false, Map(
+            "#121A14", "#1A271C", "#26382A", "#26382A",
+            "#9ECE6A", "#8DBD59", "#F7768E", "#E0AF68", "#7AA2F7",
+            "#D4E8C8", "#6A7E63", "#121A14")),
+
+        new AppTheme("sakura", "桜", "sakura", 400, false, Map(
+            "#1B1620", "#271E2E", "#352843", "#352840",
+            "#F58FB0", "#E06A95", "#FF6E7F", "#E8B07A", "#9E8CF0",
+            "#F2D9E6", "#8C7790", "#1B1620")),
+
+        new AppTheme("sunset", "夕焼け", "sunset", 500, false, Map(
+            "#1E1714", "#2B201A", "#3A2C22", "#3A2C22",
+            "#FF9E64", "#F08A4B", "#F7768E", "#E0AF68", "#7AA2F7",
+            "#F2E0D0", "#8A7765", "#1E1714")),
+
+        new AppTheme("sumi", "墨", "sumi", 250, false, Map(
+            "#161618", "#202023", "#2C2C30", "#2C2C30",
+            "#C8C8CE", "#B0B0B6", "#D88A8A", "#C9B98A", "#8AA0C0",
+            "#D8D8DE", "#6A6A72", "#161618")),
     };
 
-    public static void Apply(bool light)
+    public static AppTheme Find(string? id) =>
+        All.FirstOrDefault(t => t.Id == id) ?? All[0];
+
+    public static void Apply(string? id)
     {
         var app = Application.Current;
         if (app is null)
             return;
 
-        // Keep Fluent's own light/dark in step so its built-in control parts
-        // (calendar internals, scrollbars) match.
-        app.RequestedThemeVariant = light ? ThemeVariant.Light : ThemeVariant.Dark;
+        var theme = Find(id);
+        app.RequestedThemeVariant = theme.IsLight ? ThemeVariant.Light : ThemeVariant.Dark;
 
-        var palette = light ? Light : Dark;
-        foreach (var (key, hex) in palette)
+        foreach (var (key, hex) in theme.Brushes)
             app.Resources[key] = new SolidColorBrush(Color.Parse(hex));
     }
 }

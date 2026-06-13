@@ -1057,3 +1057,27 @@ places; the dashboard now has a "今週 · this week" card merging them into
 one chronological 7-day list — each day's classes (blue), due tickets
 (amber) and exams (sakura), empty days skipped. The one view to check each
 morning.
+
+---
+
+## 火種 · embers — a currency and a theme shop (2026-06-13)
+
+Gave the app a reward loop. **火種 (embers)** — "hidane", the kindling that
+keeps tomoshibi's lamp lit — are earned one per focused minute (a 25-minute
+session pays 25), so the currency tracks real work. A shared
+`WalletViewModel` is the single source of truth: the timer earns into it,
+the shop spends from it, the nav rail and dashboard display it.
+
+The shop sells **themes**. The light theme from earlier got generalised into
+a named-palette catalogue in `ThemeService` — each `AppTheme` is an id, a
+bilingual name, a price and a full brush map. 夜 tokyo-night and 昼 day are
+free; 抹茶 matcha, 桜 sakura, 夕焼け sunset and 墨 sumi are bought with
+embers. Buying unlocks, applying swaps the whole palette live (same
+DynamicResource trick), and ownership + the active theme persist. The old
+settings light-theme checkbox is gone — theming lives in the shop now, one
+source of truth — and a migration maps the old `LightTheme` bool onto the
+new `ActiveThemeId` while granting the two free themes.
+
+Each shop row previews its palette as a tiny mock card (its own ink /
+surface / accent / text colours), so you see a theme before you buy it.
+Icon packs and sounds are the obvious next shelves.

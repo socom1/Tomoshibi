@@ -34,8 +34,6 @@ public partial class SettingsPageViewModel : ViewModelBase
     [ObservableProperty]
     private bool _closeToTray;
 
-    [ObservableProperty]
-    private bool _lightTheme;
 
     public string VersionLabel => "灯火 · tomoshibi — v1.5";
 
@@ -54,7 +52,6 @@ public partial class SettingsPageViewModel : ViewModelBase
 
         _showWelcome = state.ShowWelcome;
         _closeToTray = state.CloseToTray;
-        _lightTheme = state.LightTheme;
     }
 
     partial void OnShowWelcomeChanged(bool value)
@@ -69,10 +66,4 @@ public partial class SettingsPageViewModel : ViewModelBase
         _save();
     }
 
-    partial void OnLightThemeChanged(bool value)
-    {
-        _state.LightTheme = value;
-        Services.ThemeService.Apply(value);
-        _save();
-    }
 }

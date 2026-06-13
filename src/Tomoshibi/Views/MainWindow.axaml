@@ -105,6 +105,14 @@
                     </StackPanel>
                 </Button>
 
+                <Button Classes="nav" Classes.active="{Binding IsShopActive}"
+                        Command="{Binding NavigateToShopCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="ショップ" />
+                        <TextBlock Text="shop" Opacity="0.55" />
+                    </StackPanel>
+                </Button>
+
                 <Button Classes="nav" Classes.active="{Binding IsSettingsActive}"
                         Command="{Binding NavigateToSettingsCommand}"
                         Margin="0,16,0,0">
@@ -113,6 +121,11 @@
                         <TextBlock Text="settings" Opacity="0.55" />
                     </StackPanel>
                 </Button>
+
+                <!-- Ember balance, pinned under the nav -->
+                <TextBlock Text="{Binding Wallet.BalanceLabel}" Classes="caption"
+                           Margin="22,20,22,0"
+                           Foreground="{DynamicResource AmberBrush}" />
             </StackPanel>
         </Border>
 

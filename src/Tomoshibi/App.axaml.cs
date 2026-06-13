@@ -30,7 +30,7 @@ public partial class App : Application
             _vm = new MainWindowViewModel(storage);
 
             // Apply the saved theme before the window shows so there's no flash.
-            ThemeService.Apply(_vm.LightTheme);
+            ThemeService.Apply(_vm.ActiveThemeId);
 
             desktop.MainWindow = new MainWindow { DataContext = _vm };
 

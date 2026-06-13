@@ -35,6 +35,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsSubjectsActive))]
     [NotifyPropertyChangedFor(nameof(IsStatsActive))]
     [NotifyPropertyChangedFor(nameof(IsStickiesActive))]
+    [NotifyPropertyChangedFor(nameof(IsShopActive))]
     [NotifyPropertyChangedFor(nameof(IsSettingsActive))]
     [NotifyPropertyChangedFor(nameof(ActiveContent))]
     private Destination _activeDestination;
@@ -84,11 +85,17 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>The settings destination's content.</summary>
     public SettingsPageViewModel SettingsPage { get; }
 
+    /// <summary>The shared embers wallet.</summary>
+    public WalletViewModel Wallet { get; }
+
+    /// <summary>The themes shop.</summary>
+    public ShopViewModel Shop { get; }
+
     /// <summary>Read live by the window's close handler.</summary>
     public bool CloseToTray => _state.CloseToTray;
 
     /// <summary>Read by App at startup to apply the saved theme.</summary>
-    public bool LightTheme => _state.LightTheme;
+    public string ActiveThemeId => _state.ActiveThemeId;
 
     /// <summary>The view model the main content area is currently bound to.
     /// Resolved through <see cref="ViewLocator"/> to the right view.</summary>
@@ -99,6 +106,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Destination.Subjects => Subjects,
         Destination.Stats => Stats,
         Destination.Stickies => Stickies,
+        Destination.Shop => Shop,
         Destination.Settings => SettingsPage,
         Destination.Today => Today,
         _ => Dashboard
@@ -111,6 +119,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsSubjectsActive => ActiveDestination == Destination.Subjects;
     public bool IsStatsActive => ActiveDestination == Destination.Stats;
     public bool IsStickiesActive => ActiveDestination == Destination.Stickies;
+    public bool IsShopActive => ActiveDestination == Destination.Shop;
     public bool IsSettingsActive => ActiveDestination == Destination.Settings;
 
     public MainWindowViewModel(IStorageService storage)
@@ -119,13 +128,16 @@ public partial class MainWindowViewModel : ViewModelBase
         _state = storage.Load();
 
         MigrateDeadlinesToTickets();
+        MigrateTheme();
         ApplyDailyReset(DateOnly.FromDateTime(DateTime.Now));
 
         _isNavOpen = _state.IsNavOpen;
         _activeDestination = _state.ActiveDestination;
 
         var settings = new SettingsViewModel(_state.Settings, OnSettingsChanged);
-        Today = new TodayViewModel(_state, Save, () => IsZenMode = !IsZenMode, settings,
+        Wallet = new WalletViewModel(_state, Save);
+        Shop = new ShopViewModel(_state, Save, Wallet);
+        Today = new TodayViewModel(_state, Save, () => IsZenMode = !IsZenMode, settings, Wallet,
                                    new SoundService(), new NotificationService());
         Timetable = new TimetableViewModel(_state, Save);
         Todo = new TodoViewModel(_state, Save, SendTodoToToday);
@@ -172,6 +184,18 @@ public partial class MainWindowViewModel : ViewModelBase
     /// with due dates. Old state files may still carry a deadlines list —
     /// convert each to a ticket (skipping ones that already exist) and empty
     /// the legacy list.</summary>
+    /// <summary>Map the old light-theme bool onto the named-theme system, and
+    /// make sure the two free themes are always owned.</summary>
+    private void MigrateTheme()
+    {
+        if (string.IsNullOrEmpty(_state.ActiveThemeId))
+            _state.ActiveThemeId = _state.LightTheme ? "light" : "dark";
+
+        foreach (var free in new[] { "dark", "light" })
+            if (!_state.OwnedThemeIds.Contains(free))
+                _state.OwnedThemeIds.Add(free);
+    }
+
     private void MigrateDeadlinesToTickets()
     {
         if (_state.Deadlines.Count == 0)
@@ -238,7 +262,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Destination.Dashboard, Destination.Today, Destination.Timetable,
         Destination.Todo, Destination.Subjects, Destination.Stats,
-        Destination.Stickies, Destination.Settings
+        Destination.Stickies, Destination.Shop, Destination.Settings
     };
 
     /// <summary>Jump to the nth destination (1-based) — wired to Cmd/Ctrl+digit.
@@ -270,6 +294,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [RelayCommand]
     private void NavigateToStickies() => ActiveDestination = Destination.Stickies;
+
+    [RelayCommand]
+    private void NavigateToShop() => ActiveDestination = Destination.Shop;
 
     [RelayCommand]
     private void NavigateToSettings() => ActiveDestination = Destination.Settings;

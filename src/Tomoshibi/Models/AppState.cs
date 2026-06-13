@@ -34,6 +34,11 @@ public class AppState
     public bool ShowWelcome { get; set; } = true;
     public bool CloseToTray { get; set; } = true;
     public bool LightTheme { get; set; }
+
+    // Currency + cosmetics
+    public int Embers { get; set; }
+    public string ActiveThemeId { get; set; } = string.Empty;
+    public System.Collections.Generic.List<string> OwnedThemeIds { get; set; } = new();
     public Destination ActiveDestination { get; set; } = Destination.Dashboard;
 
     // Window placement (0 width = never saved, use the XAML defaults)
