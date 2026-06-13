@@ -28,6 +28,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isNavOpen;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDashboardActive))]
     [NotifyPropertyChangedFor(nameof(IsTodayActive))]
     [NotifyPropertyChangedFor(nameof(IsTimetableActive))]
     [NotifyPropertyChangedFor(nameof(IsTodoActive))]
@@ -54,6 +55,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public string WelcomeDateLabel =>
         $"{DateTime.Now:dddd, MMMM d}".ToLowerInvariant();
+
+    /// <summary>The dashboard landing page.</summary>
+    public DashboardViewModel Dashboard { get; }
 
     /// <summary>The "today" destination's content. Owns the pomodoro settings
     /// flyout since the settings only matter for the timer.</summary>
@@ -93,9 +97,11 @@ public partial class MainWindowViewModel : ViewModelBase
         Destination.Stats => Stats,
         Destination.Stickies => Stickies,
         Destination.Settings => SettingsPage,
-        _ => Today
+        Destination.Today => Today,
+        _ => Dashboard
     };
 
+    public bool IsDashboardActive => ActiveDestination == Destination.Dashboard;
     public bool IsTodayActive => ActiveDestination == Destination.Today;
     public bool IsTimetableActive => ActiveDestination == Destination.Timetable;
     public bool IsTodoActive => ActiveDestination == Destination.Todo;
@@ -126,6 +132,10 @@ public partial class MainWindowViewModel : ViewModelBase
         Music = new MusicPlayerViewModel(_state, Save, new MusicService());
         SettingsPage = new SettingsPageViewModel(_state, Save, settings, Music, Subjects,
                                                  storage.Location);
+        Dashboard = new DashboardViewModel(_state, Save, Today, Todo, Subjects,
+            openSubject: s => { Subjects.OpenDetail(s); ActiveDestination = Destination.Subjects; },
+            goToday: () => ActiveDestination = Destination.Today,
+            openUrl: OpenUrl);
 
         _showWelcomeOnLaunch = _state.ShowWelcome;
         _isWelcomeOpen = _state.ShowWelcome;
@@ -221,6 +231,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ToggleNav() => IsNavOpen = !IsNavOpen;
 
     [RelayCommand]
+    private void NavigateToDashboard() => ActiveDestination = Destination.Dashboard;
+
+    [RelayCommand]
     private void NavigateToToday() => ActiveDestination = Destination.Today;
 
     [RelayCommand]
@@ -255,6 +268,22 @@ public partial class MainWindowViewModel : ViewModelBase
         ActiveDestination = Destination.Today;
     }
 
+    /// <summary>Open a user-saved study link in the default browser.</summary>
+    private static void OpenUrl(string url)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url)
+            {
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+            // No browser or a bad URL — nothing useful to do.
+        }
+    }
+
     partial void OnIsNavOpenChanged(bool value)
     {
         _state.IsNavOpen = value;
@@ -269,6 +298,9 @@ public partial class MainWindowViewModel : ViewModelBase
         // schedule edits show on today, timer sessions show on tickets.
         switch (value)
         {
+            case Destination.Dashboard:
+                Dashboard.Refresh();
+                break;
             case Destination.Today:
                 Today.RefreshScheduleInfo();
                 break;

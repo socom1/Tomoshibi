@@ -949,3 +949,39 @@ behaviour. The storage interface gained a Location property for it.
 
 The settings nav entry sits last with a gap above it — chrome, not a
 destination you live in.
+
+---
+
+## A dashboard, and the honest YouTube answer (2026-06-13)
+
+**YouTube — the lean version.** A true in-app YouTube *player* needs a
+WebView (native browser engine per platform) — the project's first heavy,
+unverifiable UI dependency, and a direct contradiction of the "no browser
+runtime" choice in ARCHITECTURE.md. I didn't slip that in. Instead the
+dashboard carries a **study-videos board**: save lofi/lecture/playlist
+links with a label, click to open them in the system browser
+(Process.Start, UseShellExecute). Dependency-free, definitely works, and
+covers the real "play my lofi while I study" use. An embedded player stays
+an explicit opt-in for later if it's ever worth the dependency.
+
+**The dashboard.** A new landing destination (first in the nav, the new
+default for fresh state) that pulls a glance of the whole app together. It
+owns no data — it reads the other destinations' view models and snapshots
+the derived numbers on navigation:
+
+- greeting, date, the intention box (bound straight to the today VM)
+- a four-stat strip: sessions today, hours today, day streak, sessions
+  this week — with a momentum line ("↑ up from 9 last week") computed from
+  the banked history
+- up-next (next class, deadlines, ticket counts) with a start-focusing
+  button, beside the standing (GPA / degree projection)
+- **要努力 · needs work** — the feature the request was really about: every
+  graded subject sitting below its target (or below your credit-weighted
+  average) surfaces as a row, worst-first, sakura when severe. Each row
+  opens the subject, or drops a "work on X" focus task straight onto today.
+  This is the app finally pointing at *what* to study, not just tracking
+  that you did.
+- the study-videos board
+
+The needs-work analysis reuses the subject standings already computed for
+grading, so it costs nothing and can never disagree with the grades page.

@@ -374,6 +374,14 @@
         <Setter Property="Stroke" Value="{DynamicResource InkBrush}" />
     </Style>
 
+    <!-- Weak-spot severity dot: amber by default, sakura when severe -->
+    <Style Selector="Ellipse.dotsev">
+        <Setter Property="Fill" Value="{DynamicResource AmberBrush}" />
+    </Style>
+    <Style Selector="Ellipse.dotsev.severe">
+        <Setter Property="Fill" Value="{DynamicResource SakuraBrush}" />
+    </Style>
+
     <!-- Standing tints: matcha on track, amber close, sakura drifting -->
     <Style Selector="TextBlock.grade">
         <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />

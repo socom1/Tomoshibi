@@ -49,6 +49,14 @@
                 <TextBlock Text="灯火 · tomoshibi" Classes="jp"
                            Margin="22,0,22,24" />
 
+                <Button Classes="nav" Classes.active="{Binding IsDashboardActive}"
+                        Command="{Binding NavigateToDashboardCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="ダッシュ" />
+                        <TextBlock Text="dashboard" Opacity="0.55" />
+                    </StackPanel>
+                </Button>
+
                 <Button Classes="nav" Classes.active="{Binding IsTodayActive}"
                         Command="{Binding NavigateToTodayCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="10">

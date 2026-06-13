@@ -33,7 +33,7 @@ public class AppState
     public bool IsNavOpen { get; set; } = true;
     public bool ShowWelcome { get; set; } = true;
     public bool CloseToTray { get; set; } = true;
-    public Destination ActiveDestination { get; set; } = Destination.Today;
+    public Destination ActiveDestination { get; set; } = Destination.Dashboard;
 
     // Window placement (0 width = never saved, use the XAML defaults)
     public double WindowWidth { get; set; }
@@ -56,6 +56,9 @@ public class AppState
 
     // Sticky notes
     public List<StickyNote> Stickies { get; set; } = new();
+
+    // Study video links (opened in the browser)
+    public List<StudyLink> StudyLinks { get; set; } = new();
 
     // Music player
     public string? MusicFolder { get; set; }

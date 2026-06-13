@@ -7,6 +7,7 @@ namespace Tomoshibi.Models;
 /// </summary>
 public enum Destination
 {
+    Dashboard,
     Today,
     Timetable,
     Todo,
