@@ -378,8 +378,8 @@
     <Style Selector="TextBlock.agclass"><Setter Property="Foreground" Value="{DynamicResource BlueBrush}" /></Style>
     <Style Selector="TextBlock.agdue"><Setter Property="Foreground" Value="{DynamicResource AmberBrush}" /></Style>
     <Style Selector="TextBlock.agexam"><Setter Property="Foreground" Value="{DynamicResource SakuraBrush}" /></Style>
-    <!-- Agenda "today" day label gets the text colour instead of muted -->
-    <Style Selector="TextBlock.jp.today"><Setter Property="Foreground" Value="{DynamicResource MatchaBrush}" /></Style>
+    <!-- Agenda "today" day label gets the accent colour instead of muted -->
+    <Style Selector="TextBlock.caption.today"><Setter Property="Foreground" Value="{DynamicResource MatchaBrush}" /></Style>
 
     <!-- Weak-spot severity dot: amber by default, sakura when severe -->
     <Style Selector="Ellipse.dotsev">
