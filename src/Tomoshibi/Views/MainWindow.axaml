@@ -46,88 +46,91 @@
         <!-- ============ Nav rail ============ -->
         <Border Grid.Column="0" IsVisible="{Binding IsNavOpen}"
                 Background="{DynamicResource InkBrush}">
-            <StackPanel Margin="0,28,0,28" Spacing="2">
-                <TextBlock Text="灯火 · tomoshibi" Classes="jp"
-                           Margin="22,0,22,24" />
+            <DockPanel Margin="0,28,0,20" MinWidth="190">
 
-                <Button Classes="nav" Classes.active="{Binding IsDashboardActive}"
-                        Command="{Binding NavigateToDashboardCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="ダッシュ" />
-                        <TextBlock Text="dashboard" Opacity="0.55" />
-                    </StackPanel>
-                </Button>
+                <!-- Brand -->
+                <TextBlock DockPanel.Dock="Top" Text="灯火 · tomoshibi" Classes="jp"
+                           Margin="22,0,22,20" />
 
-                <Button Classes="nav" Classes.active="{Binding IsTodayActive}"
-                        Command="{Binding NavigateToTodayCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="今日" />
-                        <TextBlock Text="today" Opacity="0.55" />
-                    </StackPanel>
-                </Button>
+                <!-- Footer pinned to the bottom: settings + the wallet -->
+                <StackPanel DockPanel.Dock="Bottom" Spacing="2">
+                    <Border Height="1" Margin="22,8,22,8"
+                            Background="{DynamicResource BorderBrush}" />
+                    <Button Classes="nav" Classes.active="{Binding IsSettingsActive}"
+                            Command="{Binding NavigateToSettingsCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="設定" />
+                            <TextBlock Text="settings" Opacity="0.55" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="nav" Classes.active="{Binding IsShopActive}"
+                            Command="{Binding NavigateToShopCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="火種" Foreground="{DynamicResource AmberBrush}" />
+                            <TextBlock Text="{Binding Wallet.Balance}"
+                                       Foreground="{DynamicResource AmberBrush}" Opacity="0.85" />
+                            <TextBlock Text="· shop" Opacity="0.45" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
 
-                <Button Classes="nav" Classes.active="{Binding IsTimetableActive}"
-                        Command="{Binding NavigateToTimetableCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="時間割" />
-                        <TextBlock Text="timetable" Opacity="0.55" />
-                    </StackPanel>
-                </Button>
+                <!-- Destinations, grouped -->
+                <StackPanel Spacing="2">
+                    <Button Classes="nav" Classes.active="{Binding IsDashboardActive}"
+                            Command="{Binding NavigateToDashboardCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="ダッシュ" />
+                            <TextBlock Text="dashboard" Opacity="0.55" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="nav" Classes.active="{Binding IsTodayActive}"
+                            Command="{Binding NavigateToTodayCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="今日" />
+                            <TextBlock Text="today" Opacity="0.55" />
+                        </StackPanel>
+                    </Button>
 
-                <Button Classes="nav" Classes.active="{Binding IsTodoActive}"
-                        Command="{Binding NavigateToTodoCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="やること" />
-                        <TextBlock Text="todo" Opacity="0.55" />
-                    </StackPanel>
-                </Button>
+                    <TextBlock Text="計画 · plan" Classes="navsection" />
+                    <Button Classes="nav" Classes.active="{Binding IsTimetableActive}"
+                            Command="{Binding NavigateToTimetableCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="時間割" />
+                            <TextBlock Text="timetable" Opacity="0.55" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="nav" Classes.active="{Binding IsTodoActive}"
+                            Command="{Binding NavigateToTodoCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="やること" />
+                            <TextBlock Text="todo" Opacity="0.55" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="nav" Classes.active="{Binding IsSubjectsActive}"
+                            Command="{Binding NavigateToSubjectsCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="科目" />
+                            <TextBlock Text="subjects" Opacity="0.55" />
+                        </StackPanel>
+                    </Button>
 
-                <Button Classes="nav" Classes.active="{Binding IsSubjectsActive}"
-                        Command="{Binding NavigateToSubjectsCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="科目" />
-                        <TextBlock Text="subjects" Opacity="0.55" />
-                    </StackPanel>
-                </Button>
-
-                <Button Classes="nav" Classes.active="{Binding IsStatsActive}"
-                        Command="{Binding NavigateToStatsCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="記録" />
-                        <TextBlock Text="stats" Opacity="0.55" />
-                    </StackPanel>
-                </Button>
-
-                <Button Classes="nav" Classes.active="{Binding IsStickiesActive}"
-                        Command="{Binding NavigateToStickiesCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="付箋" />
-                        <TextBlock Text="stickies" Opacity="0.55" />
-                    </StackPanel>
-                </Button>
-
-                <Button Classes="nav" Classes.active="{Binding IsShopActive}"
-                        Command="{Binding NavigateToShopCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="ショップ" />
-                        <TextBlock Text="shop" Opacity="0.55" />
-                    </StackPanel>
-                </Button>
-
-                <Button Classes="nav" Classes.active="{Binding IsSettingsActive}"
-                        Command="{Binding NavigateToSettingsCommand}"
-                        Margin="0,16,0,0">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="設定" />
-                        <TextBlock Text="settings" Opacity="0.55" />
-                    </StackPanel>
-                </Button>
-
-                <!-- Ember balance, pinned under the nav -->
-                <TextBlock Text="{Binding Wallet.BalanceLabel}" Classes="caption"
-                           Margin="22,20,22,0"
-                           Foreground="{DynamicResource AmberBrush}" />
-            </StackPanel>
+                    <TextBlock Text="道具 · tools" Classes="navsection" />
+                    <Button Classes="nav" Classes.active="{Binding IsStatsActive}"
+                            Command="{Binding NavigateToStatsCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="記録" />
+                            <TextBlock Text="stats" Opacity="0.55" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="nav" Classes.active="{Binding IsStickiesActive}"
+                            Command="{Binding NavigateToStickiesCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="付箋" />
+                            <TextBlock Text="stickies" Opacity="0.55" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
         </Border>
 
         <Border Grid.Column="1"

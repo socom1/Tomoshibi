@@ -195,9 +195,10 @@
 
                 <!-- Standing -->
                 <Border Classes="card">
-                    <StackPanel Spacing="8">
+                    <StackPanel Spacing="10">
                         <TextBlock Text="成績 · standing" Classes="jp" />
-                        <StackPanel Orientation="Horizontal" Spacing="20">
+                        <StackPanel Orientation="Horizontal" Spacing="24"
+                                    HorizontalAlignment="Center" Margin="0,4,0,0">
 
                             <!-- Standing ring -->
                             <Grid Width="104" Height="104">
@@ -210,12 +211,7 @@
                                          Classes.gwarn="{Binding IsStandingWarn}"
                                          Classes.gbad="{Binding IsStandingBad}"
                                          StrokeThickness="6" StrokeLineCap="Round"
-                                         StrokeDashArray="{Binding StandingFraction, Converter={StaticResource RingDash}, ConverterParameter='46,6'}"
-                                         RenderTransformOrigin="0.5,0.5">
-                                    <Ellipse.RenderTransform>
-                                        <RotateTransform Angle="-90" />
-                                    </Ellipse.RenderTransform>
-                                </Ellipse>
+                                         StrokeDashArray="{Binding StandingFraction, Converter={StaticResource RingDash}, ConverterParameter='46,6'}" />
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                     <TextBlock Text="{Binding GradeLabel}" FontSize="19" FontWeight="SemiBold"
                                                HorizontalAlignment="Center"
@@ -229,18 +225,20 @@
                                 </StackPanel>
                             </Grid>
 
-                            <StackPanel VerticalAlignment="Center" Spacing="6">
+                            <StackPanel VerticalAlignment="Center" Spacing="6" Width="220">
+                                <TextBlock Text="{Binding GradeLabel}" FontSize="30" FontWeight="Light"
+                                           Classes="grade"
+                                           Classes.ggood="{Binding IsStandingGood}"
+                                           Classes.gwarn="{Binding IsStandingWarn}"
+                                           Classes.gbad="{Binding IsStandingBad}" />
                                 <TextBlock Text="{Binding PointsLabel}" Classes="caption"
                                            IsVisible="{Binding PointsLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                                <Grid ColumnDefinitions="120,Auto">
-                                    <ProgressBar Value="{Binding GradedShare}" Minimum="0" Maximum="1"
-                                                 Height="4" MinHeight="0"
-                                                 Foreground="{DynamicResource BlueBrush}"
-                                                 Background="{DynamicResource SurfaceHoverBrush}" />
-                                    <TextBlock Grid.Column="1" Text="{Binding GradedShareCaption}"
-                                               Classes="caption" Margin="8,0,0,0" FontSize="10"
-                                               VerticalAlignment="Center" />
-                                </Grid>
+                                <ProgressBar Value="{Binding GradedShare}" Minimum="0" Maximum="1"
+                                             Height="4" MinHeight="0" Margin="0,4,0,0"
+                                             Foreground="{DynamicResource BlueBrush}"
+                                             Background="{DynamicResource SurfaceHoverBrush}" />
+                                <TextBlock Text="{Binding GradedShareCaption}"
+                                           Classes="caption" FontSize="10" />
                             </StackPanel>
                         </StackPanel>
 

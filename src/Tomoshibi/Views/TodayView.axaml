@@ -78,37 +78,44 @@
                 <Grid RowDefinitions="Auto,*,Auto">
                     <TextBlock Grid.Row="0" Text="{Binding Pomodoro.PhaseLabel}" Classes="jp" />
 
-                    <StackPanel Grid.Row="1" VerticalAlignment="Center"
-                                HorizontalAlignment="Center" Spacing="10">
-                        <TextBlock Text="{Binding Pomodoro.TimeDisplay}" FontSize="86" FontWeight="Light"
-                                   Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
-                                   Classes="timer" Classes.paused="{Binding Pomodoro.IsPaused}"
-                                   HorizontalAlignment="Center">
-                            <TextBlock.Transitions>
-                                <Transitions>
-                                    <BrushTransition Property="Foreground" Duration="0:0:0.45" />
-                                    <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
-                                </Transitions>
-                            </TextBlock.Transitions>
-                        </TextBlock>
-                        <ProgressBar Value="{Binding Pomodoro.Progress}" Minimum="0" Maximum="1"
-                                     Width="260" Height="4" MinHeight="0"
-                                     Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
-                                     Background="{DynamicResource BorderBrush}">
-                            <ProgressBar.Transitions>
-                                <Transitions>
-                                    <DoubleTransition Property="Value" Duration="0:0:1" />
-                                    <BrushTransition Property="Foreground" Duration="0:0:0.45" />
-                                </Transitions>
-                            </ProgressBar.Transitions>
-                        </ProgressBar>
-                        <TextBlock Text="{Binding Pomodoro.RoundLabel}" Classes="caption"
-                                   HorizontalAlignment="Center" />
-                        <TextBlock Text="{Binding ActiveTaskLabel}" Classes="caption"
-                                   Foreground="{DynamicResource MatchaBrush}"
-                                   HorizontalAlignment="Center"
-                                   IsVisible="{Binding HasActiveTask}" />
-                    </StackPanel>
+                    <!-- The clock group scales to fill the card — small on a
+                         compact window, large in full screen — capped so it
+                         never gets absurd. The fixed inner width gives the
+                         Viewbox a definite ratio to scale uniformly. -->
+                    <Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="Both"
+                             MaxWidth="560" MaxHeight="380" Margin="10"
+                             HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <StackPanel Width="300" HorizontalAlignment="Center" Spacing="10">
+                            <TextBlock Text="{Binding Pomodoro.TimeDisplay}" FontSize="86" FontWeight="Light"
+                                       Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
+                                       Classes="timer" Classes.paused="{Binding Pomodoro.IsPaused}"
+                                       HorizontalAlignment="Center">
+                                <TextBlock.Transitions>
+                                    <Transitions>
+                                        <BrushTransition Property="Foreground" Duration="0:0:0.45" />
+                                        <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
+                                    </Transitions>
+                                </TextBlock.Transitions>
+                            </TextBlock>
+                            <ProgressBar Value="{Binding Pomodoro.Progress}" Minimum="0" Maximum="1"
+                                         Width="260" Height="4" MinHeight="0" HorizontalAlignment="Center"
+                                         Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
+                                         Background="{DynamicResource BorderBrush}">
+                                <ProgressBar.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition Property="Value" Duration="0:0:1" />
+                                        <BrushTransition Property="Foreground" Duration="0:0:0.45" />
+                                    </Transitions>
+                                </ProgressBar.Transitions>
+                            </ProgressBar>
+                            <TextBlock Text="{Binding Pomodoro.RoundLabel}" Classes="caption"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding ActiveTaskLabel}" Classes="caption"
+                                       Foreground="{DynamicResource MatchaBrush}"
+                                       HorizontalAlignment="Center"
+                                       IsVisible="{Binding HasActiveTask}" />
+                        </StackPanel>
+                    </Viewbox>
 
                     <StackPanel Grid.Row="2" Orientation="Horizontal"
                                 HorizontalAlignment="Center" Spacing="12">

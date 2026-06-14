@@ -520,6 +520,15 @@
         <Setter Property="Foreground" Value="{DynamicResource SakuraBrush}" />
     </Style>
 
+    <!-- Faint section header inside the nav rail -->
+    <Style Selector="TextBlock.navsection">
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="LetterSpacing" Value="1.5" />
+        <Setter Property="Opacity" Value="0.7" />
+        <Setter Property="Margin" Value="22,16,22,4" />
+    </Style>
+
     <!-- Nav-rail destination button -->
     <Style Selector="Button.nav">
         <Setter Property="Background" Value="Transparent" />
