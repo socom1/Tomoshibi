@@ -1081,3 +1081,26 @@ new `ActiveThemeId` while granting the two free themes.
 Each shop row previews its palette as a tiny mock card (its own ink /
 surface / accent / text colours), so you see a theme before you buy it.
 Icon packs and sounds are the obvious next shelves.
+
+---
+
+## Command palette + a launch splash (2026-06-13)
+
+**Cmd/Ctrl+K command palette.** A centered overlay with a search box and a
+filtered list over three kinds of target: every page, a handful of quick
+actions (start/pause timer, zen, new task/todo/subject), and every subject
+by name. Type to filter (contains, case-insensitive), ↑↓ to move, Enter to
+run, Esc to close — keyboard-only, the way these are meant to be used. The
+candidate list is rebuilt by the shell each time it opens so it always
+reflects the current subjects. `CommandPaletteViewModel` owns the
+query/results/selection; the shell owns the catalogue (it's the only thing
+with refs to every destination). The search box autofocuses on open via a
+property-changed hook in the window.
+
+**Launch splash.** A full-window ink overlay with the 灯 lamp and the name
+that eases up on open (scale + fade, CubicEaseOut), holds ~1.3s, then fades
+out over half a second to reveal the app — the opacity transition does the
+reveal, and the overlay goes click-through once it's gone. Pure
+chrome: an `IsBooting` flag on the shell, flipped off by a one-shot timer
+in the window's OnOpened. A calmer "lighting the lamp" beat than snapping
+straight to the dashboard.

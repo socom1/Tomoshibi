@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using Tomoshibi.ViewModels;
 
 namespace Tomoshibi.Views;
@@ -17,6 +18,22 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
+    }
+
+    /// <summary>Hold the splash a beat after the window appears, then let it
+    /// fade out (the opacity transition does the reveal).</summary>
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1300) };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            if (_vm is not null)
+                _vm.IsBooting = false;
+        };
+        timer.Start();
     }
 
     /// <summary>
@@ -32,10 +49,19 @@ public partial class MainWindow : Window
         if (e.Handled || _vm is null)
             return;
 
-        // Cmd/Ctrl + 1…8 jumps between destinations (Meta is Cmd on macOS).
-        var nav = e.KeyModifiers.HasFlag(KeyModifiers.Meta) ||
+        var cmd = e.KeyModifiers.HasFlag(KeyModifiers.Meta) ||
                   e.KeyModifiers.HasFlag(KeyModifiers.Control);
-        if (nav && e.Key is >= Key.D1 and <= Key.D8)
+
+        // Cmd/Ctrl + K opens the command palette.
+        if (cmd && e.Key == Key.K)
+        {
+            _vm.OpenCommandPalette();
+            e.Handled = true;
+            return;
+        }
+
+        // Cmd/Ctrl + 1…8 jumps between destinations (Meta is Cmd on macOS).
+        if (cmd && e.Key is >= Key.D1 and <= Key.D8)
         {
             _vm.NavigateByIndex(e.Key - Key.D1 + 1);
             e.Handled = true;
@@ -127,6 +153,26 @@ public partial class MainWindow : Window
             ApplyZenState();
         else if (e.PropertyName == nameof(MainWindowViewModel.IsNavOpen))
             ApplyNavState();
+        else if (e.PropertyName == nameof(MainWindowViewModel.IsCommandPaletteOpen)
+                 && _vm?.IsCommandPaletteOpen == true)
+        {
+            // Drop the cursor straight into the palette's search box.
+            this.FindControl<TextBox>("PaletteBox")?.Focus();
+        }
+    }
+
+    /// <summary>Arrow keys move the palette selection; Enter runs it.</summary>
+    private void OnPaletteKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (_vm is null)
+            return;
+
+        switch (e.Key)
+        {
+            case Key.Down: _vm.CommandPalette.Move(1); e.Handled = true; break;
+            case Key.Up: _vm.CommandPalette.Move(-1); e.Handled = true; break;
+            case Key.Enter: _vm.CommandPalette.RunSelected(); e.Handled = true; break;
+        }
     }
 
     private void ApplyZenState()

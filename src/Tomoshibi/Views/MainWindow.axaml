@@ -19,6 +19,7 @@
     </Window.Resources>
 
     <Window.KeyBindings>
+        <KeyBinding Gesture="Escape" Command="{Binding CloseCommandPaletteCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding CloseWelcomeCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Today.Tasks.CancelAddTaskCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Todo.CancelModalCommand}" />
@@ -284,6 +285,41 @@
         </StackPanel>
     </Button>
 
+    <!-- Command palette (Cmd/Ctrl+K) -->
+    <Border Classes="modal-backdrop"
+            IsVisible="{Binding IsCommandPaletteOpen}"
+            Background="#A0000000">
+        <Border Classes="card modal-card"
+                Width="460" Padding="14"
+                HorizontalAlignment="Center" VerticalAlignment="Top"
+                Margin="0,90,0,0"
+                DataContext="{Binding CommandPalette}"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+            </Border.RenderTransform>
+            <StackPanel Spacing="8">
+                <TextBox x:Name="PaletteBox" Text="{Binding Query}"
+                         Watermark="jump to… (pages, actions, subjects)"
+                         KeyDown="OnPaletteKeyDown" />
+                <ListBox ItemsSource="{Binding Results}"
+                         SelectedIndex="{Binding SelectedIndex}"
+                         Classes="tasks" MaxHeight="320">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PaletteItemViewModel">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" Text="{Binding Kind}" Classes="caption"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <TextBlock Text="↑↓ move · enter run · esc close" Classes="caption" />
+            </StackPanel>
+        </Border>
+    </Border>
+
     <!-- Welcome modal: the launch greeting -->
     <Border Classes="modal-backdrop"
             IsVisible="{Binding IsWelcomeOpen}"
@@ -396,6 +432,22 @@
             <Button Content="skip" Command="{Binding Today.Pomodoro.SkipCommand}" />
         </StackPanel>
     </Grid>
+
+    <!-- Launch splash: covers everything, the lamp fades up, then the
+         overlay fades out to reveal the app. Last child = topmost. -->
+    <Border Classes="splash" Classes.booting="{Binding IsBooting}"
+            Background="{DynamicResource InkBrush}">
+        <StackPanel Classes="splashinner" Spacing="14"
+                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                    RenderTransformOrigin="0.5,0.5">
+            <StackPanel.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+            </StackPanel.RenderTransform>
+            <TextBlock Text="灯" FontSize="96" HorizontalAlignment="Center"
+                       Foreground="{DynamicResource MatchaBrush}" />
+            <TextBlock Text="灯火 · tomoshibi" Classes="jp" HorizontalAlignment="Center" />
+        </StackPanel>
+    </Border>
 
     </Grid>
 </Window>

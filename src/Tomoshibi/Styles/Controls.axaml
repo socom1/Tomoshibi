@@ -723,6 +723,39 @@
         <Setter Property="Foreground" Value="{DynamicResource MatchaBrush}" />
     </Style>
 
+    <!-- Launch splash: opacity 1 while booting, fading to 0 (and going
+         click-through) once IsBooting flips off. -->
+    <Style Selector="Border.splash">
+        <Setter Property="Opacity" Value="0" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.5" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.splash.booting">
+        <Setter Property="Opacity" Value="1" />
+        <Setter Property="IsHitTestVisible" Value="True" />
+    </Style>
+    <!-- The lamp + name ease up once on launch -->
+    <Style Selector="StackPanel.splashinner">
+        <Style.Animations>
+            <Animation Duration="0:0:0.7" Easing="CubicEaseOut" FillMode="Forward">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.82" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.82" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
     <!-- Modal entrance — backdrop fades in; card fades and pops up subtly.
          Avalonia replays Style.Animations every time the style applies
          (which happens when the element becomes visible), so toggling

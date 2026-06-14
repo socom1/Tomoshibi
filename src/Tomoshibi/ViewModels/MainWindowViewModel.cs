@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -53,6 +54,17 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>"greet me on launch" — persisted preference.</summary>
     [ObservableProperty]
     private bool _showWelcomeOnLaunch;
+
+    /// <summary>The Cmd/Ctrl+K command palette overlay.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CloseCommandPaletteCommand))]
+    private bool _isCommandPaletteOpen;
+
+    /// <summary>The launch splash overlay; flipped off shortly after open.</summary>
+    [ObservableProperty]
+    private bool _isBooting = true;
+
+    public CommandPaletteViewModel CommandPalette { get; }
 
     public string WelcomeDateLabel =>
         $"{DateTime.Now:dddd, MMMM d}".ToLowerInvariant();
@@ -151,6 +163,8 @@ public partial class MainWindowViewModel : ViewModelBase
             openSubject: s => { Subjects.OpenDetail(s); ActiveDestination = Destination.Subjects; },
             goToday: () => ActiveDestination = Destination.Today,
             openUrl: OpenUrl);
+
+        CommandPalette = new CommandPaletteViewModel(() => IsCommandPaletteOpen = false);
 
         _showWelcomeOnLaunch = _state.ShowWelcome;
         _isWelcomeOpen = _state.ShowWelcome;
@@ -272,6 +286,77 @@ public partial class MainWindowViewModel : ViewModelBase
         if (IsZenMode || oneBased < 1 || oneBased > NavOrder.Length)
             return;
         ActiveDestination = NavOrder[oneBased - 1];
+    }
+
+    /// <summary>Open the command palette with a fresh candidate list.</summary>
+    public void OpenCommandPalette()
+    {
+        if (IsZenMode)
+            return;
+        CommandPalette.Load(BuildCommands());
+        IsCommandPaletteOpen = true;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanCloseCommandPalette))]
+    private void CloseCommandPalette() => IsCommandPaletteOpen = false;
+
+    private bool CanCloseCommandPalette() => IsCommandPaletteOpen;
+
+    /// <summary>Pages, quick actions and every subject — what the palette
+    /// searches over.</summary>
+    private List<PaletteItemViewModel> BuildCommands()
+    {
+        var items = new List<PaletteItemViewModel>();
+
+        void Page(string title, Destination dest) =>
+            items.Add(new PaletteItemViewModel
+            {
+                Title = title, Kind = "page", Run = () => ActiveDestination = dest
+            });
+
+        Page("dashboard", Destination.Dashboard);
+        Page("today", Destination.Today);
+        Page("timetable", Destination.Timetable);
+        Page("todo", Destination.Todo);
+        Page("subjects", Destination.Subjects);
+        Page("stats", Destination.Stats);
+        Page("stickies", Destination.Stickies);
+        Page("shop", Destination.Shop);
+        Page("settings", Destination.Settings);
+
+        void Action(string title, Action run) =>
+            items.Add(new PaletteItemViewModel { Title = title, Kind = "action", Run = run });
+
+        Action("start / pause timer", () => Today.Pomodoro.ToggleRunCommand.Execute(null));
+        Action("zen mode", () => IsZenMode = true);
+        Action("new task", () =>
+        {
+            ActiveDestination = Destination.Today;
+            Today.Tasks.OpenAddTaskCommand.Execute(null);
+        });
+        Action("new todo", () =>
+        {
+            ActiveDestination = Destination.Todo;
+            Todo.OpenAddCommand.Execute(null);
+        });
+        Action("new subject", () =>
+        {
+            ActiveDestination = Destination.Subjects;
+            Subjects.OpenAddCommand.Execute(null);
+        });
+
+        foreach (var subject in Subjects.Items)
+        {
+            var captured = subject;
+            items.Add(new PaletteItemViewModel
+            {
+                Title = subject.Name,
+                Kind = "subject",
+                Run = () => { Subjects.OpenDetail(captured); ActiveDestination = Destination.Subjects; }
+            });
+        }
+
+        return items;
     }
 
     [RelayCommand]
