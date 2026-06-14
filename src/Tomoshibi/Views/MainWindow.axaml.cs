@@ -94,7 +94,6 @@ public partial class MainWindow : Window
         {
             _vm.PropertyChanged += OnVmPropertyChanged;
             ApplyZenState();
-            ApplyNavState();
             ApplyWindowPlacement();
         }
     }
@@ -151,8 +150,6 @@ public partial class MainWindow : Window
     {
         if (e.PropertyName == nameof(MainWindowViewModel.IsZenMode))
             ApplyZenState();
-        else if (e.PropertyName == nameof(MainWindowViewModel.IsNavOpen))
-            ApplyNavState();
         else if (e.PropertyName == nameof(MainWindowViewModel.IsCommandPaletteOpen)
                  && _vm?.IsCommandPaletteOpen == true)
         {
@@ -179,29 +176,6 @@ public partial class MainWindow : Window
     {
         if (_vm is null) return;
         WindowState = _vm.IsZenMode ? WindowState.FullScreen : WindowState.Normal;
-    }
-
-    /// <summary>
-    /// Flips the three column widths so the nav rail slides in and out:
-    /// open takes a small fixed slice on the left (~Auto, capped) and the
-    /// main area takes the rest; closed collapses both nav and divider.
-    /// </summary>
-    private void ApplyNavState()
-    {
-        if (_vm is null) return;
-        var cols = NormalLayoutGrid.ColumnDefinitions;
-        if (_vm.IsNavOpen)
-        {
-            cols[0].Width = GridLength.Auto;
-            cols[1].Width = new GridLength(1);
-            cols[2].Width = new GridLength(1, GridUnitType.Star);
-        }
-        else
-        {
-            cols[0].Width = new GridLength(0);
-            cols[1].Width = new GridLength(0);
-            cols[2].Width = new GridLength(1, GridUnitType.Star);
-        }
     }
 
     /// <summary>Pick the music folder for the floating player.</summary>

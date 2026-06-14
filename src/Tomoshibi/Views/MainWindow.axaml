@@ -34,19 +34,18 @@
 
     <Grid>
 
-    <!-- Normal layout: nav rail | divider | main content. Column widths are
-         set in code-behind; opening the nav slides it in from zero width. -->
-    <Grid x:Name="NormalLayoutGrid" IsVisible="{Binding !IsZenMode}">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0" />
-            <ColumnDefinition Width="0" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+    <!-- Normal layout: nav rail | main content. The rail's width animates
+         between 0 and its open width via the .open class, so toggling the
+         menu slides it in and out; an Auto column lets the main area follow. -->
+    <Grid x:Name="NormalLayoutGrid" IsVisible="{Binding !IsZenMode}"
+          ColumnDefinitions="Auto,*">
 
         <!-- ============ Nav rail ============ -->
-        <Border Grid.Column="0" IsVisible="{Binding IsNavOpen}"
+        <Border Grid.Column="0" Classes="navrail" Classes.open="{Binding IsNavOpen}"
+                ClipToBounds="True"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0"
                 Background="{DynamicResource InkBrush}">
-            <DockPanel Margin="0,28,0,20" MinWidth="190">
+            <DockPanel Margin="0,28,0,20" Width="207" HorizontalAlignment="Left">
 
                 <!-- Brand -->
                 <TextBlock DockPanel.Dock="Top" Text="灯火 · tomoshibi" Classes="jp"
@@ -134,12 +133,8 @@
             </DockPanel>
         </Border>
 
-        <Border Grid.Column="1"
-                Background="{DynamicResource BorderBrush}"
-                IsVisible="{Binding IsNavOpen}" />
-
         <!-- ============ Main area: header + active destination ============ -->
-        <Grid Grid.Column="2" RowDefinitions="Auto,*">
+        <Grid Grid.Column="1" RowDefinitions="Auto,*">
 
             <!-- Shell header: just the nav toggle. Page titles and page
                  actions live inside each destination view. -->

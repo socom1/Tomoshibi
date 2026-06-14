@@ -520,6 +520,20 @@
         <Setter Property="Foreground" Value="{DynamicResource SakuraBrush}" />
     </Style>
 
+    <!-- Nav rail: width animates 0 ↔ open so the menu slides in and out. The
+         Auto column tracks this width, so the main area glides with it. -->
+    <Style Selector="Border.navrail">
+        <Setter Property="Width" Value="0" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Width" Duration="0:0:0.26" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.navrail.open">
+        <Setter Property="Width" Value="208" />
+    </Style>
+
     <!-- Faint section header inside the nav rail -->
     <Style Selector="TextBlock.navsection">
         <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
