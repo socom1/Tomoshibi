@@ -24,8 +24,9 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
     <!-- Pin the patched Tmds.DBus.Protocol over the 0.20.0 that Avalonia
          pulls in transitively (GHSA-xrw6-gwf8-vvr9, High). Linux D-Bus only;
-         0.21.1 is the conservative fixed bump. -->
-    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.1" />
+         0.21.3 is the backported fix and stays on the 0.21.x line Avalonia
+         11.2.1 expects (the next fix, 0.92.0, is a much larger jump). -->
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
   </ItemGroup>
 
   <ItemGroup>
