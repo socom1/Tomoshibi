@@ -359,7 +359,71 @@
                         </Grid>
                     </StackPanel>
                 </Border>
+
+                <!-- Resources -->
+                <Border Classes="card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="資料 · resources" Classes="jp" />
+
+                        <ItemsControl ItemsSource="{Binding Resources}" IsVisible="{Binding HasResources}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:StudyLinkViewModel">
+                                    <Border Classes="trow" Margin="0,2,0,0">
+                                        <Grid ColumnDefinitions="*,Auto,Auto">
+                                            <TextBlock Text="{Binding Title}" VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <Button Grid.Column="1" Content="▶ open" Classes="seg"
+                                                    Command="{Binding OpenCommand}"
+                                                    ToolTip.Tip="open in your browser" />
+                                            <Button Grid.Column="2" Content="✕" Classes="icon"
+                                                    Command="{Binding RemoveCommand}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Grid ColumnDefinitions="*,1.4*,Auto">
+                            <TextBox Grid.Column="0" Text="{Binding NewResourceTitle}"
+                                     Watermark="label" FontSize="13" Padding="10,6" />
+                            <TextBox Grid.Column="1" Text="{Binding NewResourceUrl}"
+                                     Watermark="slides / syllabus / drive url…" Margin="6,0,0,0"
+                                     FontSize="13" Padding="10,6">
+                                <TextBox.KeyBindings>
+                                    <KeyBinding Gesture="Enter" Command="{Binding AddResourceCommand}" />
+                                </TextBox.KeyBindings>
+                            </TextBox>
+                            <Button Grid.Column="2" Content="+" Classes="icon" Margin="4,0,0,0"
+                                    Command="{Binding AddResourceCommand}" />
+                        </Grid>
+                        <TextBlock Text="links open in your browser — keep the course's slides and drive here"
+                                   Classes="caption" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Notes -->
+                <Border Classes="card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="メモ · notes" Classes="jp" />
+                        <TextBox Classes="code" Text="{Binding Notes}"
+                                 Watermark="room, lecturer, reminders, anything…"
+                                 AcceptsReturn="True" TextWrapping="Wrap" MinHeight="120" />
+                    </StackPanel>
+                </Border>
             </StackPanel>
+
+            <!-- Study time: weekly goal vs actual focus -->
+            <Border Classes="card" IsVisible="{Binding HasStudyGoal}">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="勉強時間 · study time" Classes="jp" />
+                    <ProgressBar Value="{Binding StudyGoalFraction}" Minimum="0" Maximum="1"
+                                 Height="5" MinHeight="0"
+                                 Foreground="{DynamicResource MatchaBrush}"
+                                 Background="{DynamicResource SurfaceHoverBrush}" />
+                    <TextBlock Text="{Binding StudyGoalLabel}" FontSize="13"
+                               Classes.ggood="{Binding IsStudyGoalMet}" Classes="grade" />
+                </StackPanel>
+            </Border>
 
             <!-- Around the app: linked by course code -->
             <Border Classes="card">
@@ -413,6 +477,11 @@
                                    Watermark="target %" Minimum="1" Maximum="100" FormatString="0.#"
                                    ToolTip.Tip="the grade you're aiming for — drives the outlook" />
                 </Grid>
+
+                <NumericUpDown Value="{Binding FormTargetHours}"
+                               Watermark="study goal — hours / week"
+                               Minimum="0" Maximum="80" Increment="0.5" FormatString="0.#"
+                               ToolTip.Tip="weekly study-time goal — tracked against your focus minutes" />
 
                 <TextBox Text="{Binding FormDropRules}"
                          Watermark="drop rules — e.g. quiz: best 8; lab: best 3"

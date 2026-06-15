@@ -130,6 +130,11 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
+    <!-- A kept intention reads as accomplished — tinted like the standing
+         green, the way a done task does. -->
+    <Style Selector="TextBox.inline.kept">
+        <Setter Property="Foreground" Value="{DynamicResource MatchaBrush}" />
+    </Style>
 
     <!-- NumericUpDown: kill the spinner buttons (they were huge and ate
          the text width), then carry the same chrome as TextBox so the

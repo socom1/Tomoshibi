@@ -35,6 +35,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsTodoActive))]
     [NotifyPropertyChangedFor(nameof(IsSubjectsActive))]
     [NotifyPropertyChangedFor(nameof(IsStatsActive))]
+    [NotifyPropertyChangedFor(nameof(IsReviewActive))]
     [NotifyPropertyChangedFor(nameof(IsStickiesActive))]
     [NotifyPropertyChangedFor(nameof(IsShopActive))]
     [NotifyPropertyChangedFor(nameof(IsSettingsActive))]
@@ -88,6 +89,9 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>The streak-calendar stats destination's content.</summary>
     public StatsViewModel Stats { get; }
 
+    /// <summary>The flashcards / spaced-repetition review destination.</summary>
+    public ReviewViewModel Review { get; }
+
     /// <summary>The corkboard destination's content.</summary>
     public StickiesViewModel Stickies { get; }
 
@@ -117,6 +121,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Destination.Todo => Todo,
         Destination.Subjects => Subjects,
         Destination.Stats => Stats,
+        Destination.Review => Review,
         Destination.Stickies => Stickies,
         Destination.Shop => Shop,
         Destination.Settings => SettingsPage,
@@ -130,6 +135,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsTodoActive => ActiveDestination == Destination.Todo;
     public bool IsSubjectsActive => ActiveDestination == Destination.Subjects;
     public bool IsStatsActive => ActiveDestination == Destination.Stats;
+    public bool IsReviewActive => ActiveDestination == Destination.Review;
     public bool IsStickiesActive => ActiveDestination == Destination.Stickies;
     public bool IsShopActive => ActiveDestination == Destination.Shop;
     public bool IsSettingsActive => ActiveDestination == Destination.Settings;
@@ -153,15 +159,17 @@ public partial class MainWindowViewModel : ViewModelBase
                                    new SoundService(), new NotificationService());
         Timetable = new TimetableViewModel(_state, Save);
         Todo = new TodoViewModel(_state, Save, SendTodoToToday);
-        Subjects = new SubjectsViewModel(_state, Save);
+        Subjects = new SubjectsViewModel(_state, Save, OpenUrl);
         Stats = new StatsViewModel(_state);
+        Review = new ReviewViewModel(_state, Save, Wallet);
         Stickies = new StickiesViewModel(_state, Save);
         Music = new MusicPlayerViewModel(_state, Save, new MusicService());
         SettingsPage = new SettingsPageViewModel(_state, Save, settings, Music, Subjects,
                                                  storage.Location);
-        Dashboard = new DashboardViewModel(_state, Save, Today, Todo, Subjects,
+        Dashboard = new DashboardViewModel(_state, Save, Today, Todo, Subjects, Review,
             openSubject: s => { Subjects.OpenDetail(s); ActiveDestination = Destination.Subjects; },
             goToday: () => ActiveDestination = Destination.Today,
+            goReview: () => { ActiveDestination = Destination.Review; Review.ReviewAllCommand.Execute(null); },
             openUrl: OpenUrl);
 
         CommandPalette = new CommandPaletteViewModel(() => IsCommandPaletteOpen = false);
@@ -276,7 +284,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Destination.Dashboard, Destination.Today, Destination.Timetable,
         Destination.Todo, Destination.Subjects, Destination.Stats,
-        Destination.Stickies, Destination.Shop, Destination.Settings
+        Destination.Review, Destination.Stickies, Destination.Shop, Destination.Settings
     };
 
     /// <summary>Jump to the nth destination (1-based) — wired to Cmd/Ctrl+digit.
@@ -320,6 +328,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Page("todo", Destination.Todo);
         Page("subjects", Destination.Subjects);
         Page("stats", Destination.Stats);
+        Page("review", Destination.Review);
         Page("stickies", Destination.Stickies);
         Page("shop", Destination.Shop);
         Page("settings", Destination.Settings);
@@ -343,6 +352,11 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             ActiveDestination = Destination.Subjects;
             Subjects.OpenAddCommand.Execute(null);
+        });
+        Action("review due cards", () =>
+        {
+            ActiveDestination = Destination.Review;
+            Review.ReviewAllCommand.Execute(null);
         });
 
         foreach (var subject in Subjects.Items)
@@ -378,6 +392,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private void NavigateToStats() => ActiveDestination = Destination.Stats;
 
     [RelayCommand]
+    private void NavigateToReview() => ActiveDestination = Destination.Review;
+
+    [RelayCommand]
     private void NavigateToStickies() => ActiveDestination = Destination.Stickies;
 
     [RelayCommand]
@@ -400,19 +417,31 @@ public partial class MainWindowViewModel : ViewModelBase
         ActiveDestination = Destination.Today;
     }
 
-    /// <summary>Open a user-saved study link in the default browser.</summary>
+    /// <summary>
+    /// Open a study link in the default browser — but only ever an absolute
+    /// http/https URL. UseShellExecute will otherwise happily launch
+    /// file://, UNC paths, custom protocols (ms-msdt:, vbscript:, …) or even
+    /// a local executable; since links are persisted in state and may one day
+    /// arrive via import/sync, anything non-web is refused outright.
+    /// </summary>
     private static void OpenUrl(string url)
     {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            return;
+        }
+
         try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url)
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(uri.AbsoluteUri)
             {
                 UseShellExecute = true
             });
         }
         catch
         {
-            // No browser or a bad URL — nothing useful to do.
+            // No browser, or the OS refused — nothing useful to do.
         }
     }
 
@@ -447,6 +476,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 break;
             case Destination.Stats:
                 Stats.Refresh();
+                break;
+            case Destination.Review:
+                Review.Refresh();
                 break;
         }
 
@@ -490,7 +522,28 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (_state.IntentionDate != today)
         {
+            // Bank the finished day's intention + reflection into the journal
+            // before clearing them, so the stats page keeps the look-back.
+            if (!string.IsNullOrWhiteSpace(_state.DailyIntention) ||
+                !string.IsNullOrWhiteSpace(_state.DailyReflection))
+            {
+                _state.Journal.RemoveAll(n => n.Date == _state.IntentionDate);
+                _state.Journal.Add(new DayNote
+                {
+                    Date = _state.IntentionDate,
+                    Intention = _state.DailyIntention,
+                    IntentionKept = _state.IntentionKept,
+                    Reflection = _state.DailyReflection
+                });
+
+                // A year of look-back is plenty; keep the file small.
+                if (_state.Journal.Count > 400)
+                    _state.Journal.RemoveRange(0, _state.Journal.Count - 400);
+            }
+
             _state.DailyIntention = string.Empty;
+            _state.IntentionKept = false;
+            _state.DailyReflection = string.Empty;
             _state.IntentionDate = today;
             changed = true;
         }

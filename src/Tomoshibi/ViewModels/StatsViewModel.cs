@@ -29,6 +29,11 @@ public partial class StatsViewModel : ViewModelBase
 
     [ObservableProperty] private bool _hasFocusByCourse;
 
+    /// <summary>Intention + reflection look-back, today first then newest.</summary>
+    public ObservableCollection<JournalEntryViewModel> Journal { get; } = new();
+
+    [ObservableProperty] private bool _hasJournal;
+
     [ObservableProperty] private string _monthLabel = string.Empty;
 
     [ObservableProperty] private int _currentStreak;
@@ -58,7 +63,42 @@ public partial class StatsViewModel : ViewModelBase
         BuildSummary(byDate);
         BuildMonth(byDate);
         BuildFocusByCourse();
+        BuildJournal();
     }
+
+    /// <summary>The intention/reflection look-back: today's live note first
+    /// (when it has anything), then the banked journal, newest first.</summary>
+    private void BuildJournal()
+    {
+        Journal.Clear();
+        var today = DateOnly.FromDateTime(DateTime.Now);
+
+        if (!string.IsNullOrWhiteSpace(_state.DailyIntention) ||
+            !string.IsNullOrWhiteSpace(_state.DailyReflection))
+        {
+            Journal.Add(new JournalEntryViewModel(DailyNoteSnapshot(today, _state), isToday: true));
+        }
+
+        foreach (var note in _state.Journal
+                     .Where(n => n.Date != today)
+                     .OrderByDescending(n => n.Date)
+                     .Take(30))
+        {
+            Journal.Add(new JournalEntryViewModel(note, isToday: false));
+        }
+
+        HasJournal = Journal.Count > 0;
+    }
+
+    /// <summary>Today's not-yet-banked intention + reflection, shaped as a
+    /// <see cref="DayNote"/> so the journal row treats it like any other.</summary>
+    private static DayNote DailyNoteSnapshot(DateOnly today, AppState state) => new()
+    {
+        Date = today,
+        Intention = state.DailyIntention,
+        IntentionKept = state.IntentionKept,
+        Reflection = state.DailyReflection
+    };
 
     private void BuildFocusByCourse()
     {

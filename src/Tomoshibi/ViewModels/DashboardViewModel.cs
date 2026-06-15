@@ -21,13 +21,15 @@ public partial class DashboardViewModel : ViewModelBase
     private readonly Action _save;
     private readonly Action<SubjectViewModel> _openSubject;
     private readonly Action _goToday;
+    private readonly Action _goReview;
     private readonly Action<string> _openUrl;
 
     /// <summary>Exposed so the dashboard can bind their live labels directly
-    /// (greeting, intention, stats, ticket counts, GPA).</summary>
+    /// (greeting, intention, stats, ticket counts, GPA, due cards).</summary>
     public TodayViewModel Today { get; }
     public TodoViewModel Todo { get; }
     public SubjectsViewModel Subjects { get; }
+    public ReviewViewModel Review { get; }
 
     public ObservableCollection<WeakSpotViewModel> WeakSpots { get; } = new();
     public ObservableCollection<StudyLinkViewModel> Links { get; } = new();
@@ -47,15 +49,19 @@ public partial class DashboardViewModel : ViewModelBase
 
     public DashboardViewModel(AppState state, Action save,
                               TodayViewModel today, TodoViewModel todo, SubjectsViewModel subjects,
-                              Action<SubjectViewModel> openSubject, Action goToday, Action<string> openUrl)
+                              ReviewViewModel review,
+                              Action<SubjectViewModel> openSubject, Action goToday,
+                              Action goReview, Action<string> openUrl)
     {
         _state = state;
         _save = save;
         Today = today;
         Todo = todo;
         Subjects = subjects;
+        Review = review;
         _openSubject = openSubject;
         _goToday = goToday;
+        _goReview = goReview;
         _openUrl = openUrl;
 
         foreach (var link in _state.StudyLinks)
@@ -69,12 +75,18 @@ public partial class DashboardViewModel : ViewModelBase
     public void Refresh()
     {
         Today.RefreshScheduleInfo();
+        Review.Refresh();
         DateLabel = $"{DateTime.Now:dddd, MMMM d}".ToLowerInvariant();
 
         RecomputeMomentum();
         RebuildWeakSpots();
         RebuildAgenda();
     }
+
+    /// <summary>Jump to the review page and start working through the due
+    /// cards — the dashboard's one-click into recall practice.</summary>
+    [RelayCommand]
+    private void StartReview() => _goReview();
 
     /// <summary>The next 7 days, each with its classes, due tickets and exams,
     /// in date order. Empty days are skipped so the card stays tight.</summary>

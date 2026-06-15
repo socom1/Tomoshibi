@@ -13,6 +13,7 @@ public enum Destination
     Todo,
     Subjects,
     Stats,
+    Review,
     Stickies,
     Shop,
     Settings

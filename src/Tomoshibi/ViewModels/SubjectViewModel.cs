@@ -21,10 +21,20 @@ public partial class SubjectViewModel : ViewModelBase
 {
     private readonly Action _changed;
     private readonly Func<GradeScaleKind> _scale;
+    private readonly Action<string> _openUrl;
 
     public Subject Model { get; }
 
     public ObservableCollection<AssessmentViewModel> Assessments { get; } = new();
+
+    /// <summary>The subject's own resource links — slides, syllabus, drive.</summary>
+    public ObservableCollection<StudyLinkViewModel> Resources { get; } = new();
+
+    [ObservableProperty] private bool _hasResources;
+
+    // ---- New-resource form (inline on the detail page) ----
+    [ObservableProperty] private string _newResourceTitle = string.Empty;
+    [ObservableProperty] private string _newResourceUrl = string.Empty;
 
     // ---- Derived grade state (recomputed on every change) ----
     [ObservableProperty] private bool _hasGrade;
@@ -88,16 +98,69 @@ public partial class SubjectViewModel : ViewModelBase
     public string TermLabel => $"y{Model.Year} · s{Model.Semester}";
     public bool HasAssessments => Assessments.Count > 0;
 
-    public SubjectViewModel(Subject model, Action changed, Func<GradeScaleKind> scale)
+    /// <summary>Free-form course notes. Persisted straight onto the model and
+    /// saved on every edit, like the daily intention and sticky notes.</summary>
+    public string Notes
+    {
+        get => Model.Notes;
+        set
+        {
+            if (Model.Notes == value)
+                return;
+            Model.Notes = value;
+            OnPropertyChanged();
+            _changed();
+        }
+    }
+
+    public SubjectViewModel(Subject model, Action changed, Func<GradeScaleKind> scale,
+                            Action<string> openUrl)
     {
         Model = model;
         _changed = changed;
         _scale = scale;
+        _openUrl = openUrl;
 
         foreach (var a in model.Assessments)
             Wrap(a);
 
+        foreach (var link in model.Resources)
+            Resources.Add(WrapResource(link));
+        HasResources = Resources.Count > 0;
+
         Recompute();
+    }
+
+    [RelayCommand]
+    private void AddResource()
+    {
+        var url = NewResourceUrl?.Trim();
+        if (string.IsNullOrWhiteSpace(url))
+            return;
+
+        // Be forgiving — a bare drive.google.com/… still opens once schemed.
+        if (!url.Contains("://"))
+            url = "https://" + url;
+
+        var link = new StudyLink { Title = NewResourceTitle?.Trim() ?? string.Empty, Url = url };
+        Model.Resources.Add(link);
+        Resources.Add(WrapResource(link));
+        HasResources = true;
+
+        NewResourceTitle = string.Empty;
+        NewResourceUrl = string.Empty;
+        _changed();
+    }
+
+    private StudyLinkViewModel WrapResource(StudyLink link) =>
+        new(link, l => _openUrl(l.Url), RemoveResource);
+
+    private void RemoveResource(StudyLinkViewModel row)
+    {
+        Model.Resources.Remove(row.Model);
+        Resources.Remove(row);
+        HasResources = Resources.Count > 0;
+        _changed();
     }
 
     [RelayCommand]

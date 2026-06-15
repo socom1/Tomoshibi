@@ -138,6 +138,38 @@
             </StackPanel>
         </Border>
 
+        <!-- Journal: intention + reflection look-back -->
+        <Border Classes="card" Margin="0,20,0,0"
+                VerticalAlignment="Top"
+                IsVisible="{Binding HasJournal}">
+            <StackPanel Spacing="12">
+                <TextBlock Text="振り返り · journal" Classes="jp" />
+                <ItemsControl ItemsSource="{Binding Journal}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:JournalEntryViewModel">
+                            <Grid ColumnDefinitions="96,*" Margin="0,2,0,8">
+                                <TextBlock Grid.Column="0" Text="{Binding DateLabel}"
+                                           Classes="caption" FontSize="13" VerticalAlignment="Top"
+                                           Classes.today="{Binding IsToday}" />
+                                <StackPanel Grid.Column="1" Spacing="3">
+                                    <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding HasIntention}">
+                                        <TextBlock Text="{Binding Intention}" FontSize="13"
+                                                   TextWrapping="Wrap" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="達成" FontSize="11"
+                                                   Margin="8,0,0,0" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource MatchaBrush}"
+                                                   IsVisible="{Binding Kept}" />
+                                    </Grid>
+                                    <TextBlock Text="{Binding Reflection}" Classes="caption"
+                                               TextWrapping="Wrap" IsVisible="{Binding HasReflection}" />
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
           </StackPanel>
         </ScrollViewer>
     </Grid>

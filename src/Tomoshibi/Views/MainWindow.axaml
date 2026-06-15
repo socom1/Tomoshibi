@@ -25,6 +25,8 @@
         <KeyBinding Gesture="Escape" Command="{Binding Todo.CancelModalCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Subjects.CancelModalCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Subjects.CloseDetailCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding Review.EndReviewCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding Review.CloseDeckCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding ExitZenCommand}" />
     </Window.KeyBindings>
 
@@ -120,6 +122,13 @@
                         <TextBlock>
                             <Run Text="記録" />
                             <Run Text="  stats" Foreground="{DynamicResource MutedTextBrush}" />
+                        </TextBlock>
+                    </Button>
+                    <Button Classes="nav" Classes.active="{Binding IsReviewActive}"
+                            Command="{Binding NavigateToReviewCommand}">
+                        <TextBlock>
+                            <Run Text="復習" />
+                            <Run Text="  review" Foreground="{DynamicResource MutedTextBrush}" />
                         </TextBlock>
                     </Button>
                     <Button Classes="nav" Classes.active="{Binding IsStickiesActive}"

@@ -27,6 +27,7 @@ public partial class SubjectsViewModel : ViewModelBase
 {
     private readonly AppState _state;
     private readonly Action _save;
+    private readonly Action<string> _openUrl;
 
     private Subject? _editing;
 
@@ -72,6 +73,12 @@ public partial class SubjectsViewModel : ViewModelBase
     [ObservableProperty] private bool _hasLinkedInfo;
     [ObservableProperty] private bool _hasNoCode;
 
+    // ---- Weekly study goal (planned vs actual hours) for the open detail ----
+    [ObservableProperty] private bool _hasStudyGoal;
+    [ObservableProperty] private double _studyGoalFraction;
+    [ObservableProperty] private string _studyGoalLabel = string.Empty;
+    [ObservableProperty] private bool _isStudyGoalMet;
+
     // ---- Add/edit subject modal ----
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(CancelModalCommand))]
@@ -88,18 +95,20 @@ public partial class SubjectsViewModel : ViewModelBase
     [ObservableProperty] private decimal? _formYear = 1;
     [ObservableProperty] private decimal? _formSemester = 1;
     [ObservableProperty] private decimal? _formTarget;
+    [ObservableProperty] private decimal? _formTargetHours;
     [ObservableProperty] private string _formDropRules = string.Empty;
 
-    public SubjectsViewModel(AppState state, Action save)
+    public SubjectsViewModel(AppState state, Action save, Action<string> openUrl)
     {
         _state = state;
         _save = save;
+        _openUrl = openUrl;
 
         _selectedScale = ScaleOptions.FirstOrDefault(o => o.Kind == _state.GradeScale)
                          ?? ScaleOptions[0];
 
         foreach (var subject in _state.Subjects)
-            Items.Add(new SubjectViewModel(subject, OnSubjectChanged, () => _state.GradeScale));
+            Items.Add(NewRow(subject));
 
         RebuildAll();
         RebuildKnownCourses();
@@ -149,10 +158,13 @@ public partial class SubjectsViewModel : ViewModelBase
         if (HasNoCode)
         {
             HasLinkedInfo = false;
+            HasStudyGoal = false;
             LinkedTicketsLabel = string.Empty;
             LinkedClassLabel = string.Empty;
             return;
         }
+
+        RefreshStudyGoal(code);
 
         var matches = (string? c) => string.Equals(c, code, StringComparison.OrdinalIgnoreCase);
 
@@ -183,6 +195,29 @@ public partial class SubjectsViewModel : ViewModelBase
         HasLinkedInfo = true;
     }
 
+    /// <summary>The open subject's weekly study goal vs the hours actually
+    /// focused against its course this week — the planned-vs-actual bar.</summary>
+    private void RefreshStudyGoal(string? code)
+    {
+        var goal = SelectedSubject?.Model.TargetHoursPerWeek;
+        HasStudyGoal = goal is { } g && g > 0;
+        if (!HasStudyGoal)
+        {
+            StudyGoalLabel = string.Empty;
+            return;
+        }
+
+        var mins = FocusLog.MinutesForCourse(_state, code, 7);
+        var hours = mins / 60.0;
+        var goalHours = goal!.Value;
+
+        StudyGoalFraction = Math.Clamp(hours / goalHours, 0, 1);
+        IsStudyGoalMet = hours >= goalHours;
+        StudyGoalLabel = IsStudyGoalMet
+            ? $"{FocusLog.HoursLabel(mins)} of {goalHours:0.#}h goal — hit it"
+            : $"{FocusLog.HoursLabel(mins)} of {goalHours:0.#}h goal this week";
+    }
+
     [RelayCommand]
     private void OpenAdd()
     {
@@ -193,6 +228,7 @@ public partial class SubjectsViewModel : ViewModelBase
         FormYear = 1;
         FormSemester = 1;
         FormTarget = null;
+        FormTargetHours = null;
         FormDropRules = string.Empty;
         ModalTitle = "新しい科目 · new subject";
         ModalAction = "add";
@@ -208,6 +244,7 @@ public partial class SubjectsViewModel : ViewModelBase
         FormYear = row.Model.Year;
         FormSemester = row.Model.Semester;
         FormTarget = row.Model.TargetPercent is { } t ? (decimal)t : null;
+        FormTargetHours = row.Model.TargetHoursPerWeek is { } th ? (decimal)th : null;
         FormDropRules = string.Join("; ",
             row.Model.DropRules.Select(r => $"{r.Category}: best {r.KeepBest}"));
         ModalTitle = "編集 · edit subject";
@@ -233,12 +270,13 @@ public partial class SubjectsViewModel : ViewModelBase
         target.Year = FormYear is { } y && y >= 1 ? (int)y : 1;
         target.Semester = FormSemester is { } s && s >= 1 ? (int)s : 1;
         target.TargetPercent = FormTarget is { } t ? Math.Clamp((double)t, 0, 100) : null;
+        target.TargetHoursPerWeek = FormTargetHours is { } th && th > 0 ? (double)th : null;
         target.DropRules = ParseDropRules(FormDropRules);
 
         if (_editing is null)
         {
             _state.Subjects.Add(target);
-            Items.Add(new SubjectViewModel(target, OnSubjectChanged, () => _state.GradeScale));
+            Items.Add(NewRow(target));
         }
         else
         {
@@ -301,6 +339,12 @@ public partial class SubjectsViewModel : ViewModelBase
         RebuildAll();
         _save();
     }
+
+    /// <summary>Build a subject row wired to this page's callbacks — the
+    /// change/save hook, the live grade scale, and the browser-open action
+    /// the per-subject resources use.</summary>
+    private SubjectViewModel NewRow(Subject subject) =>
+        new(subject, OnSubjectChanged, () => _state.GradeScale, _openUrl);
 
     private void OnSubjectChanged()
     {

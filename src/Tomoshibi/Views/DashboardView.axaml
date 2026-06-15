@@ -20,9 +20,31 @@
             <!-- Intention -->
             <Border Classes="card">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="今日の狙い · today's intention" Classes="jp" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="今日の狙い · today's intention" Classes="jp"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1" Classes="seg" Content="✓ mark kept"
+                                Command="{Binding Today.KeepIntentionCommand}"
+                                IsVisible="{Binding Today.CanKeepIntention}"
+                                ToolTip.Tip="followed it through? bank it for today" />
+                        <TextBlock Grid.Column="1" Text="達成 · kept" FontSize="13"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MatchaBrush}"
+                                   IsVisible="{Binding Today.IntentionKept}" />
+                    </Grid>
                     <TextBox Classes="inline" Text="{Binding Today.DailyIntention}"
+                             Classes.kept="{Binding Today.IntentionKept}"
                              Watermark="what do you want to do today?" FontSize="16" />
+                    <TextBlock Text="{Binding Today.IntentionHint}" Classes="caption"
+                               IsVisible="{Binding Today.IntentionHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                    <Border Height="1" Margin="0,4,0,2"
+                            Background="{DynamicResource BorderBrush}" />
+
+                    <TextBlock Text="振り返り · reflection" Classes="jp" />
+                    <TextBox Classes="inline" Text="{Binding Today.DailyReflection}"
+                             Watermark="how did today go?" FontSize="14"
+                             AcceptsReturn="True" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
 
@@ -58,6 +80,22 @@
                 </Border>
             </Grid>
             <TextBlock Text="{Binding MomentumLabel}" Classes="caption" Margin="2,-6,0,0" />
+
+            <!-- Review due -->
+            <Border Classes="card" IsVisible="{Binding Review.HasDue}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="復習 · review" Classes="jp" />
+                        <TextBlock FontSize="15">
+                            <Run Text="{Binding Review.TotalDue, Mode=OneWay}" />
+                            <Run Text=" cards due — keep them from slipping" />
+                        </TextBlock>
+                    </StackPanel>
+                    <Button Grid.Column="1" Classes="accent" Content="start review"
+                            VerticalAlignment="Center"
+                            Command="{Binding StartReviewCommand}" />
+                </Grid>
+            </Border>
 
             <!-- Two columns: what's next / standing -->
             <Grid ColumnDefinitions="*,*">

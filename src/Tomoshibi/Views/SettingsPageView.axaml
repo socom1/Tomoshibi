@@ -112,8 +112,26 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Button Classes="seg" Content="open folder"
                                 Click="OnOpenDataFolder" />
+                        <Button Classes="seg" Content="backup (.json)"
+                                Click="OnBackup"
+                                ToolTip.Tip="save a full copy of your data — loads straight back" />
                     </StackPanel>
                     <TextBlock Text="saved atomically on every change, with a .bak of the last good state — corrupt files recover automatically"
+                               Classes="caption" TextWrapping="Wrap" />
+
+                    <Border Height="1" Margin="0,2,0,2"
+                            Background="{DynamicResource BorderBrush}" />
+
+                    <TextBlock Text="export" Classes="jp" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Classes="seg" Content="grades (.csv)"
+                                Click="OnExportGrades"
+                                ToolTip.Tip="every subject and assessment as a spreadsheet" />
+                        <Button Classes="seg" Content="timetable (.ics)"
+                                Click="OnExportTimetable"
+                                ToolTip.Tip="classes, exams and deadlines for your calendar app" />
+                    </StackPanel>
+                    <TextBlock Text="grades open in excel / sheets · the calendar drops into google / apple calendar"
                                Classes="caption" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>

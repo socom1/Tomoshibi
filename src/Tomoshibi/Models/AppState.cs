@@ -12,6 +12,18 @@ public class AppState
     public string DailyIntention { get; set; } = string.Empty;
     public DateOnly IntentionDate { get; set; }
 
+    /// <summary>Set once the user marks the day's intention as kept. Earns a
+    /// one-off ember reward and resets with the intention at midnight.</summary>
+    public bool IntentionKept { get; set; }
+
+    /// <summary>The day's end-of-day reflection — how it went. Banked into
+    /// <see cref="Journal"/> with the intention at the midnight rollover.</summary>
+    public string DailyReflection { get; set; } = string.Empty;
+
+    /// <summary>Past days' intentions + reflections, oldest first. Appended at
+    /// the midnight rollover for any day that had something written.</summary>
+    public List<DayNote> Journal { get; set; } = new();
+
     public DailyStats Today { get; set; } = new();
 
     /// <summary>Past days' stats, appended at the midnight rollover. The
@@ -70,6 +82,9 @@ public class AppState
     public string? MusicFolder { get; set; }
     public double MusicVolume { get; set; } = 70;
     public bool MusicShuffle { get; set; } = true;
+
+    // Flashcard decks (spaced repetition)
+    public List<Deck> Decks { get; set; } = new();
 
     // Subjects + grades
     public List<Subject> Subjects { get; set; } = new();

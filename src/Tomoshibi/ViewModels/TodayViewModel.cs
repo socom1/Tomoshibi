@@ -21,8 +21,41 @@ public partial class TodayViewModel : ViewModelBase
     private readonly Action _save;
     private readonly Action _toggleZen;
 
+    /// <summary>Embers granted, once a day, for following an intention through.</summary>
+    private const int IntentionReward = 25;
+
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasIntention))]
+    [NotifyPropertyChangedFor(nameof(CanKeepIntention))]
+    [NotifyPropertyChangedFor(nameof(IntentionHint))]
     private string _dailyIntention;
+
+    /// <summary>Set once today's intention has been marked kept — drives the
+    /// "達成 · kept" state and blocks a second reward for the same day.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanKeepIntention))]
+    [NotifyPropertyChangedFor(nameof(IntentionHint))]
+    private bool _intentionKept;
+
+    /// <summary>There's something written to follow through on.</summary>
+    public bool HasIntention => !string.IsNullOrWhiteSpace(DailyIntention);
+
+    /// <summary>The "mark kept" affordance shows only for an unkept intention
+    /// that actually says something.</summary>
+    public bool CanKeepIntention => HasIntention && !IntentionKept;
+
+    /// <summary>The line under the box: a nudge while it's open, then the
+    /// reward once it's kept. Empty when there's no intention yet.</summary>
+    public string IntentionHint => IntentionKept
+        ? $"狙い達成 · kept — +{IntentionReward} 火種 earned today"
+        : HasIntention
+            ? $"follow it through, then mark it kept for +{IntentionReward} 火種"
+            : string.Empty;
+
+    /// <summary>The day's end-of-day reflection — the bookend to the morning
+    /// intention. Banked into the journal at the midnight rollover.</summary>
+    [ObservableProperty]
+    private string _dailyReflection;
 
     [ObservableProperty]
     private int _completedSessions;
@@ -86,6 +119,8 @@ public partial class TodayViewModel : ViewModelBase
         _wallet = wallet;
 
         _dailyIntention = _state.DailyIntention;
+        _intentionKept = _state.IntentionKept;
+        _dailyReflection = _state.DailyReflection;
         _completedSessions = _state.Today.CompletedSessions;
         _focusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);
         _greeting = GreetingFor(DateTime.Now);
@@ -208,6 +243,8 @@ public partial class TodayViewModel : ViewModelBase
     public void RefreshFromState()
     {
         DailyIntention = _state.DailyIntention;
+        IntentionKept = _state.IntentionKept;
+        DailyReflection = _state.DailyReflection;
         CompletedSessions = _state.Today.CompletedSessions;
         FocusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);
         RecomputeStreak();
@@ -246,6 +283,27 @@ public partial class TodayViewModel : ViewModelBase
         _state.DailyIntention = value;
         _state.IntentionDate = DateOnly.FromDateTime(DateTime.Now);
         _save();
+    }
+
+    partial void OnDailyReflectionChanged(string value)
+    {
+        _state.DailyReflection = value;
+        _state.IntentionDate = DateOnly.FromDateTime(DateTime.Now);
+        _save();
+    }
+
+    /// <summary>Mark the day's intention as followed through. A one-way action
+    /// for the day — it banks a small ember reward and resets at midnight, so
+    /// it can't be toggled to farm embers.</summary>
+    [RelayCommand]
+    private void KeepIntention()
+    {
+        if (!CanKeepIntention)
+            return;
+
+        IntentionKept = true;
+        _state.IntentionKept = true;
+        _wallet.Add(IntentionReward); // saves state, embers and the kept flag together
     }
 
     private void OnFocusSessionCompleted(int focusMinutes)
