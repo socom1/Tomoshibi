@@ -20,6 +20,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IStorageService _storage;
     private readonly AppState _state;
     private readonly DispatcherTimer _dayWatcher;
+    private readonly ReminderService _reminders = new(new NotificationService());
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ExitZenCommand))]
@@ -184,7 +185,16 @@ public partial class MainWindowViewModel : ViewModelBase
         _dayWatcher.Tick += OnDayWatcherTick;
         _dayWatcher.Start();
 
+        CheckReminders();
         Save();
+    }
+
+    /// <summary>Fire any due deadline/exam reminders and persist the fired-keys
+    /// set if it changed. Cheap to call often — it just reads the dedup set.</summary>
+    private void CheckReminders()
+    {
+        if (_reminders.Check(_state))
+            Save();
     }
 
     private void OnPomodoroPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -489,6 +499,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var now = DateTime.Now;
         Today.Tick(now);
+        CheckReminders();
 
         var today = DateOnly.FromDateTime(now);
         if (!ApplyDailyReset(today))

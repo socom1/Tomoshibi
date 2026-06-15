@@ -35,6 +35,10 @@ public partial class SubjectsViewModel : ViewModelBase
     public ObservableCollection<TermGroupViewModel> Groups { get; } = new();
     public ObservableCollection<YearWeightViewModel> YearWeights { get; } = new();
 
+    /// <summary>A short read on how the term is going — strongest subject, the
+    /// one to watch, and how many are on track for their target.</summary>
+    public ObservableCollection<GradeInsightViewModel> Insights { get; } = new();
+
     /// <summary>Course codes seen across the app, for the form autocomplete.</summary>
     public ObservableCollection<string> KnownCourses { get; } = new();
 
@@ -50,8 +54,18 @@ public partial class SubjectsViewModel : ViewModelBase
     private ScaleOption _selectedScale;
 
     [ObservableProperty] private bool _hasSubjects;
+    [ObservableProperty] private bool _hasInsights;
     [ObservableProperty] private string _gpaLabel = "no grades yet";
     [ObservableProperty] private string _gpaCaption = string.Empty;
+
+    // ---- Overall grade-goal planner ----
+    [ObservableProperty] private decimal? _overallGoal;
+    [ObservableProperty] private bool _hasGoalPlan;
+    [ObservableProperty] private string _goalResult = string.Empty;
+    [ObservableProperty] private string _goalLetter = string.Empty;
+    [ObservableProperty] private bool _isGoalGood;
+    [ObservableProperty] private bool _isGoalWarn;
+    [ObservableProperty] private bool _isGoalBad;
 
     // ---- Degree projection (year-weighted) ----
     [ObservableProperty] private bool _hasDegreeProjection;
@@ -106,6 +120,8 @@ public partial class SubjectsViewModel : ViewModelBase
 
         _selectedScale = ScaleOptions.FirstOrDefault(o => o.Kind == _state.GradeScale)
                          ?? ScaleOptions[0];
+
+        _overallGoal = _state.OverallGoalPercent is { } g ? (decimal)g : 75m;
 
         foreach (var subject in _state.Subjects)
             Items.Add(NewRow(subject));
@@ -352,6 +368,53 @@ public partial class SubjectsViewModel : ViewModelBase
         _save();
     }
 
+    /// <summary>Seed an example term so a first-time user sees the grades tool
+    /// working — a part-graded subject (so the calculator, trend and outlook
+    /// all light up) plus a second one so the insights and goal planner do too.
+    /// Only ever runs from the empty state, so nothing real is clobbered.</summary>
+    [RelayCommand]
+    private void LoadSample()
+    {
+        if (HasSubjects)
+            return;
+
+        var today = DateOnly.FromDateTime(DateTime.Now);
+
+        var calculus = new Subject
+        {
+            Name = "Calculus I", Code = "MATH101", Credits = 4, Year = 1, Semester = 1,
+            TargetPercent = 80, TargetHoursPerWeek = 5,
+            Assessments =
+            {
+                new Assessment { Title = "Problem set 1", Category = "homework", Weight = 10, Grade = 88, Date = today.AddDays(-21) },
+                new Assessment { Title = "Midterm", Category = "exam", Weight = 30, Grade = 74, Date = today.AddDays(-7) },
+                new Assessment { Title = "Problem set 2", Category = "homework", Weight = 10, Date = today.AddDays(2) },
+                new Assessment { Title = "Final", Category = "exam", Weight = 50, Date = today.AddDays(24) },
+            }
+        };
+
+        var psych = new Subject
+        {
+            Name = "Intro to Psychology", Code = "PSY100", Credits = 3, Year = 1, Semester = 1,
+            TargetPercent = 70,
+            Assessments =
+            {
+                new Assessment { Title = "Essay", Category = "essay", Weight = 40, Grade = 81, Date = today.AddDays(-10) },
+                new Assessment { Title = "Final exam", Category = "exam", Weight = 60, Date = today.AddDays(18) },
+            }
+        };
+
+        foreach (var subject in new[] { calculus, psych })
+        {
+            _state.Subjects.Add(subject);
+            Items.Add(NewRow(subject));
+        }
+
+        RebuildAll();
+        RebuildKnownCourses();
+        _save();
+    }
+
     private void OnYearWeightChanged(int year, double weight)
     {
         _state.YearWeights.RemoveAll(w => w.Year == year);
@@ -370,6 +433,129 @@ public partial class SubjectsViewModel : ViewModelBase
         RebuildGroups();
         RecomputeOverall();
         RecomputeDegree();
+        RebuildInsights();
+        RecomputeGoalPlan();
+    }
+
+    partial void OnOverallGoalChanged(decimal? value)
+    {
+        _state.OverallGoalPercent = value is { } v ? Math.Clamp((double)v, 0, 100) : null;
+        RecomputeGoalPlan();
+        _save();
+    }
+
+    /// <summary>"To finish the degree at X% you need avg Y% on the rest." Pools
+    /// every subject's drop-rule-aware totals, scaled by credits, into one
+    /// weighted set — the same model as the per-subject calculator, degree-wide.</summary>
+    private void RecomputeGoalPlan()
+    {
+        var scale = _state.GradeScale;
+
+        double total = 0, gradedWeight = 0, gradedPoints = 0;
+        foreach (var s in Items)
+        {
+            var t = s.TotalWeightPct;
+            if (t <= 0)
+                continue; // no graded structure to plan against
+            var factor = s.Model.Credits / t; // normalise the subject to its credits
+            total += s.TotalWeightPct * factor;
+            gradedWeight += s.GradedWeightPct * factor;
+            gradedPoints += s.GradedPointsPct * factor;
+        }
+
+        HasGoalPlan = gradedWeight > 0;
+        if (!HasGoalPlan)
+        {
+            GoalResult = string.Empty;
+            GoalLetter = string.Empty;
+            IsGoalGood = IsGoalWarn = IsGoalBad = false;
+            return;
+        }
+
+        var target = Math.Clamp((double)(OverallGoal ?? 0), 0, 100);
+        GoalLetter = GradeScale.Label(scale, target);
+        var current = gradedPoints / gradedWeight;
+        var remaining = total - gradedWeight;
+
+        void Tone(bool good, bool warn) { IsGoalGood = good; IsGoalWarn = warn; IsGoalBad = !good && !warn; }
+
+        if (remaining <= 0.01)
+        {
+            var hit = current >= target;
+            GoalResult = hit
+                ? $"done — everything's graded and you finished at {current:0.#}%, at or above {target:0.#}%"
+                : $"everything's graded at {current:0.#}% — {target:0.#}% isn't reachable now";
+            Tone(hit, false);
+            return;
+        }
+
+        var need = (target * total - gradedPoints) / remaining;
+        if (need <= 0)
+        {
+            GoalResult = $"on track — you're at {current:0.#}%, already at or above {target:0.#}%";
+            Tone(true, false);
+        }
+        else if (need > 100)
+        {
+            var best = (gradedPoints + remaining * 100) / total;
+            GoalResult = $"out of reach — the best you can finish is {best:0.#}%";
+            Tone(false, false);
+        }
+        else
+        {
+            GoalResult = $"you're at {current:0.#}% — need avg {need:0.#}% across the rest to reach {target:0.#}%";
+            Tone(need <= 70, need <= 88);
+        }
+    }
+
+    /// <summary>The "how's the term going" read: strongest subject, the one
+    /// most in need of attention, and the on-track count against targets.</summary>
+    private void RebuildInsights()
+    {
+        Insights.Clear();
+        var scale = _state.GradeScale;
+
+        var graded = Items.Where(s => s.CurrentPercent is not null).ToList();
+        HasInsights = graded.Count >= 2;
+        if (!HasInsights)
+            return;
+
+        // Strongest standing.
+        var best = graded.OrderByDescending(s => s.CurrentPercent).First();
+        Insights.Add(GradeInsightViewModel.Good(
+            $"strongest · {best.Name} {best.CurrentPercent:0.#}% ({GradeScale.Label(scale, best.CurrentPercent!.Value)})"));
+
+        // The one to watch: furthest below its own target, else the lowest.
+        var belowTarget = graded
+            .Where(s => s.Model.TargetPercent is { } t && s.CurrentPercent < t)
+            .OrderByDescending(s => s.Model.TargetPercent!.Value - s.CurrentPercent!.Value)
+            .ToList();
+
+        if (belowTarget.Count > 0)
+        {
+            var w = belowTarget[0];
+            var gap = w.Model.TargetPercent!.Value - w.CurrentPercent!.Value;
+            Insights.Add(GradeInsightViewModel.Bad(
+                $"watch · {w.Name} is {gap:0.#}% below your {w.Model.TargetPercent.Value:0.#}% target"));
+        }
+        else
+        {
+            var low = graded.OrderBy(s => s.CurrentPercent).First();
+            if (low != best)
+                Insights.Add(GradeInsightViewModel.Warn(
+                    $"lowest · {low.Name} {low.CurrentPercent:0.#}% ({GradeScale.Label(scale, low.CurrentPercent!.Value)})"));
+        }
+
+        // On-track count against the targets that exist.
+        var targeted = graded.Where(s => s.Model.TargetPercent is not null).ToList();
+        if (targeted.Count > 0)
+        {
+            var onTrack = targeted.Count(s => s.CurrentPercent >= s.Model.TargetPercent);
+            var line = $"{onTrack} of {targeted.Count} subjects on track for their target";
+            Insights.Add(onTrack == targeted.Count
+                ? GradeInsightViewModel.Good(line)
+                : GradeInsightViewModel.Neutral(line));
+        }
     }
 
     private void RebuildGroups()

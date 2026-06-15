@@ -41,6 +41,13 @@ public class AppState
     /// <see cref="TaskTemplate"/> and this list is cleared.</summary>
     public List<TaskItem> Tasks { get; set; } = new();
 
+    // Deadline / exam reminders
+    public bool RemindersEnabled { get; set; } = true;
+
+    /// <summary>Keys of reminders already fired (item + threshold + date), so
+    /// a deadline never notifies twice. Swept as dates pass.</summary>
+    public List<string> NotifiedReminders { get; set; } = new();
+
     // Navigation
     public bool IsNavOpen { get; set; } = true;
     public bool ShowWelcome { get; set; } = true;
@@ -90,4 +97,8 @@ public class AppState
     public List<Subject> Subjects { get; set; } = new();
     public GradeScaleKind GradeScale { get; set; } = GradeScaleKind.UsGpa;
     public List<YearWeight> YearWeights { get; set; } = new();
+
+    /// <summary>The overall percentage the user is aiming for across all
+    /// subjects — drives the grade-goal planner. Null = not set yet.</summary>
+    public double? OverallGoalPercent { get; set; }
 }

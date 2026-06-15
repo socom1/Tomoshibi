@@ -66,6 +66,17 @@
                 </StackPanel>
             </Border>
 
+            <!-- Reminders -->
+            <Border Classes="card">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="通知 · reminders" Classes="jp" />
+                    <CheckBox IsChecked="{Binding RemindersEnabled}"
+                              Content="remind me about deadlines &amp; exams" />
+                    <TextBlock Text="a desktop notification three days out and again on the day — works while tomoshibi keeps running in the tray"
+                               Classes="caption" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
             <!-- Grading -->
             <Border Classes="card">
                 <StackPanel Spacing="10">

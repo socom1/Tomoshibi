@@ -45,6 +45,52 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="4">
 
+                <!-- Insights -->
+                <Border Classes="card" Margin="0,0,0,12"
+                        IsVisible="{Binding HasInsights}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="見立て · insights" Classes="jp" />
+                        <ItemsControl ItemsSource="{Binding Insights}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:GradeInsightViewModel">
+                                    <TextBlock Text="{Binding Text}" FontSize="13"
+                                               Margin="0,2,0,0" TextWrapping="Wrap"
+                                               Classes="grade"
+                                               Classes.ggood="{Binding IsGood}"
+                                               Classes.gwarn="{Binding IsWarn}"
+                                               Classes.gbad="{Binding IsBad}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Overall grade goal -->
+                <Border Classes="card" Margin="0,0,0,12"
+                        IsVisible="{Binding HasGoalPlan}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="目標 · grade goal" Classes="jp" />
+                        <Grid ColumnDefinitions="Auto,96,Auto,Auto,*">
+                            <TextBlock Grid.Column="0" Text="finish at" VerticalAlignment="Center" />
+                            <NumericUpDown Grid.Column="1" Value="{Binding OverallGoal}"
+                                           Minimum="0" Maximum="100" Increment="1" FormatString="0.#"
+                                           Margin="8,0,0,0" FontSize="13" Padding="10,5" />
+                            <TextBlock Grid.Column="2" Text="% overall" Classes="caption"
+                                       VerticalAlignment="Center" Margin="8,0,0,0" />
+                            <Border Grid.Column="3" Classes="tag" Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    IsVisible="{Binding GoalLetter, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                <TextBlock Text="{Binding GoalLetter}" />
+                            </Border>
+                        </Grid>
+                        <TextBlock Text="{Binding GoalResult}" FontSize="14" TextWrapping="Wrap"
+                                   Classes="grade"
+                                   Classes.ggood="{Binding IsGoalGood}"
+                                   Classes.gwarn="{Binding IsGoalWarn}"
+                                   Classes.gbad="{Binding IsGoalBad}" />
+                    </StackPanel>
+                </Border>
+
                 <!-- Degree projection -->
                 <Border Classes="card" Margin="0,0,0,12"
                         IsVisible="{Binding HasDegreeProjection}">
@@ -150,10 +196,16 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <TextBlock Text="科目はまだない · no subjects yet"
-                           Classes="jp" HorizontalAlignment="Center"
-                           Margin="0,80,0,0"
-                           IsVisible="{Binding !HasSubjects}" />
+                <StackPanel HorizontalAlignment="Center" Margin="0,80,0,0" Spacing="14"
+                            IsVisible="{Binding !HasSubjects}">
+                    <TextBlock Text="科目はまだない · no subjects yet"
+                               Classes="jp" HorizontalAlignment="Center" />
+                    <TextBlock Text="add your courses with + new — or try it with example data"
+                               Classes="caption" HorizontalAlignment="Center" />
+                    <Button Classes="accent" Content="load a sample semester"
+                            HorizontalAlignment="Center"
+                            Command="{Binding LoadSampleCommand}" />
+                </StackPanel>
             </StackPanel>
         </ScrollViewer>
     </Grid>
@@ -252,12 +304,43 @@
                                   IsVisible="{Binding HasSpark}"
                                   ToolTip.Tip="standing over time, by assessment date" />
 
+                        <TextBlock Text="{Binding TrendLabel}" FontSize="13"
+                                   IsVisible="{Binding HasTrend}"
+                                   Classes="grade"
+                                   Classes.ggood="{Binding IsTrendUp}"
+                                   Classes.gbad="{Binding IsTrendDown}" />
+
                         <TextBlock Text="{Binding StandingCaption}" Classes="caption"
                                    IsVisible="{Binding StandingCaption, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                         <TextBlock Text="{Binding DropRulesCaption}" Classes="caption"
                                    IsVisible="{Binding HasDropRules}" />
                         <TextBlock Text="{Binding WeightWarning}" Classes="caption overest"
                                    IsVisible="{Binding HasWeightWarning}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- What you need -->
+                <Border Classes="card" IsVisible="{Binding HasCalc}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="逆算 · what you need" Classes="jp" />
+                        <Grid ColumnDefinitions="Auto,96,Auto,Auto,*">
+                            <TextBlock Grid.Column="0" Text="aim for" VerticalAlignment="Center" />
+                            <NumericUpDown Grid.Column="1" Value="{Binding CalcTarget}"
+                                           Minimum="0" Maximum="100" Increment="1" FormatString="0.#"
+                                           Margin="8,0,0,0" FontSize="13" Padding="10,5" />
+                            <TextBlock Grid.Column="2" Text="% overall" Classes="caption"
+                                       VerticalAlignment="Center" Margin="8,0,0,0" />
+                            <Border Grid.Column="3" Classes="tag" Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    IsVisible="{Binding CalcTargetLetter, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                <TextBlock Text="{Binding CalcTargetLetter}" />
+                            </Border>
+                        </Grid>
+                        <TextBlock Text="{Binding CalcResult}" FontSize="14" TextWrapping="Wrap"
+                                   Classes="grade"
+                                   Classes.ggood="{Binding IsCalcGood}"
+                                   Classes.gwarn="{Binding IsCalcWarn}"
+                                   Classes.gbad="{Binding IsCalcBad}" />
                     </StackPanel>
                 </Border>
 

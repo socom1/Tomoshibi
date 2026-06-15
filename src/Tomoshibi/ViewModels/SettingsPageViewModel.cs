@@ -38,6 +38,9 @@ public partial class SettingsPageViewModel : ViewModelBase
     [ObservableProperty]
     private bool _closeToTray;
 
+    [ObservableProperty]
+    private bool _remindersEnabled;
+
 
     public string VersionLabel => "灯火 · tomoshibi — v1.5";
 
@@ -56,6 +59,7 @@ public partial class SettingsPageViewModel : ViewModelBase
 
         _showWelcome = state.ShowWelcome;
         _closeToTray = state.CloseToTray;
+        _remindersEnabled = state.RemindersEnabled;
     }
 
     partial void OnShowWelcomeChanged(bool value)
@@ -67,6 +71,12 @@ public partial class SettingsPageViewModel : ViewModelBase
     partial void OnCloseToTrayChanged(bool value)
     {
         _state.CloseToTray = value;
+        _save();
+    }
+
+    partial void OnRemindersEnabledChanged(bool value)
+    {
+        _state.RemindersEnabled = value;
         _save();
     }
 

@@ -80,9 +80,37 @@ public partial class SubjectViewModel : ViewModelBase
     [ObservableProperty] private string _sparkPoints = string.Empty;
     [ObservableProperty] private bool _hasSpark;
 
+    // ---- Trend (which way the standing is moving) ----
+    [ObservableProperty] private bool _hasTrend;
+    [ObservableProperty] private string _trendLabel = string.Empty;
+    [ObservableProperty] private bool _isTrendUp;
+    [ObservableProperty] private bool _isTrendDown;
+
+    // ---- "What you need" calculator ----
+    /// <summary>The latest real-grade compute, stashed so the calculator can
+    /// answer "what do I need for X%?" without recomputing the whole subject.</summary>
+    private double _calcGradedPoints, _calcGradedWeight, _calcTotalWeight;
+
+    /// <summary>The overall percent the user is aiming for in the calculator.</summary>
+    [ObservableProperty] private decimal? _calcTarget;
+
+    [ObservableProperty] private bool _hasCalc;
+    [ObservableProperty] private string _calcResult = string.Empty;
+    [ObservableProperty] private string _calcTargetLetter = string.Empty;
+    [ObservableProperty] private bool _isCalcGood;
+    [ObservableProperty] private bool _isCalcWarn;
+    [ObservableProperty] private bool _isCalcBad;
+
     /// <summary>Current standing in percent over graded weight; null when
     /// nothing's graded. The page reads this for the overall figure.</summary>
     public double? CurrentPercent { get; private set; }
+
+    /// <summary>The latest drop-rule-aware compute totals, in subject-weight
+    /// terms (~100 across the assessments). The overall-goal planner pools
+    /// these across subjects, scaled by credits.</summary>
+    public double TotalWeightPct => _calcTotalWeight;
+    public double GradedWeightPct => _calcGradedWeight;
+    public double GradedPointsPct => _calcGradedPoints;
 
     // ---- New assessment form (inline on the detail page) ----
     [ObservableProperty] private string _newTitle = string.Empty;
@@ -120,6 +148,9 @@ public partial class SubjectViewModel : ViewModelBase
         _changed = changed;
         _scale = scale;
         _openUrl = openUrl;
+
+        // Seed the calculator with the subject's own target, or a sensible default.
+        _calcTarget = model.TargetPercent is { } t ? (decimal)t : 80m;
 
         foreach (var a in model.Assessments)
             Wrap(a);
@@ -364,8 +395,68 @@ public partial class SubjectViewModel : ViewModelBase
         HasTarget = Model.TargetPercent is not null;
         TargetChip = Model.TargetPercent is { } t ? $"target {t:0.#}%" : string.Empty;
 
+        // Stash for the interactive calculator, then refresh it.
+        _calcGradedPoints = gradedPoints;
+        _calcGradedWeight = gradedWeight;
+        _calcTotalWeight = totalWeight;
+
         RebuildOutlook(scale, gradedPoints, gradedWeight, totalWeight);
         RebuildSparkline();
+        RecomputeCalc();
+    }
+
+    partial void OnCalcTargetChanged(decimal? value) => RecomputeCalc();
+
+    /// <summary>"To finish on X% overall you need avg Y% on what's left." Reads
+    /// the stashed real-grade totals so typing a target is instant. Verdicts:
+    /// already secured, a required average (tinted by how hard it is), or out
+    /// of reach when even acing the rest can't get there.</summary>
+    private void RecomputeCalc()
+    {
+        var total = _calcTotalWeight;
+        HasCalc = total > 0 && Model.Assessments.Count > 0;
+        if (!HasCalc)
+        {
+            CalcResult = string.Empty;
+            CalcTargetLetter = string.Empty;
+            IsCalcGood = IsCalcWarn = IsCalcBad = false;
+            return;
+        }
+
+        var target = Math.Clamp((double)(CalcTarget ?? 0), 0, 100);
+        CalcTargetLetter = GradeScale.Label(_scale(), target);
+
+        var remaining = total - _calcGradedWeight;
+        void Tone(bool good, bool warn) { IsCalcGood = good; IsCalcWarn = warn; IsCalcBad = !good && !warn; }
+
+        if (remaining <= 0.01)
+        {
+            var final = _calcGradedWeight > 0 ? _calcGradedPoints / _calcGradedWeight : 0;
+            var hit = final >= target;
+            CalcResult = hit
+                ? $"done — you finished at {final:0.#}%, at or above {target:0.#}%"
+                : $"the term is fully graded at {final:0.#}% — {target:0.#}% is out of reach now";
+            Tone(hit, false);
+            return;
+        }
+
+        var need = (target * total - _calcGradedPoints) / remaining;
+        if (need <= 0)
+        {
+            CalcResult = $"secured — even 0% on the remaining {remaining:0.#}% stays at or above {target:0.#}%";
+            Tone(true, false);
+        }
+        else if (need > 100)
+        {
+            var best = (_calcGradedPoints + remaining * 100) / total;
+            CalcResult = $"out of reach — acing everything left tops out at {best:0.#}%";
+            Tone(false, false);
+        }
+        else
+        {
+            CalcResult = $"need avg {need:0.#}% on the remaining {remaining:0.#}% of the grade";
+            Tone(need <= 70, need <= 88);
+        }
     }
 
     private void RebuildOutlook(GradeScaleKind scale, double gradedPoints, double gradedWeight, double totalWeight)
@@ -466,12 +557,14 @@ public partial class SubjectViewModel : ViewModelBase
         if (dated.Count < 2)
         {
             HasSpark = false;
+            HasTrend = false;
             SparkPoints = string.Empty;
             return;
         }
 
         const double w = 220, h = 48;
         double runningPoints = 0, runningWeight = 0;
+        double firstPct = 0, lastPct = 0;
         var sb = new StringBuilder();
 
         for (var i = 0; i < dated.Count; i++)
@@ -479,6 +572,8 @@ public partial class SubjectViewModel : ViewModelBase
             runningPoints += dated[i].Grade!.Value * dated[i].Weight;
             runningWeight += dated[i].Weight;
             var pct = runningPoints / runningWeight;
+            if (i == 0) firstPct = pct;
+            lastPct = pct;
 
             var x = dated.Count == 1 ? 0 : i * w / (dated.Count - 1);
             var y = h - (pct / 100.0 * h);
@@ -488,5 +583,16 @@ public partial class SubjectViewModel : ViewModelBase
 
         SparkPoints = sb.ToString();
         HasSpark = true;
+
+        // Which way the cumulative standing has moved as results landed.
+        var delta = lastPct - firstPct;
+        IsTrendUp = delta > 0.5;
+        IsTrendDown = delta < -0.5;
+        HasTrend = true;
+        TrendLabel = IsTrendUp
+            ? $"▲ trending up {delta:0.#}% across {dated.Count} graded"
+            : IsTrendDown
+                ? $"▼ slipping {Math.Abs(delta):0.#}% across {dated.Count} graded"
+                : $"steady across {dated.Count} graded";
     }
 }
