@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Tomoshibi.Services;
 
@@ -32,7 +33,20 @@ public class NotificationService : INotificationService
         }
     }
 
-    private static string Escape(string s) => s.Replace("\\", "\\\\").Replace("\"", "\\\"");
+    /// <summary>
+    /// Make a string safe to embed in an osascript double-quoted literal.
+    /// Control characters (newlines especially) can break out of the literal,
+    /// so they're stripped before escaping the backslash and quote. Length is
+    /// capped as belt-and-braces — today only fixed strings reach here, but
+    /// this hardens it should user content (a task title) ever be notified.
+    /// </summary>
+    private static string Escape(string s)
+    {
+        var cleaned = new string((s ?? string.Empty).Where(c => !char.IsControl(c)).ToArray());
+        if (cleaned.Length > 200)
+            cleaned = cleaned[..200];
+        return cleaned.Replace("\\", "\\\\").Replace("\"", "\\\"");
+    }
 
     private static void Run(string command, params string[] args)
     {

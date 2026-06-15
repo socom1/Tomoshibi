@@ -52,6 +52,16 @@ public partial class TimetableView : UserControl
             return;
 
         await using var stream = await files[0].OpenReadAsync();
+
+        // A real timetable export is a few KB; refuse anything absurd rather
+        // than reading an unbounded (possibly downloaded) file into memory.
+        const long maxBytes = 5 * 1024 * 1024;
+        if (stream.CanSeek && stream.Length > maxBytes)
+        {
+            vm.ImportSummary = "that .ics is too large to import";
+            return;
+        }
+
         using var reader = new StreamReader(stream);
         var text = await reader.ReadToEndAsync();
 
