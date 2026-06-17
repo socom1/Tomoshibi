@@ -294,16 +294,25 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- FallbackValue=False is load-bearing: when the detail
-                             closes, SelectedSubject goes null and the bindings
-                             unset — without it, IsVisible reverts to its default
-                             (true) while Points reverts to null, and Avalonia's
-                             Polyline NREs trying to render a null geometry. -->
-                        <Polyline Points="{Binding SparkPoints, Converter={StaticResource ToPoints}}"
-                                  Stroke="{DynamicResource MatchaBrush}" StrokeThickness="2"
-                                  Width="220" Height="48" HorizontalAlignment="Left"
-                                  IsVisible="{Binding HasSpark, FallbackValue=False}"
-                                  ToolTip.Tip="standing over time, by assessment date" />
+                        <!-- The spark line is realised inside a ContentControl so it
+                             leaves the visual tree entirely when there's no subject
+                             (the detail is closing) — not merely hidden. IsVisible
+                             alone is not enough: on close the Points binding reverts
+                             to null and the shape can still be drawn for one
+                             compositor frame, and PolylineGeometry NREs on the null
+                             points, crashing the app. Tying it to Content removes the
+                             Polyline before that frame can run. -->
+                        <ContentControl Content="{Binding}" HorizontalAlignment="Left"
+                                        IsVisible="{Binding HasSpark, FallbackValue=False}">
+                            <ContentControl.ContentTemplate>
+                                <DataTemplate x:DataType="vm:SubjectViewModel">
+                                    <Polyline Points="{Binding SparkPoints, Converter={StaticResource ToPoints}}"
+                                              Stroke="{DynamicResource MatchaBrush}" StrokeThickness="2"
+                                              Width="220" Height="48"
+                                              ToolTip.Tip="standing over time, by assessment date" />
+                                </DataTemplate>
+                            </ContentControl.ContentTemplate>
+                        </ContentControl>
 
                         <TextBlock Text="{Binding TrendLabel}" FontSize="13"
                                    IsVisible="{Binding HasTrend}"
