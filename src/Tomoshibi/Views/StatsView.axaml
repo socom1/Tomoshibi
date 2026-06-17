@@ -164,10 +164,11 @@
                 IsVisible="{Binding HasJournal}">
             <StackPanel Spacing="12">
                 <TextBlock Text="// 振り返り · journal" Classes="jp" />
-                <ItemsControl ItemsSource="{Binding Journal}">
+                <ItemsControl x:Name="JournalList" ItemsSource="{Binding Journal}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:JournalEntryViewModel">
                             <Border Classes="jentry" Classes.kept="{Binding Kept}"
+                                    Classes.highlight="{Binding Highlighted}"
                                     Margin="0,0,0,8">
                                 <Grid ColumnDefinitions="84,*">
                                     <TextBlock Grid.Column="0" Text="{Binding DateLabel}"

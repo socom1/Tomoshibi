@@ -8,9 +8,10 @@ namespace Tomoshibi.ViewModels;
 
 /// <summary>
 /// The Cmd/Ctrl+K command palette: type to filter across pages, quick
-/// actions and subjects; arrow keys move the selection, Enter runs it. The
+/// actions, subjects and your own content — todo tickets, flashcard decks and
+/// journal reflections; arrow keys move the selection, Enter runs it. The
 /// candidate list is rebuilt by the shell each time the palette opens, so it
-/// always reflects the current subjects.
+/// always reflects the current state.
 /// </summary>
 public partial class CommandPaletteViewModel : ViewModelBase
 {

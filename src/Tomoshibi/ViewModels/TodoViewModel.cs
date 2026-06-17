@@ -133,6 +133,22 @@ public partial class TodoViewModel : ViewModelBase
         IsModalOpen = true;
     }
 
+    /// <summary>Surface a single ticket — used when the command palette jumps
+    /// to it. Drop any status filter, search the list down to this title, and
+    /// expand the matching row so its detail is open when the page appears.</summary>
+    public void Reveal(TodoItem todo)
+    {
+        Filter = TodoFilter.All;
+        SearchText = todo.Title;
+
+        // Filter/SearchText changes rebuild the list synchronously; expand the
+        // row in place. (If neither value actually changed, the row is already
+        // there to expand.)
+        var row = Items.FirstOrDefault(r => r.Model.Id == todo.Id);
+        if (row is not null)
+            row.IsExpanded = true;
+    }
+
     public void BeginEdit(TodoItemViewModel row)
     {
         _editing = row.Model;

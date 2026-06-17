@@ -76,6 +76,28 @@ public partial class StatsViewModel : ViewModelBase
         BuildJournal();
     }
 
+    /// <summary>Raised when the palette asks to surface a specific journal
+    /// row, so the view can scroll it into sight.</summary>
+    public event Action<JournalEntryViewModel>? JournalRevealRequested;
+
+    /// <summary>Surface the look-back entry for <paramref name="date"/>: clear
+    /// any prior highlight, flag the matching row, and ask the view to scroll
+    /// it into view. The page is rebuilt on navigation, so the row exists by
+    /// the time this runs. No-op if that day isn't in the look-back window.</summary>
+    public void RevealJournal(DateOnly date)
+    {
+        JournalEntryViewModel? target = null;
+        foreach (var entry in Journal)
+        {
+            entry.Highlighted = entry.Date == date;
+            if (entry.Highlighted)
+                target = entry;
+        }
+
+        if (target is not null)
+            JournalRevealRequested?.Invoke(target);
+    }
+
     private static readonly char[] SparkLevels = { '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█' };
 
     /// <summary>A 14-day focus sparkline: one block glyph per day, its height

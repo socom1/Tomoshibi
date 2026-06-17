@@ -313,8 +313,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private bool CanCloseCommandPalette() => IsCommandPaletteOpen;
 
-    /// <summary>Pages, quick actions and every subject — what the palette
-    /// searches over.</summary>
+    /// <summary>Pages, quick actions, every subject, and the user's own
+    /// content — todo tickets, flashcard decks and journal reflections — all
+    /// the candidates the palette searches over.</summary>
     private List<PaletteItemViewModel> BuildCommands()
     {
         var items = new List<PaletteItemViewModel>();
@@ -372,7 +373,87 @@ public partial class MainWindowViewModel : ViewModelBase
             });
         }
 
+        // ---- Content: jump straight to a ticket, deck or reflection ----
+
+        foreach (var todo in _state.Todos)
+        {
+            var captured = todo;
+            var title = string.IsNullOrWhiteSpace(todo.Title) ? "(untitled)" : todo.Title;
+            items.Add(new PaletteItemViewModel
+            {
+                Title = $"#{todo.Number} · {title}",
+                Kind = "todo",
+                // Navigate first (the page rebuilds on arrival), then reveal so
+                // the search + expansion survive.
+                Run = () => { ActiveDestination = Destination.Todo; Todo.Reveal(captured); }
+            });
+        }
+
+        foreach (var deck in Review.Decks)
+        {
+            if (string.IsNullOrWhiteSpace(deck.Name))
+                continue;
+            var captured = deck;
+            items.Add(new PaletteItemViewModel
+            {
+                Title = deck.Name,
+                Kind = "deck",
+                Run = () => { ActiveDestination = Destination.Review; Review.OpenDeckCommand.Execute(captured); }
+            });
+        }
+
+        foreach (var note in JournalCandidates())
+        {
+            var date = note.Date;
+            var snippet = string.IsNullOrWhiteSpace(note.Reflection) ? note.Intention : note.Reflection;
+            items.Add(new PaletteItemViewModel
+            {
+                Title = $"{JournalDateLabel(date)} · {Snippet(snippet)}",
+                Kind = "journal",
+                Run = () => { ActiveDestination = Destination.Stats; Stats.RevealJournal(date); }
+            });
+        }
+
         return items;
+    }
+
+    /// <summary>The look-back days the palette can jump to: today's live note
+    /// (when it has anything written) plus the banked journal, newest first.</summary>
+    private IEnumerable<DayNote> JournalCandidates()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+
+        if (!string.IsNullOrWhiteSpace(_state.DailyIntention) ||
+            !string.IsNullOrWhiteSpace(_state.DailyReflection))
+        {
+            yield return new DayNote
+            {
+                Date = today,
+                Intention = _state.DailyIntention,
+                Reflection = _state.DailyReflection
+            };
+        }
+
+        foreach (var note in _state.Journal
+                     .Where(n => n.Date != today &&
+                                 (!string.IsNullOrWhiteSpace(n.Intention) ||
+                                  !string.IsNullOrWhiteSpace(n.Reflection)))
+                     .OrderByDescending(n => n.Date))
+        {
+            yield return note;
+        }
+    }
+
+    private static string JournalDateLabel(DateOnly date) =>
+        date == DateOnly.FromDateTime(DateTime.Now)
+            ? "today"
+            : $"{date:ddd MMM d}".ToLowerInvariant();
+
+    /// <summary>One-line preview of a journal note for the palette row.</summary>
+    private static string Snippet(string text)
+    {
+        text = text.Trim();
+        return text.Length <= 48 ? text : text[..47].TrimEnd() + "…";
     }
 
     [RelayCommand]

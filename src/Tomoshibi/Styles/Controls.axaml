@@ -892,6 +892,12 @@
     <Style Selector="Border.jentry.kept">
         <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
     </Style>
+    <!-- The entry the command palette jumped to: a full amber outline so the
+         eye lands on it after the scroll. Wins over .kept's left border. -->
+    <Style Selector="Border.jentry.highlight">
+        <Setter Property="BorderBrush" Value="{DynamicResource AmberBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
 
     <!-- Keycap chip — the keyboard hints on the review grade buttons -->
     <Style Selector="Border.kbd">
