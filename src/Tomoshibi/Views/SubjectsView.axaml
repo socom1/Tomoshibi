@@ -56,7 +56,9 @@
                                    VerticalAlignment="Center" />
                         <NumericUpDown Grid.Column="1" Value="{Binding OverallGoal}"
                                        Minimum="0" Maximum="100" Increment="1" FormatString="0.#"
-                                       Width="84" Margin="14,0,0,0" FontSize="13" Padding="8,4" />
+                                       Width="84" Margin="14,0,0,0" FontSize="13" Padding="8,4"
+                                       HorizontalContentAlignment="Center"
+                                       VerticalContentAlignment="Center" />
                         <Border Grid.Column="2" Classes="tag" Margin="8,0,0,0" VerticalAlignment="Center"
                                 IsVisible="{Binding GoalLetter, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                             <TextBlock Text="{Binding GoalLetter}" />
