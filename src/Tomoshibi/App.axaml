@@ -15,6 +15,7 @@
                 <ResourceInclude Source="avares://Tomoshibi/Styles/Palette.axaml" />
             </ResourceDictionary.MergedDictionaries>
             <conv:CourseColorConverter x:Key="CourseColor" />
+            <conv:LowercaseConverter x:Key="Lower" />
         </ResourceDictionary>
     </Application.Resources>
 

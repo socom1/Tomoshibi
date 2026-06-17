@@ -61,6 +61,7 @@ public partial class ReviewViewModel : ViewModelBase
     [ObservableProperty] private string _cardBack = string.Empty;
     [ObservableProperty] private string _reviewScopeLabel = string.Empty;
     [ObservableProperty] private string _progressLabel = string.Empty;
+    [ObservableProperty] private string _progressBar = string.Empty;
     [ObservableProperty] private string _sessionDoneLabel = string.Empty;
 
     public ReviewViewModel(AppState state, Action save, WalletViewModel wallet)
@@ -201,6 +202,15 @@ public partial class ReviewViewModel : ViewModelBase
         CardFront = card.Front;
         CardBack = card.Back;
         ProgressLabel = $"{Math.Min(_passed + 1, _sessionTotal)} / {_sessionTotal} · {ReviewScopeLabel}";
+        ProgressBar = AsciiBar(_passed, _sessionTotal, 24);
+    }
+
+    /// <summary>A fixed-width █/░ meter — the terminal-style progress readout.</summary>
+    internal static string AsciiBar(int done, int total, int width)
+    {
+        if (total <= 0) return new string('░', width);
+        var filled = Math.Clamp((int)Math.Round((double)done / total * width), 0, width);
+        return new string('█', filled) + new string('░', width - filled);
     }
 
     [RelayCommand]

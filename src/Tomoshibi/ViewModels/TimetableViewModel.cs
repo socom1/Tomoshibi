@@ -63,9 +63,46 @@ public partial class TimetableViewModel : ViewModelBase
     [ObservableProperty] private WeekDay _newSlotDay = WeekDay.Mon;
     [ObservableProperty] private TimeSpan _newSlotStart = new(9, 0, 0);
     [ObservableProperty] private TimeSpan _newSlotEnd = new(10, 0, 0);
+
+    // Hour/minute spinners in the modal bind here; each rebuilds the TimeSpan
+    // so the rest of the form keeps reading NewSlotStart / NewSlotEnd.
+    public decimal StartHour
+    {
+        get => NewSlotStart.Hours;
+        set => NewSlotStart = new TimeSpan((int)Math.Clamp(value, 0, 23), NewSlotStart.Minutes, 0);
+    }
+    public decimal StartMinute
+    {
+        get => NewSlotStart.Minutes;
+        set => NewSlotStart = new TimeSpan(NewSlotStart.Hours, (int)Math.Clamp(value, 0, 59), 0);
+    }
+    public decimal EndHour
+    {
+        get => NewSlotEnd.Hours;
+        set => NewSlotEnd = new TimeSpan((int)Math.Clamp(value, 0, 23), NewSlotEnd.Minutes, 0);
+    }
+    public decimal EndMinute
+    {
+        get => NewSlotEnd.Minutes;
+        set => NewSlotEnd = new TimeSpan(NewSlotEnd.Hours, (int)Math.Clamp(value, 0, 59), 0);
+    }
+
+    partial void OnNewSlotStartChanged(TimeSpan value)
+    {
+        OnPropertyChanged(nameof(StartHour));
+        OnPropertyChanged(nameof(StartMinute));
+    }
+
+    partial void OnNewSlotEndChanged(TimeSpan value)
+    {
+        OnPropertyChanged(nameof(EndHour));
+        OnPropertyChanged(nameof(EndMinute));
+    }
     [ObservableProperty] private string _newSlotTitle = string.Empty;
     [ObservableProperty] private string _newSlotCourse = string.Empty;
     [ObservableProperty] private string _slotFormLabel = "add";
+    [ObservableProperty] private string _slotModalTitle = "新しい授業 · new class";
+    [ObservableProperty] private bool _isSlotModalOpen;
     private ClassSlot? _editingSlot;
 
     /// <summary>The seven weekdays as picker options for the new-slot form.</summary>
@@ -120,6 +157,25 @@ public partial class TimetableViewModel : ViewModelBase
         }
 
         HasUpcomingExams = UpcomingExams.Count > 0;
+    }
+
+    /// <summary>Open the slot modal on a fresh form (the + button).</summary>
+    [RelayCommand]
+    private void OpenAddSlot()
+    {
+        CancelEdits();
+        SlotModalTitle = "新しい授業 · new class";
+        IsSlotModalOpen = true;
+    }
+
+    /// <summary>Close the slot modal and drop any in-flight edit.</summary>
+    [RelayCommand]
+    private void CancelSlotModal()
+    {
+        if (!IsSlotModalOpen)
+            return;
+        IsSlotModalOpen = false;
+        CancelEdits();
     }
 
     [RelayCommand]
@@ -211,6 +267,7 @@ public partial class TimetableViewModel : ViewModelBase
         }
 
         CancelEdits();
+        IsSlotModalOpen = false;
         RebuildKnownCourses();
         UpdateFlags();
         _save();
@@ -232,6 +289,8 @@ public partial class TimetableViewModel : ViewModelBase
         NewSlotTitle = item.Model.Title;
         NewSlotCourse = item.Model.Course ?? string.Empty;
         SlotFormLabel = "save";
+        SlotModalTitle = "編集 · edit class";
+        IsSlotModalOpen = true;
     }
 
     /// <summary>Merge a parsed .ics file into the timetable. Weekly events
@@ -333,9 +392,13 @@ public partial class TimetableViewModel : ViewModelBase
             KnownCourses.Add(c);
     }
 
+    /// <summary>"5 classes" / "1 class" for the schedule-file header.</summary>
+    public string SlotsLabel => Slots.Count == 1 ? "1 class" : $"{Slots.Count} classes";
+
     private void UpdateFlags()
     {
         HasSlots = Slots.Count > 0;
+        OnPropertyChanged(nameof(SlotsLabel));
     }
 
     private static void InsertSorted<T>(ObservableCollection<T> list, T item, Comparison<T> compare)

@@ -7,245 +7,293 @@
              x:Class="Tomoshibi.Views.DashboardView"
              x:DataType="vm:DashboardViewModel">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="16" Margin="28,4,28,28" MaxWidth="820">
+    <DockPanel>
 
-            <!-- Greeting -->
-            <StackPanel Spacing="2" Margin="0,0,0,4">
-                <TextBlock Text="ダッシュボード · dashboard" Classes="jp" />
-                <TextBlock Text="{Binding Today.Greeting}" Classes="h1" />
-                <TextBlock Text="{Binding DateLabel}" Classes="caption" />
-            </StackPanel>
-
-            <!-- Intention -->
-            <Border Classes="card">
-                <StackPanel Spacing="8">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Text="今日の狙い · today's intention" Classes="jp"
-                                   VerticalAlignment="Center" />
-                        <Button Grid.Column="1" Classes="seg" Content="✓ mark kept"
-                                Command="{Binding Today.KeepIntentionCommand}"
-                                IsVisible="{Binding Today.CanKeepIntention}"
-                                ToolTip.Tip="followed it through? bank it for today" />
-                        <TextBlock Grid.Column="1" Text="達成 · kept" FontSize="13"
-                                   VerticalAlignment="Center"
-                                   Foreground="{DynamicResource MatchaBrush}"
-                                   IsVisible="{Binding Today.IntentionKept}" />
-                    </Grid>
-                    <TextBox Classes="inline" Text="{Binding Today.DailyIntention}"
-                             Classes.kept="{Binding Today.IntentionKept}"
-                             Watermark="what do you want to do today?" FontSize="16" />
-                    <TextBlock Text="{Binding Today.IntentionHint}" Classes="caption"
-                               IsVisible="{Binding Today.IntentionHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-
-                    <Border Height="1" Margin="0,4,0,2"
-                            Background="{DynamicResource BorderBrush}" />
-
-                    <TextBlock Text="振り返り · reflection" Classes="jp" />
-                    <TextBox Classes="inline" Text="{Binding Today.DailyReflection}"
-                             Watermark="how did today go?" FontSize="14"
-                             AcceptsReturn="True" TextWrapping="Wrap" />
-                </StackPanel>
-            </Border>
-
-            <!-- Stat strip -->
-            <Grid ColumnDefinitions="*,*,*,*" >
-                <Border Classes="card" Margin="0,0,6,0">
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="{Binding Today.CompletedSessions}" FontSize="26"
-                                   Foreground="{DynamicResource BlueBrush}" />
-                        <TextBlock Text="sessions today" Classes="caption" />
-                    </StackPanel>
-                </Border>
-                <Border Grid.Column="1" Classes="card" Margin="6,0,6,0">
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="{Binding Today.FocusedHours}" FontSize="26"
-                                   Foreground="{DynamicResource AmberBrush}" />
-                        <TextBlock Text="hours today" Classes="caption" />
-                    </StackPanel>
-                </Border>
-                <Border Grid.Column="2" Classes="card" Margin="6,0,6,0">
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="{Binding Today.StreakDays}" FontSize="26"
-                                   Foreground="{DynamicResource MatchaBrush}" />
-                        <TextBlock Text="day streak" Classes="caption" />
-                    </StackPanel>
-                </Border>
-                <Border Grid.Column="3" Classes="card" Margin="6,0,0,0">
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="{Binding SessionsThisWeek}" FontSize="26"
-                                   Foreground="{DynamicResource TextBrush}" />
-                        <TextBlock Text="sessions this week" Classes="caption" />
-                    </StackPanel>
-                </Border>
+        <!-- IDE status bar, pinned to the bottom -->
+        <Border DockPanel.Dock="Bottom" Classes="statusbar">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+                <TextBlock Grid.Column="0" Classes="statusseg"
+                           Foreground="{DynamicResource MatchaBrush}" Text="git:main" />
+                <TextBlock Grid.Column="1" Classes="statusseg" Margin="18,0,0,0">
+                    <Run Text="streak " />
+                    <Run Text="{Binding Today.StreakDays, Mode=OneWay}"
+                         Foreground="{DynamicResource AmberBrush}" />
+                    <Run Text="d" />
+                </TextBlock>
+                <TextBlock Grid.Column="2" Classes="statusseg" Margin="18,0,0,0">
+                    <Run Text="focus " />
+                    <Run Text="{Binding Today.FocusedHours, Mode=OneWay}"
+                         Foreground="{DynamicResource BlueBrush}" />
+                    <Run Text="h" />
+                </TextBlock>
+                <TextBlock Grid.Column="4" Classes="statusseg" Text="UTF-8 · LF · mono" />
             </Grid>
-            <TextBlock Text="{Binding MomentumLabel}" Classes="caption" Margin="2,-6,0,0" />
+        </Border>
 
-            <!-- Review due -->
-            <Border Classes="card" IsVisible="{Binding Review.HasDue}">
-                <Grid ColumnDefinitions="*,Auto">
-                    <StackPanel Spacing="2" VerticalAlignment="Center">
-                        <TextBlock Text="復習 · review" Classes="jp" />
-                        <TextBlock FontSize="15">
-                            <Run Text="{Binding Review.TotalDue, Mode=OneWay}" />
-                            <Run Text=" cards due — keep them from slipping" />
-                        </TextBlock>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16" Margin="28,8,28,28" MaxWidth="820">
+
+                <!-- Editor tab strip -->
+                <Grid ColumnDefinitions="Auto,Auto,*" Margin="0,0,0,2">
+                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                        <Ellipse Width="11" Height="11" Fill="{DynamicResource SakuraBrush}" />
+                        <Ellipse Width="11" Height="11" Fill="{DynamicResource AmberBrush}" />
+                        <Ellipse Width="11" Height="11" Fill="{DynamicResource MatchaBrush}" />
                     </StackPanel>
-                    <Button Grid.Column="1" Classes="accent" Content="start review"
-                            VerticalAlignment="Center"
-                            Command="{Binding StartReviewCommand}" />
+                    <Border Grid.Column="1" Classes="tab" Margin="16,0,0,0" VerticalAlignment="Bottom">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                            <Ellipse Width="7" Height="7" VerticalAlignment="Center"
+                                     Fill="{DynamicResource BlueBrush}" />
+                            <TextBlock Text="dashboard.tsx" />
+                        </StackPanel>
+                    </Border>
                 </Grid>
-            </Border>
 
-            <!-- Two columns: what's next / standing -->
-            <Grid ColumnDefinitions="*,*">
-                <!-- Up next -->
-                <Border Classes="card" Margin="0,0,8,0">
+                <!-- Prompt greeting -->
+                <StackPanel Spacing="3" Margin="0,4,0,4">
+                    <TextBlock Classes="path" Text="~/tomoshibi/dashboard" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="❯" Classes="prompt" />
+                        <TextBlock Text="{Binding Today.Greeting}" Classes="h1"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="▋" Classes="caret" FontSize="22" />
+                    </StackPanel>
+                    <TextBlock Classes="caption">
+                        <Run Text="# " Foreground="{DynamicResource MutedTextBrush}" />
+                        <Run Text="{Binding DateLabel}" />
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- Intention -->
+                <Border Classes="card">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="次は · up next" Classes="jp" />
-                        <TextBlock Text="{Binding Today.NextClassLabel}" FontSize="13"
-                                   Foreground="{DynamicResource BlueBrush}"
-                                   IsVisible="{Binding Today.HasNextClass}" />
-                        <TextBlock Text="{Binding Today.DeadlinesLabel}" FontSize="13"
-                                   Foreground="{DynamicResource AmberBrush}"
-                                   TextWrapping="Wrap"
-                                   IsVisible="{Binding Today.HasUpcomingDeadlines}" />
-                        <TextBlock FontSize="13" Classes="caption">
-                            <Run Text="{Binding Todo.OpenCount, Mode=OneWay}" />
-                            <Run Text=" backlog · " />
-                            <Run Text="{Binding Todo.DoingCount, Mode=OneWay}" />
-                            <Run Text=" in progress" />
-                        </TextBlock>
-                        <Button Classes="accent" Content="start focusing"
-                                HorizontalAlignment="Left"
-                                Command="{Binding Today.Pomodoro.ToggleRunCommand}" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="// 今日の狙い · today's intention" Classes="jp"
+                                       VerticalAlignment="Center" />
+                            <Button Grid.Column="1" Classes="seg" Content="✓ mark kept"
+                                    Command="{Binding Today.KeepIntentionCommand}"
+                                    IsVisible="{Binding Today.CanKeepIntention}"
+                                    ToolTip.Tip="followed it through? bank it for today" />
+                            <TextBlock Grid.Column="1" Text="達成 · kept" FontSize="13"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource MatchaBrush}"
+                                       IsVisible="{Binding Today.IntentionKept}" />
+                        </Grid>
+                        <TextBox Classes="inline" Text="{Binding Today.DailyIntention}"
+                                 Classes.kept="{Binding Today.IntentionKept}"
+                                 Watermark="what do you want to do today?" FontSize="16" />
+                        <TextBlock Text="{Binding Today.IntentionHint}" Classes="caption"
+                                   IsVisible="{Binding Today.IntentionHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                        <Border Height="1" Margin="0,4,0,2"
+                                Background="{DynamicResource BorderBrush}" />
+
+                        <TextBlock Text="// 振り返り · reflection" Classes="jp" />
+                        <TextBox Classes="inline" Text="{Binding Today.DailyReflection}"
+                                 Watermark="how did today go?" FontSize="14"
+                                 AcceptsReturn="True" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
 
-                <!-- Standing -->
-                <Border Grid.Column="1" Classes="card" Margin="8,0,0,0">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="成績 · standing" Classes="jp" />
-                        <TextBlock Text="{Binding Subjects.GpaLabel}" FontSize="20"
-                                   FontWeight="SemiBold" TextWrapping="Wrap" />
-                        <TextBlock Text="{Binding Subjects.DegreeLabel}" Classes="caption"
-                                   IsVisible="{Binding Subjects.HasDegreeProjection}" />
-                        <TextBlock Text="{Binding Subjects.GpaCaption}" Classes="caption"
-                                   TextWrapping="Wrap"
-                                   IsVisible="{Binding Subjects.GpaCaption, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                    </StackPanel>
-                </Border>
-            </Grid>
+                <!-- Stat strip -->
+                <Grid ColumnDefinitions="*,*,*,*" >
+                    <Border Classes="card" Margin="0,0,6,0">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Today.CompletedSessions}" FontSize="26"
+                                       Foreground="{DynamicResource BlueBrush}" />
+                            <TextBlock Text="sessions_today" Classes="caption" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="1" Classes="card" Margin="6,0,6,0">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Today.FocusedHours}" FontSize="26"
+                                       Foreground="{DynamicResource AmberBrush}" />
+                            <TextBlock Text="hours_today" Classes="caption" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="2" Classes="card" Margin="6,0,6,0">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Today.StreakDays}" FontSize="26"
+                                       Foreground="{DynamicResource MatchaBrush}" />
+                            <TextBlock Text="streak_days" Classes="caption" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="3" Classes="card" Margin="6,0,0,0">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding SessionsThisWeek}" FontSize="26"
+                                       Foreground="{DynamicResource TextBrush}" />
+                            <TextBlock Text="sessions_week" Classes="caption" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+                <TextBlock Text="{Binding MomentumLabel}" Classes="caption" Margin="2,-6,0,0" />
 
-            <!-- This week -->
-            <Border Classes="card" IsVisible="{Binding HasAgenda}">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="今週 · this week" Classes="jp" />
-                    <ItemsControl ItemsSource="{Binding Agenda}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:AgendaDayViewModel">
-                                <Grid ColumnDefinitions="110,*" Margin="0,4,0,0">
-                                    <TextBlock Grid.Column="0" Text="{Binding DayLabel}"
-                                               Classes="caption" FontSize="13"
-                                               VerticalAlignment="Top"
-                                               Classes.today="{Binding IsToday}" />
-                                    <ItemsControl Grid.Column="1" ItemsSource="{Binding Entries}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:AgendaEntryViewModel">
-                                                <TextBlock Text="{Binding Text}" FontSize="13"
-                                                           Margin="0,1,0,1" TextWrapping="Wrap"
-                                                           Classes.agclass="{Binding IsClass}"
-                                                           Classes.agdue="{Binding IsDue}"
-                                                           Classes.agexam="{Binding IsExam}" />
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
-
-            <!-- Needs work -->
-            <Border Classes="card">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="要努力 · needs work" Classes="jp" />
-
-                    <ItemsControl ItemsSource="{Binding WeakSpots}" IsVisible="{Binding HasWeakSpots}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:WeakSpotViewModel">
-                                <Border Classes="trow" Margin="0,2,0,0">
-                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                                        <Ellipse Grid.Column="0" Width="8" Height="8"
-                                                 VerticalAlignment="Center" Margin="2,0,10,0"
-                                                 Fill="{DynamicResource AmberBrush}"
-                                                 Classes="dotsev" Classes.severe="{Binding IsSevere}" />
-                                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                                                <Border Classes="tag" VerticalAlignment="Center"
-                                                        IsVisible="{Binding HasCode}">
-                                                    <TextBlock Text="{Binding Code}" Foreground="{Binding Code, Converter={StaticResource CourseColor}}" />
-                                                </Border>
-                                            </StackPanel>
-                                            <TextBlock Text="{Binding Message}" Classes="caption" />
-                                        </StackPanel>
-                                        <Button Grid.Column="2" Content="open" Classes="seg"
-                                                Command="{Binding OpenCommand}" />
-                                        <Button Grid.Column="3" Content="→ today" Classes="seg"
-                                                Command="{Binding SendToTodayCommand}"
-                                                ToolTip.Tip="drop a focus task on today" />
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
-                    <TextBlock Text="{Binding WeakSpotsCaption}" Classes="caption" TextWrapping="Wrap" />
-                </StackPanel>
-            </Border>
-
-            <!-- Study videos -->
-            <Border Classes="card">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="ながら見 · study videos" Classes="jp" />
-
-                    <ItemsControl ItemsSource="{Binding Links}" IsVisible="{Binding HasLinks}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:StudyLinkViewModel">
-                                <Border Classes="trow" Margin="0,2,0,0">
-                                    <Grid ColumnDefinitions="*,Auto,Auto">
-                                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"
-                                                   TextTrimming="CharacterEllipsis" />
-                                        <Button Grid.Column="1" Content="▶ open" Classes="seg"
-                                                Command="{Binding OpenCommand}"
-                                                ToolTip.Tip="open in your browser" />
-                                        <Button Grid.Column="2" Content="✕" Classes="icon"
-                                                Command="{Binding RemoveCommand}" />
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
-                    <Grid ColumnDefinitions="*,1.4*,Auto">
-                        <TextBox Grid.Column="0" Text="{Binding NewLinkTitle}"
-                                 Watermark="label" FontSize="13" Padding="10,6" />
-                        <TextBox Grid.Column="1" Text="{Binding NewLinkUrl}"
-                                 Watermark="youtube / playlist url…" Margin="6,0,0,0"
-                                 FontSize="13" Padding="10,6">
-                            <TextBox.KeyBindings>
-                                <KeyBinding Gesture="Enter" Command="{Binding AddLinkCommand}" />
-                            </TextBox.KeyBindings>
-                        </TextBox>
-                        <Button Grid.Column="2" Content="+" Classes="icon" Margin="4,0,0,0"
-                                Command="{Binding AddLinkCommand}" />
+                <!-- Review due -->
+                <Border Classes="card" IsVisible="{Binding Review.HasDue}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="// 復習 · review" Classes="jp" />
+                            <TextBlock FontSize="15">
+                                <Run Text="{Binding Review.TotalDue, Mode=OneWay}" />
+                                <Run Text=" cards due — keep them from slipping" />
+                            </TextBlock>
+                        </StackPanel>
+                        <Button Grid.Column="1" Classes="accent" Content="start review"
+                                VerticalAlignment="Center"
+                                Command="{Binding StartReviewCommand}" />
                     </Grid>
-                    <TextBlock Text="links open in your browser — drop your lofi playlist here"
-                               Classes="caption" />
-                </StackPanel>
-            </Border>
-        </StackPanel>
-    </ScrollViewer>
+                </Border>
+
+                <!-- Two columns: what's next / standing -->
+                <Grid ColumnDefinitions="*,*">
+                    <!-- Up next -->
+                    <Border Classes="card" Margin="0,0,8,0">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="// 次は · up next" Classes="jp" />
+                            <TextBlock Text="{Binding Today.NextClassLabel}" FontSize="13"
+                                       Foreground="{DynamicResource BlueBrush}"
+                                       IsVisible="{Binding Today.HasNextClass}" />
+                            <TextBlock Text="{Binding Today.DeadlinesLabel}" FontSize="13"
+                                       Foreground="{DynamicResource AmberBrush}"
+                                       TextWrapping="Wrap"
+                                       IsVisible="{Binding Today.HasUpcomingDeadlines}" />
+                            <TextBlock FontSize="13" Classes="caption">
+                                <Run Text="{Binding Todo.OpenCount, Mode=OneWay}" />
+                                <Run Text=" backlog · " />
+                                <Run Text="{Binding Todo.DoingCount, Mode=OneWay}" />
+                                <Run Text=" in progress" />
+                            </TextBlock>
+                            <Button Classes="accent" Content="start focusing"
+                                    HorizontalAlignment="Left"
+                                    Command="{Binding Today.Pomodoro.ToggleRunCommand}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Standing -->
+                    <Border Grid.Column="1" Classes="card" Margin="8,0,0,0">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="// 成績 · standing" Classes="jp" />
+                            <TextBlock Text="{Binding Subjects.GpaLabel}" FontSize="20"
+                                       FontWeight="SemiBold" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding Subjects.DegreeLabel}" Classes="caption"
+                                       IsVisible="{Binding Subjects.HasDegreeProjection}" />
+                            <TextBlock Text="{Binding Subjects.GpaCaption}" Classes="caption"
+                                       TextWrapping="Wrap"
+                                       IsVisible="{Binding Subjects.GpaCaption, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- This week -->
+                <Border Classes="card" IsVisible="{Binding HasAgenda}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="// 今週 · this week" Classes="jp" />
+                        <ItemsControl ItemsSource="{Binding Agenda}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AgendaDayViewModel">
+                                    <Grid ColumnDefinitions="110,*" Margin="0,4,0,0">
+                                        <TextBlock Grid.Column="0" Text="{Binding DayLabel}"
+                                                   Classes="caption" FontSize="13"
+                                                   VerticalAlignment="Top"
+                                                   Classes.today="{Binding IsToday}" />
+                                        <ItemsControl Grid.Column="1" ItemsSource="{Binding Entries}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:AgendaEntryViewModel">
+                                                    <TextBlock Text="{Binding Text}" FontSize="13"
+                                                               Margin="0,1,0,1" TextWrapping="Wrap"
+                                                               Classes.agclass="{Binding IsClass}"
+                                                               Classes.agdue="{Binding IsDue}"
+                                                               Classes.agexam="{Binding IsExam}" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Needs work -->
+                <Border Classes="card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="// 要努力 · needs work" Classes="jp" />
+
+                        <ItemsControl ItemsSource="{Binding WeakSpots}" IsVisible="{Binding HasWeakSpots}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:WeakSpotViewModel">
+                                    <Border Classes="trow" Margin="0,2,0,0">
+                                        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                            <Ellipse Grid.Column="0" Width="8" Height="8"
+                                                     VerticalAlignment="Center" Margin="2,0,10,0"
+                                                     Fill="{DynamicResource AmberBrush}"
+                                                     Classes="dotsev" Classes.severe="{Binding IsSevere}" />
+                                            <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                                    <Border Classes="tag" VerticalAlignment="Center"
+                                                            IsVisible="{Binding HasCode}">
+                                                        <TextBlock Text="{Binding Code}" Foreground="{Binding Code, Converter={StaticResource CourseColor}}" />
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Message}" Classes="caption" />
+                                            </StackPanel>
+                                            <Button Grid.Column="2" Content="open" Classes="seg"
+                                                    Command="{Binding OpenCommand}" />
+                                            <Button Grid.Column="3" Content="→ today" Classes="seg"
+                                                    Command="{Binding SendToTodayCommand}"
+                                                    ToolTip.Tip="drop a focus task on today" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="{Binding WeakSpotsCaption}" Classes="caption" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Study videos -->
+                <Border Classes="card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="// ながら見 · study videos" Classes="jp" />
+
+                        <ItemsControl ItemsSource="{Binding Links}" IsVisible="{Binding HasLinks}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:StudyLinkViewModel">
+                                    <Border Classes="trow" Margin="0,2,0,0">
+                                        <Grid ColumnDefinitions="*,Auto,Auto">
+                                            <TextBlock Text="{Binding Title}" VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <Button Grid.Column="1" Content="▶ open" Classes="seg"
+                                                    Command="{Binding OpenCommand}"
+                                                    ToolTip.Tip="open in your browser" />
+                                            <Button Grid.Column="2" Content="✕" Classes="icon"
+                                                    Command="{Binding RemoveCommand}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Grid ColumnDefinitions="*,1.4*,Auto">
+                            <TextBox Grid.Column="0" Text="{Binding NewLinkTitle}"
+                                     Watermark="label" FontSize="13" Padding="10,6" />
+                            <TextBox Grid.Column="1" Text="{Binding NewLinkUrl}"
+                                     Watermark="youtube / playlist url…" Margin="6,0,0,0"
+                                     FontSize="13" Padding="10,6">
+                                <TextBox.KeyBindings>
+                                    <KeyBinding Gesture="Enter" Command="{Binding AddLinkCommand}" />
+                                </TextBox.KeyBindings>
+                            </TextBox>
+                            <Button Grid.Column="2" Content="+" Classes="icon" Margin="4,0,0,0"
+                                    Command="{Binding AddLinkCommand}" />
+                        </Grid>
+                        <TextBlock Text="links open in your browser — drop your lofi playlist here"
+                                   Classes="caption" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
 </UserControl>

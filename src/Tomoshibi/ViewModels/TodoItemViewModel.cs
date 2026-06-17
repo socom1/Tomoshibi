@@ -24,6 +24,14 @@ public partial class TodoItemViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isExpanded;
 
+    /// <summary>▸ collapsed, ▾ expanded — shown on the always-visible toggle.</summary>
+    public string ChevronGlyph => IsExpanded ? "▾" : "▸";
+
+    partial void OnIsExpandedChanged(bool value) => OnPropertyChanged(nameof(ChevronGlyph));
+
+    [RelayCommand]
+    private void ToggleExpanded() => IsExpanded = !IsExpanded;
+
     [ObservableProperty]
     private string _newSubtaskTitle = string.Empty;
 

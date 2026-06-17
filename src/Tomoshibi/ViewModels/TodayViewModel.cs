@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -99,6 +100,16 @@ public partial class TodayViewModel : ViewModelBase
     /// <summary>The Pomodoro timer.</summary>
     public PomodoroViewModel Pomodoro { get; }
 
+    /// <summary>Strips the timer to just the clock + gauge when on. Persisted.</summary>
+    [ObservableProperty]
+    private bool _simpleTimer;
+
+    /// <summary>Recent completed blocks — the terminal-style session log feed.</summary>
+    public ObservableCollection<TimerLogEntry> SessionLog { get; } = new();
+
+    [ObservableProperty]
+    private bool _hasSessionLog;
+
     /// <summary>The code-edited task list for today.</summary>
     public TaskTemplateViewModel Tasks { get; }
 
@@ -121,12 +132,14 @@ public partial class TodayViewModel : ViewModelBase
         _dailyIntention = _state.DailyIntention;
         _intentionKept = _state.IntentionKept;
         _dailyReflection = _state.DailyReflection;
+        _simpleTimer = _state.SimpleTimer;
         _completedSessions = _state.Today.CompletedSessions;
         _focusedHours = Math.Round(_state.Today.FocusedMinutes / 60.0, 1);
         _greeting = GreetingFor(DateTime.Now);
 
         Pomodoro = new PomodoroViewModel(ComposeEffectiveSettings, sound, notify);
         Pomodoro.FocusSessionCompleted += OnFocusSessionCompleted;
+        Pomodoro.BlockCompleted += OnBlockCompleted;
 
         Tasks = new TaskTemplateViewModel(_state, _save, OnActiveTaskChanged);
 
@@ -277,6 +290,40 @@ public partial class TodayViewModel : ViewModelBase
     /// doesn't have to know what zen mode actually is.</summary>
     [RelayCommand]
     private void ToggleZen() => _toggleZen();
+
+    partial void OnSimpleTimerChanged(bool value)
+    {
+        _state.SimpleTimer = value;
+        _save();
+    }
+
+    /// <summary>Append a finished block to the session log, newest first, and
+    /// keep the feed short. Focus blocks show the embers earned.</summary>
+    private void OnBlockCompleted(PomodoroPhase phase, int focusMinutes)
+    {
+        var label = phase switch
+        {
+            PomodoroPhase.Focus => "focus",
+            PomodoroPhase.ShortBreak => "break",
+            PomodoroPhase.LongBreak => "long break",
+            _ => "focus"
+        };
+
+        var detail = phase == PomodoroPhase.Focus ? $"+{focusMinutes} 火種" : "done";
+
+        SessionLog.Insert(0, new TimerLogEntry
+        {
+            Phase = phase,
+            TimeLabel = DateTime.Now.ToString("HH:mm"),
+            PhaseLabel = label,
+            Detail = detail
+        });
+
+        while (SessionLog.Count > 5)
+            SessionLog.RemoveAt(SessionLog.Count - 1);
+
+        HasSessionLog = SessionLog.Count > 0;
+    }
 
     partial void OnDailyIntentionChanged(string value)
     {

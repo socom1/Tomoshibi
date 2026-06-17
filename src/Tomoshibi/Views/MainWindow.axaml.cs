@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using Tomoshibi.Models;
 using Tomoshibi.ViewModels;
 
 namespace Tomoshibi.Views;
@@ -66,6 +67,50 @@ public partial class MainWindow : Window
             _vm.NavigateByIndex(e.Key - Key.D1 + 1);
             e.Handled = true;
             return;
+        }
+
+        // Review sessions are keyboard-driven: space/enter reveals the answer,
+        // then 1/2/3 grade the card. This sits above the global space-to-toggle
+        // handler so space doesn't start the pomodoro timer mid-review.
+        if (!cmd && _vm.ActiveDestination == Destination.Review
+                 && _vm.Review.IsReviewing && !_vm.Review.IsSessionDone
+                 && FocusManager?.GetFocusedElement() is not TextBox)
+        {
+            if (!_vm.Review.IsFlipped)
+            {
+                if (e.Key is Key.Space or Key.Enter)
+                {
+                    _vm.Review.FlipCommand.Execute(null);
+                    e.Handled = true;
+                    return;
+                }
+            }
+            else
+            {
+                switch (e.Key)
+                {
+                    case Key.D1 or Key.NumPad1:
+                        _vm.Review.GradeAgainCommand.Execute(null); e.Handled = true; return;
+                    case Key.D2 or Key.NumPad2:
+                        _vm.Review.GradeGoodCommand.Execute(null); e.Handled = true; return;
+                    case Key.D3 or Key.NumPad3:
+                        _vm.Review.GradeEasyCommand.Execute(null); e.Handled = true; return;
+                }
+            }
+        }
+
+        // Single-key timer controls, only on the Today page and never while
+        // typing or with the add-task modal up: r reset, s skip, z zen.
+        if (!cmd && _vm.ActiveDestination == Destination.Today
+                 && !_vm.Today.Tasks.IsAddTaskModalOpen
+                 && FocusManager?.GetFocusedElement() is not TextBox)
+        {
+            switch (e.Key)
+            {
+                case Key.R: _vm.Today.Pomodoro.ResetCommand.Execute(null); e.Handled = true; return;
+                case Key.S: _vm.Today.Pomodoro.SkipCommand.Execute(null); e.Handled = true; return;
+                case Key.Z: _vm.ToggleZenCommand.Execute(null); e.Handled = true; return;
+            }
         }
 
         // Space toggles the timer from anywhere — except while typing in a

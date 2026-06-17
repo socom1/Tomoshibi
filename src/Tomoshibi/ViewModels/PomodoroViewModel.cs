@@ -20,6 +20,12 @@ public partial class PomodoroViewModel : ViewModelBase
     private readonly INotificationService? _notify;
     private readonly DispatcherTimer _timer;
 
+    // A second, faster timer purely for the braille spinner in the panel title.
+    private readonly DispatcherTimer _spinTimer;
+    private static readonly string[] SpinFrames =
+        { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" };
+    private int _spinIndex;
+
     private int _remainingSeconds;
     private int _round = 1; // current focus round within the set (1..RoundsBeforeLongBreak)
 
@@ -32,6 +38,16 @@ public partial class PomodoroViewModel : ViewModelBase
     /// <summary>Raised when a focus block finishes; carries the focused minutes.
     /// Not raised for breaks or when the user skips.</summary>
     public event Action<int>? FocusSessionCompleted;
+
+    /// <summary>Raised when any block finishes naturally (focus or break),
+    /// carrying the phase that just ended and its focus minutes — drives the
+    /// session log feed.</summary>
+    public event Action<PomodoroPhase, int>? BlockCompleted;
+
+    /// <summary>The current braille spinner frame, cycled while running and a
+    /// steady glyph when idle.</summary>
+    [ObservableProperty]
+    private string _spinner = "·";
 
     [ObservableProperty]
     private PomodoroPhase _phase = PomodoroPhase.Focus;
@@ -51,7 +67,32 @@ public partial class PomodoroViewModel : ViewModelBase
 
     /// <summary>0..1 fraction of the current phase still to run. Drains down.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Elapsed))]
+    [NotifyPropertyChangedFor(nameof(Gauge))]
+    [NotifyPropertyChangedFor(nameof(PercentLabel))]
     private double _progress = 1.0;
+
+    /// <summary>0..1 fraction of the phase already done.</summary>
+    public double Elapsed => Math.Clamp(1.0 - Progress, 0, 1);
+
+    private const int GaugeWidth = 26;
+
+    /// <summary>A terminal-style progress bar that fills as the phase elapses,
+    /// e.g. "[//////////////.           ]" — '/' done, '.' the head, the rest
+    /// blank, all monospace so the brackets stay put.</summary>
+    public string Gauge
+    {
+        get
+        {
+            var filled = Math.Clamp((int)Math.Round(Elapsed * GaugeWidth), 0, GaugeWidth);
+            var head = filled < GaugeWidth ? 1 : 0;
+            var empty = GaugeWidth - filled - head;
+            return "[" + new string('/', filled) + new string('.', head)
+                       + new string(' ', empty) + "]";
+        }
+    }
+
+    public string PercentLabel => $"{Elapsed * 100:0}%";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(StartPauseLabel))]
@@ -63,6 +104,21 @@ public partial class PomodoroViewModel : ViewModelBase
     private bool _isPaused;
 
     public string StartPauseLabel => IsRunning ? "pause" : "start";
+
+    /// <summary>Spin the spinner only while the clock runs; settle on a steady
+    /// dot when it stops.</summary>
+    partial void OnIsRunningChanged(bool value)
+    {
+        if (value)
+        {
+            _spinTimer.Start();
+        }
+        else
+        {
+            _spinTimer.Stop();
+            Spinner = "·";
+        }
+    }
 
     /// <summary>Constructs the timer with a callback that returns the current
     /// effective settings (global, optionally overridden by the active task).
@@ -76,6 +132,13 @@ public partial class PomodoroViewModel : ViewModelBase
         _notify = notify;
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _timer.Tick += OnTick;
+
+        _spinTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(90) };
+        _spinTimer.Tick += (_, _) =>
+        {
+            _spinIndex = (_spinIndex + 1) % SpinFrames.Length;
+            Spinner = SpinFrames[_spinIndex];
+        };
 
         SetPhase(PomodoroPhase.Focus, resetRound: true);
     }
@@ -147,6 +210,10 @@ public partial class PomodoroViewModel : ViewModelBase
         _timer.Stop();
         IsRunning = false;
 
+        // Captured before SetPhase overwrites them — the block that just ended.
+        var finishedPhase = Phase;
+        var finishedFocusMinutes = _phaseFocusMinutes;
+
         switch (Phase)
         {
             case PomodoroPhase.Focus:
@@ -170,6 +237,8 @@ public partial class PomodoroViewModel : ViewModelBase
         // A skip is the user intervening — let them choose when to resume.
         if (natural)
         {
+            BlockCompleted?.Invoke(finishedPhase, finishedFocusMinutes);
+
             var s = _getSettings();
 
             if (s.ChimeEnabled)

@@ -37,7 +37,6 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsSubjectsActive))]
     [NotifyPropertyChangedFor(nameof(IsStatsActive))]
     [NotifyPropertyChangedFor(nameof(IsReviewActive))]
-    [NotifyPropertyChangedFor(nameof(IsStickiesActive))]
     [NotifyPropertyChangedFor(nameof(IsShopActive))]
     [NotifyPropertyChangedFor(nameof(IsSettingsActive))]
     [NotifyPropertyChangedFor(nameof(ActiveContent))]
@@ -93,9 +92,6 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>The flashcards / spaced-repetition review destination.</summary>
     public ReviewViewModel Review { get; }
 
-    /// <summary>The corkboard destination's content.</summary>
-    public StickiesViewModel Stickies { get; }
-
     /// <summary>The floating music player (bubble + panel, all pages).</summary>
     public MusicPlayerViewModel Music { get; }
 
@@ -123,7 +119,6 @@ public partial class MainWindowViewModel : ViewModelBase
         Destination.Subjects => Subjects,
         Destination.Stats => Stats,
         Destination.Review => Review,
-        Destination.Stickies => Stickies,
         Destination.Shop => Shop,
         Destination.Settings => SettingsPage,
         Destination.Today => Today,
@@ -137,7 +132,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsSubjectsActive => ActiveDestination == Destination.Subjects;
     public bool IsStatsActive => ActiveDestination == Destination.Stats;
     public bool IsReviewActive => ActiveDestination == Destination.Review;
-    public bool IsStickiesActive => ActiveDestination == Destination.Stickies;
     public bool IsShopActive => ActiveDestination == Destination.Shop;
     public bool IsSettingsActive => ActiveDestination == Destination.Settings;
 
@@ -163,7 +157,6 @@ public partial class MainWindowViewModel : ViewModelBase
         Subjects = new SubjectsViewModel(_state, Save, OpenUrl);
         Stats = new StatsViewModel(_state);
         Review = new ReviewViewModel(_state, Save, Wallet);
-        Stickies = new StickiesViewModel(_state, Save);
         Music = new MusicPlayerViewModel(_state, Save, new MusicService());
         SettingsPage = new SettingsPageViewModel(_state, Save, settings, Music, Subjects,
                                                  storage.Location);
@@ -294,7 +287,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Destination.Dashboard, Destination.Today, Destination.Timetable,
         Destination.Todo, Destination.Subjects, Destination.Stats,
-        Destination.Review, Destination.Stickies, Destination.Shop, Destination.Settings
+        Destination.Review, Destination.Shop, Destination.Settings
     };
 
     /// <summary>Jump to the nth destination (1-based) — wired to Cmd/Ctrl+digit.
@@ -339,7 +332,6 @@ public partial class MainWindowViewModel : ViewModelBase
         Page("subjects", Destination.Subjects);
         Page("stats", Destination.Stats);
         Page("review", Destination.Review);
-        Page("stickies", Destination.Stickies);
         Page("shop", Destination.Shop);
         Page("settings", Destination.Settings);
 
@@ -403,9 +395,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [RelayCommand]
     private void NavigateToReview() => ActiveDestination = Destination.Review;
-
-    [RelayCommand]
-    private void NavigateToStickies() => ActiveDestination = Destination.Stickies;
 
     [RelayCommand]
     private void NavigateToShop() => ActiveDestination = Destination.Shop;
@@ -578,8 +567,8 @@ public partial class MainWindowViewModel : ViewModelBase
         Save();
     }
 
-    // Saves are debounced: keystrokes in the intention, the .code editor and
-    // sticky notes each call Save(), and writing the whole state on every one
+    // Saves are debounced: keystrokes in the intention and the .code editor
+    // each call Save(), and writing the whole state on every one
     // is needless disk churn. Instead we coalesce — restart a short timer and
     // write once it goes quiet — and flush immediately on shutdown/close so
     // nothing is lost.

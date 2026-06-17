@@ -36,6 +36,15 @@ public partial class StatsViewModel : ViewModelBase
 
     [ObservableProperty] private string _monthLabel = string.Empty;
 
+    /// <summary>Caption under the calendar — active days + hours this month.</summary>
+    [ObservableProperty] private string _monthSummary = string.Empty;
+
+    /// <summary>14-day focus trend drawn from block glyphs, one column per day.</summary>
+    [ObservableProperty] private string _sparkline = string.Empty;
+
+    /// <summary>Right-hand caption for the sparkline, e.g. "14d · 12.5h".</summary>
+    [ObservableProperty] private string _sparklineSummary = string.Empty;
+
     [ObservableProperty] private int _currentStreak;
     [ObservableProperty] private int _bestStreak;
     [ObservableProperty] private double _totalHours;
@@ -61,9 +70,44 @@ public partial class StatsViewModel : ViewModelBase
         var byDate = DaysWithActivity();
 
         BuildSummary(byDate);
+        BuildSparkline(byDate);
         BuildMonth(byDate);
         BuildFocusByCourse();
         BuildJournal();
+    }
+
+    private static readonly char[] SparkLevels = { '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█' };
+
+    /// <summary>A 14-day focus sparkline: one block glyph per day, its height
+    /// scaled against the busiest day in the window; '·' marks an idle day.</summary>
+    private void BuildSparkline(Dictionary<DateOnly, (int Sessions, double Minutes)> byDate)
+    {
+        const int span = 14;
+        var today = DateOnly.FromDateTime(DateTime.Now);
+
+        var minutes = new double[span];
+        for (var i = 0; i < span; i++)
+        {
+            var date = today.AddDays(-(span - 1 - i));
+            byDate.TryGetValue(date, out var activity);
+            minutes[i] = activity.Minutes;
+        }
+
+        var max = minutes.Max();
+        var columns = new char[span];
+        for (var i = 0; i < span; i++)
+        {
+            if (minutes[i] <= 0 || max <= 0)
+            {
+                columns[i] = '·';
+                continue;
+            }
+            var level = (int)Math.Ceiling(minutes[i] / max * SparkLevels.Length) - 1;
+            columns[i] = SparkLevels[Math.Clamp(level, 0, SparkLevels.Length - 1)];
+        }
+
+        Sparkline = new string(columns);
+        SparklineSummary = $"{span}d · {Math.Round(minutes.Sum() / 60.0, 1)}h";
     }
 
     /// <summary>The intention/reflection look-back: today's live note first
@@ -109,14 +153,18 @@ public partial class StatsViewModel : ViewModelBase
             .OrderByDescending(kv => kv.Value)
             .ToList();
 
+        const int barWidth = 12;
         var max = minutes.Count > 0 ? minutes[0].Value : 0;
         foreach (var (course, mins) in minutes)
         {
+            var fraction = max > 0 ? mins / max : 0;
+            var filled = Math.Clamp((int)Math.Round(fraction * barWidth), 0, barWidth);
             FocusByCourse.Add(new CourseFocusViewModel
             {
                 Course = course,
                 HoursLabel = FocusLog.HoursLabel(mins),
-                Fraction = max > 0 ? mins / max : 0
+                Fraction = fraction,
+                Bar = new string('█', filled) + new string('░', barWidth - filled)
             });
         }
 
@@ -187,6 +235,13 @@ public partial class StatsViewModel : ViewModelBase
 
         MonthLabel = $"{_month:MMMM yyyy}".ToLowerInvariant();
         CanGoForward = _month < new DateOnly(today.Year, today.Month, 1);
+
+        var inMonth = byDate
+            .Where(kv => kv.Key.Year == _month.Year && kv.Key.Month == _month.Month)
+            .ToList();
+        MonthSummary = inMonth.Count == 0
+            ? "no focus logged this month"
+            : $"{inMonth.Count} active days · {Math.Round(inMonth.Sum(kv => kv.Value.Minutes) / 60.0, 1)}h this month";
 
         Days.Clear();
 

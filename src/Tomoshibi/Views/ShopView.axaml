@@ -11,11 +11,14 @@
 
         <!-- Header with balance -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
-            <StackPanel Spacing="2">
-                <TextBlock Text="ショップ · shop" Classes="jp" />
-                <TextBlock Text="{Binding Wallet.BalanceLabel}" Classes="h1" />
+            <StackPanel Spacing="3">
+                <TextBlock Classes="path" Text="~/tomoshibi/shop" />
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="❯" Classes="prompt" />
+                    <TextBlock Text="{Binding Wallet.BalanceLabel}" Classes="h1 cjk" VerticalAlignment="Center" />
+                </StackPanel>
                 <TextBlock Text="earn 火種 embers by focusing — one per minute"
-                           Classes="caption" />
+                           Classes="caption" Margin="0,2,0,0" />
                 <TextBlock Text="{Binding Flash}" Classes="caption"
                            Foreground="{DynamicResource MatchaBrush}"
                            IsVisible="{Binding Flash, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -24,7 +27,7 @@
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="4">
-                <TextBlock Text="テーマ · themes" Classes="jp" Margin="2,0,0,8" />
+                <TextBlock Text="// テーマ · themes" Classes="jp" Margin="2,0,0,8" />
 
                 <ItemsControl ItemsSource="{Binding Themes}">
                     <ItemsControl.ItemTemplate>

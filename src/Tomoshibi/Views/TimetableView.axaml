@@ -14,111 +14,34 @@
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="28,4,28,28">
-        <StackPanel Spacing="20">
+        <StackPanel MaxWidth="860">
 
-            <!-- Page header -->
-            <Grid ColumnDefinitions="*,Auto">
-                <StackPanel Spacing="2">
-                    <TextBlock Text="時間割 · timetable" Classes="jp" />
-                    <TextBlock Text="schedule" Classes="h1" />
-                    <TextBlock Text="{Binding ImportSummary}" Classes="caption"
-                               IsVisible="{Binding ImportSummary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                </StackPanel>
+            <!-- The whole schedule lives in one flat terminal panel -->
+            <Border Classes="termpanel">
+                <StackPanel Spacing="0">
 
-                <Button Grid.Column="1" Content="import .ics" Classes="seg"
-                        VerticalAlignment="Top" Margin="0,6,0,0"
-                        Click="OnImportIcsClick"
-                        ToolTip.Tip="bring in a timetable export — weekly events become classes, one-offs become deadlines" />
-            </Grid>
+                    <!-- Header -->
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,18">
+                        <StackPanel Spacing="3">
+                            <TextBlock Classes="path" Text="~/tomoshibi/timetable" />
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="❯" Classes="prompt" />
+                                <TextBlock Text="schedule" Classes="h1" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Text="{Binding ImportSummary}" Classes="caption"
+                                       Margin="0,2,0,0"
+                                       IsVisible="{Binding ImportSummary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
 
-            <!-- ============ Deadlines ============ -->
-            <Border Classes="card">
-                <DockPanel>
-                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto">
-                        <TextBlock Text="締切 · deadlines" Classes="jp" VerticalAlignment="Center" />
-                        <Button x:Name="AddDeadlineButton" Grid.Column="1" Classes="icon"
-                                Content="+" FontSize="18"
-                                Click="OnAddDeadlineOpen"
-                                ToolTip.Tip="add a deadline">
-                            <Button.Flyout>
-                                <Flyout Placement="BottomEdgeAlignedRight">
-                                    <StackPanel Width="260" Spacing="10" Margin="8">
-                                        <TextBlock Text="締切 · deadline" Classes="jp" />
-
-                                        <CalendarDatePicker SelectedDate="{Binding NewDeadlineDate}" />
-                                        <TextBox Watermark="what's due?"
-                                                 Text="{Binding NewDeadlineTitle}" />
-                                        <AutoCompleteBox Watermark="course"
-                                                         Text="{Binding NewDeadlineCourse}"
-                                                         ItemsSource="{Binding KnownCourses}"
-                                                         FilterMode="Contains" />
-                                        <Button Content="add" Classes="accent"
-                                                HorizontalAlignment="Stretch"
-                                                Command="{Binding AddDeadlineCommand}" />
-                                        <TextBlock Text="lands on the todo backlog as a ticket"
-                                                   Classes="caption" />
-                                    </StackPanel>
-                                </Flyout>
-                            </Button.Flyout>
-                        </Button>
+                        <Button Grid.Column="1" Content="$ import .ics" Classes="seg"
+                                VerticalAlignment="Top" Margin="0,6,0,0"
+                                Click="OnImportIcsClick"
+                                ToolTip.Tip="bring in a timetable export — weekly events become classes, one-offs become deadlines" />
                     </Grid>
 
-                    <TextBlock DockPanel.Dock="Top" Text="締切はまだない · no deadlines yet"
-                               Classes="caption" Margin="0,12,0,0"
-                               IsVisible="{Binding !HasDeadlines}" />
-
-                    <ItemsControl ItemsSource="{Binding Deadlines}" Margin="0,8,0,0">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:DeadlineItemViewModel">
-                                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" Margin="0,6,0,0">
-                                    <TextBlock Grid.Column="0" Text="{Binding DateLabel}"
-                                               Classes="caption" VerticalAlignment="Center"
-                                               Classes.overdue="{Binding IsOverdue}"
-                                               Width="92" />
-                                    <TextBlock Grid.Column="1" Text="{Binding NumberLabel}"
-                                               Classes="caption" VerticalAlignment="Center"
-                                               Margin="0,0,8,0"
-                                               ToolTip.Tip="a todo ticket — edit it on the todo page" />
-                                    <TextBlock Grid.Column="2" Text="{Binding Title}"
-                                               VerticalAlignment="Center" TextWrapping="Wrap" />
-                                    <Border Grid.Column="3" Classes="tag" Margin="8,0,0,0"
-                                            IsVisible="{Binding HasCourse}">
-                                        <TextBlock Text="{Binding Course}" Foreground="{Binding Course, Converter={StaticResource CourseColor}}" />
-                                    </Border>
-                                    <Button Grid.Column="4" Content="✕" Classes="icon" Margin="4,0,0,0"
-                                            ToolTip.Tip="delete the ticket"
-                                            Command="{Binding $parent[ItemsControl].((vm:TimetableViewModel)DataContext).RemoveDeadlineCommand}"
-                                            CommandParameter="{Binding}" />
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </DockPanel>
-            </Border>
-
-            <!-- ============ Upcoming exams (from the subjects page) ============ -->
-            <Border Classes="card" IsVisible="{Binding HasUpcomingExams}">
-                <StackPanel Spacing="6">
-                    <TextBlock Text="試験 · upcoming exams" Classes="jp" />
-                    <ItemsControl ItemsSource="{Binding UpcomingExams}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" FontSize="13" Margin="0,2,0,0" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    <TextBlock Text="dated assessments from the subjects page — grade them there"
-                               Classes="caption" />
-                </StackPanel>
-            </Border>
-
-            <!-- ============ Classes ============ -->
-            <Border Classes="card">
-                <DockPanel>
-                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto">
-                        <TextBlock Text="授業 · classes" Classes="jp" VerticalAlignment="Center" />
-
-                        <!-- View toggle -->
+                    <!-- ============ Classes ============ -->
+                    <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                        <TextBlock Text="// 授業 · classes" Classes="jp" VerticalAlignment="Center" />
                         <Button Grid.Column="1" Classes="seg"
                                 Classes.active="{Binding IsClassesGridView}"
                                 Content="grid"
@@ -127,92 +50,58 @@
                                 Classes.active="{Binding IsClassesListView}"
                                 Content="list"
                                 Command="{Binding ShowListClassesCommand}" />
-
-                        <Button x:Name="AddSlotButton" Grid.Column="3" Classes="icon"
-                                Content="+" FontSize="18"
-                                Margin="8,0,0,0"
-                                Click="OnAddSlotOpen"
-                                ToolTip.Tip="add a class slot">
-                            <Button.Flyout>
-                                <Flyout Placement="BottomEdgeAlignedRight">
-                                    <StackPanel Width="260" Spacing="10" Margin="8">
-                                        <TextBlock Text="授業 · class" Classes="jp" />
-
-                                        <ComboBox SelectedItem="{Binding NewSlotDay}"
-                                                  ItemsSource="{Binding WeekDays}"
-                                                  HorizontalAlignment="Stretch">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding, Converter={StaticResource Lower}}" />
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
-
-                                        <Grid ColumnDefinitions="*,8,*">
-                                            <TimePicker Grid.Column="0" ClockIdentifier="24HourClock"
-                                                        SelectedTime="{Binding NewSlotStart}" />
-                                            <TimePicker Grid.Column="2" ClockIdentifier="24HourClock"
-                                                        SelectedTime="{Binding NewSlotEnd}" />
-                                        </Grid>
-
-                                        <TextBox Watermark="class name"
-                                                 Text="{Binding NewSlotTitle}" />
-                                        <AutoCompleteBox Watermark="course"
-                                                         Text="{Binding NewSlotCourse}"
-                                                         ItemsSource="{Binding KnownCourses}"
-                                                         FilterMode="Contains" />
-                                        <Button Content="{Binding SlotFormLabel}" Classes="accent"
-                                                HorizontalAlignment="Stretch"
-                                                Command="{Binding AddSlotCommand}" />
-                                    </StackPanel>
-                                </Flyout>
-                            </Button.Flyout>
-                        </Button>
+                        <Button Grid.Column="3" Classes="icon"
+                                Content="+" FontSize="18" Margin="8,0,0,0"
+                                Command="{Binding OpenAddSlotCommand}"
+                                ToolTip.Tip="add a class slot" />
                     </Grid>
 
-                    <TextBlock DockPanel.Dock="Top" Text="授業はまだない · no classes yet"
-                               Classes="caption" Margin="0,12,0,0"
+                    <TextBlock Text="授業はまだない · no classes yet"
+                               Classes="jp" Margin="0,14,0,0"
                                IsVisible="{Binding !HasSlots}" />
 
-                    <!-- List view: flat sortable list, shown when ClassesView = List -->
-                    <ItemsControl ItemsSource="{Binding Slots}" Margin="0,8,0,0"
-                                  DockPanel.Dock="Top"
-                                  IsVisible="{Binding IsClassesListShown}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:ClassSlotItemViewModel">
-                                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" Margin="0,6,0,0">
-                                    <TextBlock Grid.Column="0" Text="{Binding DayLabel}"
-                                               Classes="caption" VerticalAlignment="Center"
-                                               Width="34" />
-                                    <TextBlock Grid.Column="1" Text="{Binding TimeLabel}"
-                                               Classes="caption" VerticalAlignment="Center"
-                                               Width="92" />
-                                    <TextBlock Grid.Column="2" Text="{Binding Title}"
-                                               VerticalAlignment="Center" TextWrapping="Wrap"
-                                               Margin="4,0,0,0" />
-                                    <Border Grid.Column="3" Classes="tag" Margin="8,0,0,0"
-                                            IsVisible="{Binding HasCourse}">
-                                        <TextBlock Text="{Binding Course}" Foreground="{Binding Course, Converter={StaticResource CourseColor}}" />
+                    <!-- List view: the week read like a schedule config file -->
+                    <StackPanel Margin="0,12,0,0" IsVisible="{Binding IsClassesListShown}">
+                        <TextBlock Classes="caption" FontSize="12" Margin="2,0,0,6">
+                            <Run Text="# schedule.tt · " />
+                            <Run Text="{Binding SlotsLabel}" />
+                        </TextBlock>
+                        <ItemsControl ItemsSource="{Binding Slots}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ClassSlotItemViewModel">
+                                    <Border Classes="trow" Margin="0,1,0,1" Cursor="Hand"
+                                            PointerPressed="OnSlotPressed"
+                                            ToolTip.Tip="click to edit">
+                                        <Grid ColumnDefinitions="40,116,*,Auto,Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding DayLabel}"
+                                                       Foreground="{DynamicResource MutedTextBrush}"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{Binding TimeLabel}"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Title}"
+                                                       VerticalAlignment="Center" TextWrapping="Wrap"
+                                                       Margin="6,0,0,0" />
+                                            <TextBlock Grid.Column="3" Text="{Binding Course}"
+                                                       Foreground="{Binding Course, Converter={StaticResource CourseColor}}"
+                                                       VerticalAlignment="Center" Margin="10,0,0,0"
+                                                       IsVisible="{Binding HasCourse}" />
+                                            <Button Grid.Column="4" Content="✕" Classes="icon" Margin="8,0,0,0"
+                                                    Command="{Binding $parent[ItemsControl].((vm:TimetableViewModel)DataContext).RemoveSlotCommand}"
+                                                    CommandParameter="{Binding}" />
+                                        </Grid>
                                     </Border>
-                                    <Button Grid.Column="4" Content="✎" Classes="icon" Margin="4,0,0,0"
-                                            Click="OnEditSlotClick"
-                                            ToolTip.Tip="edit" />
-                                    <Button Grid.Column="5" Content="✕" Classes="icon"
-                                            Command="{Binding $parent[ItemsControl].((vm:TimetableViewModel)DataContext).RemoveSlotCommand}"
-                                            CommandParameter="{Binding}" />
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
 
                     <!-- Week grid: time axis on the left, 7 day columns, slot
                          blocks placed via Grid.Row/Column on each ContentPresenter -->
-                    <Grid Margin="0,12,0,0"
+                    <Grid Margin="0,14,0,0"
                           IsVisible="{Binding IsClassesGridShown}"
                           ColumnDefinitions="28,*,*,*,*,*,*,*"
                           RowDefinitions="22,38,38,38,38,38,38,38,38,38,38,38,38,38,38">
 
-                        <!-- Day headers -->
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="mon" Classes="caption" HorizontalAlignment="Center" />
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="tue" Classes="caption" HorizontalAlignment="Center" />
                         <TextBlock Grid.Row="0" Grid.Column="3" Text="wed" Classes="caption" HorizontalAlignment="Center" />
@@ -221,7 +110,6 @@
                         <TextBlock Grid.Row="0" Grid.Column="6" Text="sat" Classes="caption" HorizontalAlignment="Center" />
                         <TextBlock Grid.Row="0" Grid.Column="7" Text="sun" Classes="caption" HorizontalAlignment="Center" />
 
-                        <!-- Hour labels on the left axis (08 through 22) -->
                         <TextBlock Grid.Row="1"  Grid.Column="0" Text="08" Classes="caption" VerticalAlignment="Top" />
                         <TextBlock Grid.Row="2"  Grid.Column="0" Text="09" Classes="caption" VerticalAlignment="Top" />
                         <TextBlock Grid.Row="3"  Grid.Column="0" Text="10" Classes="caption" VerticalAlignment="Top" />
@@ -237,7 +125,6 @@
                         <TextBlock Grid.Row="13" Grid.Column="0" Text="20" Classes="caption" VerticalAlignment="Top" />
                         <TextBlock Grid.Row="14" Grid.Column="0" Text="21" Classes="caption" VerticalAlignment="Top" />
 
-                        <!-- Slot blocks overlay -->
                         <ItemsControl Grid.Row="1" Grid.RowSpan="14"
                                       Grid.Column="1" Grid.ColumnSpan="7"
                                       ItemsSource="{Binding Slots}">
@@ -256,7 +143,8 @@
                             </ItemsControl.Styles>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:ClassSlotItemViewModel">
-                                    <Border Classes="slot" ToolTip.Tip="{Binding TimeLabel}"
+                                    <Border Classes="slot" ToolTip.Tip="click to edit" Cursor="Hand"
+                                            PointerPressed="OnSlotPressed"
                                             Background="{Binding Course, Converter={StaticResource CourseColor}, ConverterParameter=soft}"
                                             BorderBrush="{Binding Course, Converter={StaticResource CourseColor}}">
                                         <Grid>
@@ -281,7 +169,87 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </Grid>
-                </DockPanel>
+
+                    <!-- divider -->
+                    <Border Height="1" Background="{DynamicResource BorderBrush}"
+                            Margin="0,20,0,20" />
+
+                    <!-- ============ Deadlines ============ -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="// 締切 · deadlines" Classes="jp" VerticalAlignment="Center" />
+                        <Button x:Name="AddDeadlineButton" Grid.Column="1" Classes="icon"
+                                Content="+" FontSize="18"
+                                Click="OnAddDeadlineOpen"
+                                ToolTip.Tip="add a deadline">
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedRight">
+                                    <StackPanel Width="260" Spacing="10" Margin="8">
+                                        <TextBlock Text="締切 · deadline" Classes="jp" />
+                                        <CalendarDatePicker SelectedDate="{Binding NewDeadlineDate}" />
+                                        <TextBox Watermark="what's due?"
+                                                 Text="{Binding NewDeadlineTitle}" />
+                                        <AutoCompleteBox Watermark="course"
+                                                         Text="{Binding NewDeadlineCourse}"
+                                                         ItemsSource="{Binding KnownCourses}"
+                                                         FilterMode="Contains" />
+                                        <Button Content="add" Classes="accent"
+                                                HorizontalAlignment="Stretch"
+                                                Command="{Binding AddDeadlineCommand}" />
+                                        <TextBlock Text="lands on the todo backlog as a ticket"
+                                                   Classes="caption" />
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </Grid>
+
+                    <TextBlock Text="締切はまだない · no deadlines yet"
+                               Classes="jp" Margin="0,12,0,0"
+                               IsVisible="{Binding !HasDeadlines}" />
+
+                    <ItemsControl ItemsSource="{Binding Deadlines}" Margin="0,8,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DeadlineItemViewModel">
+                                <Border Classes="trow" Margin="0,1,0,1">
+                                    <Grid ColumnDefinitions="92,Auto,*,Auto,Auto">
+                                        <TextBlock Grid.Column="0" Text="{Binding DateLabel}"
+                                                   Classes="caption" VerticalAlignment="Center"
+                                                   Classes.overdue="{Binding IsOverdue}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding NumberLabel}"
+                                                   Classes="caption" VerticalAlignment="Center"
+                                                   Margin="0,0,8,0"
+                                                   ToolTip.Tip="a todo ticket — edit it on the todo page" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Title}"
+                                                   VerticalAlignment="Center" TextWrapping="Wrap" />
+                                        <TextBlock Grid.Column="3" Text="{Binding Course}"
+                                                   Foreground="{Binding Course, Converter={StaticResource CourseColor}}"
+                                                   VerticalAlignment="Center" Margin="10,0,0,0"
+                                                   IsVisible="{Binding HasCourse}" />
+                                        <Button Grid.Column="4" Content="✕" Classes="icon" Margin="6,0,0,0"
+                                                ToolTip.Tip="delete the ticket"
+                                                Command="{Binding $parent[ItemsControl].((vm:TimetableViewModel)DataContext).RemoveDeadlineCommand}"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- ============ Upcoming exams (from the subjects page) ============ -->
+                    <Border Height="1" Background="{DynamicResource BorderBrush}"
+                            Margin="0,20,0,20" IsVisible="{Binding HasUpcomingExams}" />
+                    <TextBlock Text="// 試験 · upcoming exams" Classes="jp"
+                               IsVisible="{Binding HasUpcomingExams}" />
+                    <ItemsControl ItemsSource="{Binding UpcomingExams}" Margin="0,6,0,0"
+                                  IsVisible="{Binding HasUpcomingExams}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" FontSize="13" Margin="0,2,0,0" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                </StackPanel>
             </Border>
 
         </StackPanel>

@@ -8,5 +8,9 @@ public enum GradeScaleKind
     UsGpa,
     UkHonours,
     Ects,
-    Percentage
+    Percentage,
+
+    /// <summary>A scale the user defines themselves — letter/classification
+    /// boundaries (and optional GPA points) to match their institution.</summary>
+    Custom
 }

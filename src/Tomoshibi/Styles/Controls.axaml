@@ -27,6 +27,14 @@
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
+    <!-- Add to any heading that mixes Japanese + Latin (e.g. an .h1 reading
+         "やること · backlog"). Only overrides the font family, so it composes
+         with .h1 (size/weight) without fighting it — the whole string renders
+         from one CJK font and both scripts share a baseline. -->
+    <Style Selector="TextBlock.cjk">
+        <Setter Property="FontFamily" Value="{DynamicResource JpFont}" />
+    </Style>
+
     <!-- Japanese / section labels. Force a CJK-capable font first so all
          characters in the "新しい課題 · new task" pattern render from one
          font and the baselines stay aligned. Trade-off: the Latin part
@@ -35,7 +43,7 @@
         <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="LetterSpacing" Value="0.5" />
-        <Setter Property="FontFamily" Value="Hiragino Sans,Yu Gothic UI,Noto Sans CJK JP,sans-serif" />
+        <Setter Property="FontFamily" Value="{DynamicResource JpFont}" />
     </Style>
 
     <!-- Small captions under stats -->
@@ -447,6 +455,15 @@
     <Style Selector="Border.trow:pointerover">
         <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
     </Style>
+    <!-- A row carrying a what-if grade reads amber, unmistakably hypothetical. -->
+    <Style Selector="Border.trow.sim">
+        <Setter Property="Background" Value="#1FE0AF68" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AmberBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Border.trow.sim:pointerover">
+        <Setter Property="Background" Value="#33E0AF68" />
+    </Style>
 
     <!-- Buttons -->
     <Style Selector="Button">
@@ -536,7 +553,7 @@
         </Setter>
     </Style>
     <Style Selector="Border.navrail.open">
-        <Setter Property="Width" Value="208" />
+        <Setter Property="Width" Value="220" />
     </Style>
 
     <!-- Faint section header inside the nav rail -->
@@ -595,19 +612,6 @@
     </Style>
     <Style Selector="Button.status.donestat">
         <Setter Property="Foreground" Value="{DynamicResource MatchaBrush}" />
-    </Style>
-
-    <!-- Expand chevron: rotates when open -->
-    <Style Selector="ToggleButton.chev">
-        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
-        <Setter Property="Transitions">
-            <Transitions>
-                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
-            </Transitions>
-        </Setter>
-    </Style>
-    <Style Selector="ToggleButton.chev:checked">
-        <Setter Property="RenderTransform" Value="rotate(90deg)" />
     </Style>
 
     <!-- Segmented toggle button (e.g. list / grid view picker) -->
@@ -817,82 +821,32 @@
         </Style.Animations>
     </Style>
 
-    <!-- Sticky notes: translucent accent cards with a corkboard tilt -->
-    <Style Selector="Border.sticky">
-        <Setter Property="Width" Value="210" />
-        <Setter Property="Height" Value="190" />
-        <Setter Property="Margin" Value="10" />
-        <Setter Property="Padding" Value="12,10" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="BorderThickness" Value="0,3,0,0" />
-        <Setter Property="BoxShadow" Value="0 4 12 0 #44000000" />
-    </Style>
-    <Style Selector="Border.sticky.samber">
-        <Setter Property="Background" Value="#2EE0AF68" />
-        <Setter Property="BorderBrush" Value="{DynamicResource AmberBrush}" />
-    </Style>
-    <Style Selector="Border.sticky.ssakura">
-        <Setter Property="Background" Value="#2EF7768E" />
-        <Setter Property="BorderBrush" Value="{DynamicResource SakuraBrush}" />
-    </Style>
-    <Style Selector="Border.sticky.smatcha">
-        <Setter Property="Background" Value="#2E9ECE6A" />
-        <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
-    </Style>
-    <Style Selector="Border.sticky.sblue">
-        <Setter Property="Background" Value="#2E7AA2F7" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BlueBrush}" />
-    </Style>
-    <Style Selector="TextBox.stickytext">
-        <Setter Property="FontSize" Value="14" />
-    </Style>
-
-    <!-- Sticky colour-picker dots -->
-    <Style Selector="Button.dot">
-        <Setter Property="Width" Value="14" />
-        <Setter Property="Height" Value="14" />
-        <Setter Property="CornerRadius" Value="7" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="Margin" Value="0,0,5,0" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Opacity" Value="0.55" />
-    </Style>
-    <Style Selector="Button.dot:pointerover">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="Button.dot.damber"  > <Setter Property="Background" Value="{DynamicResource AmberBrush}" />  </Style>
-    <Style Selector="Button.dot.dsakura" > <Setter Property="Background" Value="{DynamicResource SakuraBrush}" /> </Style>
-    <Style Selector="Button.dot.dmatcha" > <Setter Property="Background" Value="{DynamicResource MatchaBrush}" /> </Style>
-    <Style Selector="Button.dot.dblue"   > <Setter Property="Background" Value="{DynamicResource BlueBrush}" />   </Style>
-    <!-- Keep the dot's own colour on hover (the global hover would grey it) -->
-    <Style Selector="Button.dot.damber:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource AmberBrush}" />
-    </Style>
-    <Style Selector="Button.dot.dsakura:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource SakuraBrush}" />
-    </Style>
-    <Style Selector="Button.dot.dmatcha:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource MatchaBrush}" />
-    </Style>
-    <Style Selector="Button.dot.dblue:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource BlueBrush}" />
-    </Style>
-
-    <!-- Streak calendar cells: heat-tinted by sessions that day -->
+    <!-- Streak calendar cells: heat-tinted by sessions that day. Idle days sit
+         low-contrast so the green ones read as a heatmap; hover lifts a cell. -->
     <Style Selector="Border.cal">
-        <Setter Property="Height" Value="36" />
+        <Setter Property="Height" Value="40" />
         <Setter Property="Margin" Value="2" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+        <Setter Property="CornerRadius" Value="7" />
+        <Setter Property="Background" Value="{DynamicResource InkBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+            </Transitions>
+        </Setter>
     </Style>
     <Style Selector="Border.cal > TextBlock">
         <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
     </Style>
+    <Style Selector="Border.cal:pointerover">
+        <Setter Property="BorderBrush" Value="{DynamicResource MutedTextBrush}" />
+    </Style>
     <Style Selector="Border.cal.t1">
-        <Setter Property="Background" Value="#339ECE6A" />
+        <Setter Property="Background" Value="#2E9ECE6A" />
     </Style>
     <Style Selector="Border.cal.t2">
-        <Setter Property="Background" Value="#809ECE6A" />
+        <Setter Property="Background" Value="#6B9ECE6A" />
     </Style>
     <Style Selector="Border.cal.t3">
         <Setter Property="Background" Value="{DynamicResource MatchaBrush}" />
@@ -904,15 +858,64 @@
         <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
+    <!-- Today: matcha ring + matcha number, even on an idle day -->
     <Style Selector="Border.cal.caltoday">
         <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
         <Setter Property="BorderThickness" Value="2" />
     </Style>
+    <Style Selector="Border.cal.caltoday:pointerover">
+        <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
+    </Style>
+    <Style Selector="Border.cal.caltoday > TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource MatchaBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
     <Style Selector="Border.cal.calfuture">
-        <Setter Property="Opacity" Value="0.3" />
+        <Setter Property="Opacity" Value="0.35" />
     </Style>
     <Style Selector="Border.cal.calpad">
         <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Border.cal.calpad:pointerover">
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <!-- Journal entry: a chip with a left accent edge — matcha when the day's
+         intention was kept, neutral otherwise. -->
+    <Style Selector="Border.jentry">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="2,0,0,0" />
+        <Setter Property="CornerRadius" Value="0,8,8,0" />
+        <Setter Property="Padding" Value="14,10" />
+    </Style>
+    <Style Selector="Border.jentry.kept">
+        <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
+    </Style>
+
+    <!-- Keycap chip — the keyboard hints on the review grade buttons -->
+    <Style Selector="Border.kbd">
+        <Setter Property="Background" Value="{DynamicResource InkBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="6,0" />
+        <Setter Property="MinWidth" Value="16" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.kbd > TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Review deck due-meter: amber while cards are due, muted once caught up -->
+    <Style Selector="TextBlock.duebar">
+        <Setter Property="Foreground" Value="{DynamicResource AmberBrush}" />
+    </Style>
+    <Style Selector="TextBlock.duebar.caughtup">
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
     </Style>
 
     <!-- Flyout surface (settings) -->
@@ -922,6 +925,133 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="6" />
+    </Style>
+
+    <!-- ============================================================
+         Coding-vibe chrome — editor / terminal styling that leans into
+         the mono font and Tokyo Night palette the app already uses.
+         ============================================================ -->
+
+    <!-- Editor "filename" tab that sits on a window's title row -->
+    <Style Selector="Border.tab">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1,1,1,0" />
+        <Setter Property="CornerRadius" Value="7,7,0,0" />
+        <Setter Property="Padding" Value="12,5" />
+    </Style>
+    <Style Selector="Border.tab > TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    </Style>
+
+    <!-- Breadcrumb / shell path line (e.g. ~/tomoshibi/dashboard) -->
+    <Style Selector="TextBlock.path">
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="LetterSpacing" Value="0.5" />
+    </Style>
+
+    <!-- Shell prompt glyph (the green ❯ before the greeting) -->
+    <Style Selector="TextBlock.prompt">
+        <Setter Property="Foreground" Value="{DynamicResource MatchaBrush}" />
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Blinking block caret, terminal style -->
+    <Style Selector="TextBlock.caret">
+        <Setter Property="Foreground" Value="{DynamicResource MatchaBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Style.Animations>
+            <Animation Duration="0:0:1.1" IterationCount="INFINITE">
+                <KeyFrame Cue="0%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+                <KeyFrame Cue="49%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+                <KeyFrame Cue="50%"><Setter Property="Opacity" Value="0" /></KeyFrame>
+                <KeyFrame Cue="100%"><Setter Property="Opacity" Value="0" /></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- IDE status bar pinned to the bottom of a page -->
+    <Style Selector="Border.statusbar">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+        <Setter Property="Padding" Value="16,5" />
+    </Style>
+    <Style Selector="TextBlock.statusseg">
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Flat terminal panel — a single bordered surface on the ink bg, no
+         raised-card shadow, so a page reads as one terminal window. -->
+    <Style Selector="Border.termpanel">
+        <Setter Property="Background" Value="{DynamicResource InkBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource CardRadius}" />
+        <Setter Property="Padding" Value="24" />
+    </Style>
+
+    <!-- Terminal keybind-style control button: flat, the [key] part bright,
+         the label muted. Used by the timer's footer. -->
+    <!-- Settings sidebar section button (the master list, mirrors the nav rail) -->
+    <Style Selector="Button.confnav">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="3,0,0,0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Padding" Value="14,9" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFont}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.confnav:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+    <Style Selector="Button.confnav.active">
+        <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    </Style>
+
+    <!-- Section-header rule: the line trailing a "// section" heading, used to
+         give the settings page a config-file / terminal structure. -->
+    <Style Selector="Border.rule">
+        <Setter Property="Height" Value="1" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="12,2,0,0" />
+        <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <!-- Config "key" label — a dim monospace setting name (focus_min, …) -->
+    <Style Selector="TextBlock.key">
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <!-- Config comment line — "# …" hint text under a setting -->
+    <Style Selector="TextBlock.comment">
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="Button.keyhint">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="9,5" />
+        <Setter Property="Margin" Value="2" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+    </Style>
+    <Style Selector="Button.keyhint:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
     </Style>
 
 </Styles>

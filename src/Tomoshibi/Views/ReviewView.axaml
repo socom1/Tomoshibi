@@ -17,10 +17,14 @@
             <StackPanel Spacing="14" Margin="28,4,28,28" MaxWidth="760">
 
                 <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
-                    <StackPanel Spacing="2">
-                        <TextBlock Text="復習 · review" Classes="jp" />
-                        <TextBlock Text="{Binding SummaryLabel}" FontSize="18"
-                                   FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <StackPanel Spacing="3">
+                        <TextBlock Classes="path" Text="~/tomoshibi/review" />
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="❯" Classes="prompt" />
+                            <TextBlock Text="復習 · review" Classes="h1 cjk" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding SummaryLabel}" Classes="caption" Margin="0,2,0,0"
+                                   TextWrapping="Wrap" />
                     </StackPanel>
                     <Button Grid.Column="1" Classes="accent" Content="review all due"
                             VerticalAlignment="Top"
@@ -33,16 +37,26 @@
                         <DataTemplate x:DataType="vm:DeckViewModel">
                             <Border Classes="card" Margin="0,0,0,10" Padding="18,14">
                                 <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-                                    <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" Spacing="6" VerticalAlignment="Center">
                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                            <TextBlock Text="▸" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource MatchaBrush}" />
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                       VerticalAlignment="Center" />
                                             <Border Classes="tag" VerticalAlignment="Center"
                                                     IsVisible="{Binding HasCourse}">
                                                 <TextBlock Text="{Binding Course}"
                                                            Foreground="{Binding Course, Converter={StaticResource CourseColor}}" />
                                             </Border>
                                         </StackPanel>
-                                        <TextBlock Text="{Binding CountsLabel}" Classes="caption" />
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <TextBlock Text="{Binding DueBar}" FontSize="12"
+                                                       FontFamily="{DynamicResource MonoFont}"
+                                                       Classes="duebar" Classes.caughtup="{Binding !HasDue}"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding CountsLabel}" Classes="caption"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
                                     </StackPanel>
                                     <Button Grid.Column="1" Classes="seg" Content="review"
                                             Command="{Binding $parent[ItemsControl].((vm:ReviewViewModel)DataContext).ReviewDeckCommand}"
@@ -68,7 +82,7 @@
                 <!-- Add deck -->
                 <Border Classes="card">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="新しいデッキ · new deck" Classes="jp" />
+                        <TextBlock Text="// 新しいデッキ · new deck" Classes="jp" />
                         <Grid ColumnDefinitions="*,140,Auto">
                             <TextBox Grid.Column="0" Text="{Binding NewDeckName}"
                                      Watermark="deck name…" FontSize="13" Padding="10,6">
@@ -97,7 +111,7 @@
                             VerticalAlignment="Top" Margin="0,2,8,0"
                             Command="{Binding CloseDeckCommand}"
                             ToolTip.Tip="back to decks · esc" />
-                    <TextBlock Grid.Column="1" Text="デッキ · deck" Classes="jp"
+                    <TextBlock Grid.Column="1" Text="// デッキ · deck" Classes="jp"
                                VerticalAlignment="Center" />
                     <Button Grid.Column="2" Classes="accent" Content="review"
                             VerticalAlignment="Top"
@@ -123,7 +137,7 @@
 
                     <Border Classes="card">
                         <StackPanel Spacing="10">
-                            <TextBlock Text="カード · cards" Classes="jp" />
+                            <TextBlock Text="// カード · cards" Classes="jp" />
 
                             <ItemsControl ItemsSource="{Binding Cards}" IsVisible="{Binding HasCards}">
                                 <ItemsControl.ItemTemplate>
@@ -170,25 +184,29 @@
     <!-- ================= Review session ================= -->
     <Grid IsVisible="{Binding IsReviewing}" RowDefinitions="Auto,*,Auto" Margin="28">
 
-        <!-- Top bar: progress + end -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-            <TextBlock Text="{Binding ProgressLabel}" Classes="jp"
-                       VerticalAlignment="Center" IsVisible="{Binding !IsSessionDone}" />
-            <Button Grid.Column="1" Classes="seg" Content="end"
+        <!-- Top bar: scope + ascii progress meter + end -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" IsVisible="{Binding !IsSessionDone}">
+            <StackPanel Spacing="6" VerticalAlignment="Center">
+                <TextBlock Text="{Binding ProgressLabel}" Classes="jp" />
+                <TextBlock Text="{Binding ProgressBar}" FontSize="13"
+                           FontFamily="{DynamicResource MonoFont}"
+                           Foreground="{DynamicResource MatchaBrush}" />
+            </StackPanel>
+            <Button Grid.Column="1" Classes="seg" Content="end" VerticalAlignment="Top"
                     Command="{Binding EndReviewCommand}" />
         </Grid>
 
-        <!-- The card -->
-        <Border Grid.Row="1" Classes="card" Margin="0,16,0,16" Padding="32"
+        <!-- The card: terminal Q/A, left-aligned with // markers -->
+        <Border Grid.Row="1" Classes="card" Margin="0,16,0,16" Padding="28"
                 VerticalAlignment="Center" MaxWidth="620"
                 IsVisible="{Binding !IsSessionDone}">
-            <StackPanel Spacing="18" VerticalAlignment="Center">
-                <TextBlock Text="{Binding CardFront}" FontSize="22" TextWrapping="Wrap"
-                           HorizontalAlignment="Center" TextAlignment="Center" />
-                <Border Height="1" Background="{DynamicResource BorderBrush}"
+            <StackPanel Spacing="14">
+                <TextBlock Text="// 問 · prompt" Classes="jp" />
+                <TextBlock Text="{Binding CardFront}" FontSize="20" TextWrapping="Wrap" />
+                <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,4"
                         IsVisible="{Binding IsFlipped}" />
-                <TextBlock Text="{Binding CardBack}" FontSize="18" TextWrapping="Wrap"
-                           HorizontalAlignment="Center" TextAlignment="Center"
+                <TextBlock Text="// 答 · answer" Classes="jp" IsVisible="{Binding IsFlipped}" />
+                <TextBlock Text="{Binding CardBack}" FontSize="17" TextWrapping="Wrap"
                            Foreground="{DynamicResource MatchaBrush}"
                            IsVisible="{Binding IsFlipped}" />
             </StackPanel>
@@ -204,19 +222,39 @@
                     Command="{Binding EndReviewCommand}" />
         </StackPanel>
 
-        <!-- Controls -->
+        <!-- Controls: keyboard-driven — space reveals, 1/2/3 grade -->
         <StackPanel Grid.Row="2" HorizontalAlignment="Center"
                     IsVisible="{Binding !IsSessionDone}">
-            <Button Classes="accent" Content="show answer" HorizontalAlignment="Center"
-                    Command="{Binding FlipCommand}" IsVisible="{Binding !IsFlipped}" />
+            <Button Classes="accent" HorizontalAlignment="Center"
+                    Command="{Binding FlipCommand}" IsVisible="{Binding !IsFlipped}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Border Classes="kbd"><TextBlock Text="space" /></Border>
+                    <TextBlock Text="show answer" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
             <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center"
                         IsVisible="{Binding IsFlipped}">
-                <Button Content="again" Command="{Binding GradeAgainCommand}"
-                        ToolTip.Tip="missed it — see it again soon" />
-                <Button Classes="accent" Content="good" Command="{Binding GradeGoodCommand}"
-                        ToolTip.Tip="recalled it" />
-                <Button Content="easy" Command="{Binding GradeEasyCommand}"
-                        ToolTip.Tip="too easy — push it further out" />
+                <Button Command="{Binding GradeAgainCommand}"
+                        ToolTip.Tip="missed it — see it again soon">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Border Classes="kbd"><TextBlock Text="1" /></Border>
+                        <TextBlock Text="again" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Classes="accent" Command="{Binding GradeGoodCommand}"
+                        ToolTip.Tip="recalled it">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Border Classes="kbd"><TextBlock Text="2" /></Border>
+                        <TextBlock Text="good" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding GradeEasyCommand}"
+                        ToolTip.Tip="too easy — push it further out">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Border Classes="kbd"><TextBlock Text="3" /></Border>
+                        <TextBlock Text="easy" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </StackPanel>
     </Grid>

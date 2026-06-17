@@ -30,6 +30,13 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     [ObservableProperty] private bool _isPanelOpen;
 
+    /// <summary>Master switch — when off the floating bubble/panel is hidden and
+    /// nothing plays. For people who don't want a music player at all.</summary>
+    [ObservableProperty] private bool _isEnabled;
+
+    /// <summary>Start playing the saved folder as soon as the app launches.</summary>
+    [ObservableProperty] private bool _autoplay;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PlayPauseGlyph))]
     private bool _isPlaying;
@@ -51,17 +58,44 @@ public partial class MusicPlayerViewModel : ViewModelBase
         _save = save;
         _service = service;
 
+        _isEnabled = _state.MusicEnabled;
+        _autoplay = _state.MusicAutoplay;
         _shuffle = _state.MusicShuffle;
         _volume = (decimal)Math.Clamp(_state.MusicVolume, 0, 100);
 
         _service.TrackEnded += () => Dispatcher.UIThread.Post(NextTrack);
 
-        if (!string.IsNullOrEmpty(_state.MusicFolder))
-            LoadFolder(_state.MusicFolder, autoplay: false);
+        if (IsEnabled && !string.IsNullOrEmpty(_state.MusicFolder))
+            LoadFolder(_state.MusicFolder, autoplay: Autoplay);
     }
 
     [RelayCommand]
     private void TogglePanel() => IsPanelOpen = !IsPanelOpen;
+
+    /// <summary>Turning music off stops playback and closes the panel; the
+    /// bubble/panel bind to <see cref="IsEnabled"/> so they vanish too.</summary>
+    partial void OnIsEnabledChanged(bool value)
+    {
+        _state.MusicEnabled = value;
+        _save();
+
+        if (value)
+        {
+            if (HasFolder == false && !string.IsNullOrEmpty(_state.MusicFolder))
+                LoadFolder(_state.MusicFolder, autoplay: false);
+        }
+        else
+        {
+            StopPlayback();
+            IsPanelOpen = false;
+        }
+    }
+
+    partial void OnAutoplayChanged(bool value)
+    {
+        _state.MusicAutoplay = value;
+        _save();
+    }
 
     /// <summary>Called by the view after the folder picker returns.</summary>
     public void SetFolder(string path)

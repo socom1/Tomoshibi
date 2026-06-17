@@ -58,10 +58,10 @@ public partial class SubjectViewModel : ViewModelBase
     [ObservableProperty] private string _targetChip = string.Empty;
     [ObservableProperty] private bool _isTargetAtRisk;
 
-    // ---- Simulator ----
-    [ObservableProperty] private bool _isSimulating;
+    // ---- What-if simulation ----
+    /// <summary>Any assessment carries a what-if grade — the headline standing
+    /// then shows the projected figure and the "clear what-ifs" button appears.</summary>
     [ObservableProperty] private bool _hasSimulation;
-    [ObservableProperty] private string _simulationLabel = string.Empty;
 
     // ---- Visuals: graded share + standing tint ----
     /// <summary>0..1 — how much of the effective weight has results.</summary>
@@ -101,6 +101,16 @@ public partial class SubjectViewModel : ViewModelBase
     [ObservableProperty] private bool _isCalcWarn;
     [ObservableProperty] private bool _isCalcBad;
 
+    // ---- Progressive disclosure: the planning tools collapse by default ----
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PlanningToggleLabel))]
+    private bool _showPlanning;
+
+    public string PlanningToggleLabel => (ShowPlanning ? "▾  " : "▸  ") + "計画 · planning · what-if & outlook";
+
+    [RelayCommand]
+    private void TogglePlanning() => ShowPlanning = !ShowPlanning;
+
     /// <summary>Current standing in percent over graded weight; null when
     /// nothing's graded. The page reads this for the overall figure.</summary>
     public double? CurrentPercent { get; private set; }
@@ -112,12 +122,21 @@ public partial class SubjectViewModel : ViewModelBase
     public double GradedWeightPct => _calcGradedWeight;
     public double GradedPointsPct => _calcGradedPoints;
 
-    // ---- New assessment form (inline on the detail page) ----
-    [ObservableProperty] private string _newTitle = string.Empty;
-    [ObservableProperty] private string _newCategory = string.Empty;
-    [ObservableProperty] private decimal? _newWeight;
-    [ObservableProperty] private decimal? _newGrade;
-    [ObservableProperty] private DateTime? _newDate;
+    // ---- Add / edit assessment modal ----
+    [ObservableProperty] private bool _isAssessmentModalOpen;
+    [ObservableProperty] private bool _isEditingAssessment;
+    [ObservableProperty] private string _assessModalTitle = "新しい評価 · new assessment";
+    [ObservableProperty] private string _formAssessTitle = string.Empty;
+    [ObservableProperty] private string _formAssessCategory = string.Empty;
+    [ObservableProperty] private decimal? _formAssessWeight;
+    [ObservableProperty] private decimal? _formAssessGrade;
+    [ObservableProperty] private decimal? _formAssessWhatIf;
+    [ObservableProperty] private DateTime? _formAssessDate;
+    private AssessmentViewModel? _editingAssessment;
+
+    // ---- Bulk paste (add a whole syllabus at once) ----
+    [ObservableProperty] private bool _isBulkVisible;
+    [ObservableProperty] private string _bulkText = string.Empty;
 
     public string Name => Model.Name;
     public string? Code => Model.Code;
@@ -194,31 +213,168 @@ public partial class SubjectViewModel : ViewModelBase
         _changed();
     }
 
+    /// <summary>Open the modal on a blank form (the + button).</summary>
     [RelayCommand]
-    private void AddAssessment()
+    private void OpenAddAssessment()
     {
-        var title = NewTitle?.Trim();
-        if (string.IsNullOrWhiteSpace(title) || NewWeight is not { } w || w <= 0)
+        _editingAssessment = null;
+        IsEditingAssessment = false;
+        AssessModalTitle = "新しい評価 · new assessment";
+        FormAssessTitle = string.Empty;
+        FormAssessCategory = string.Empty;
+        FormAssessWeight = 100;
+        FormAssessGrade = null;
+        FormAssessWhatIf = null;
+        FormAssessDate = null;
+        IsAssessmentModalOpen = true;
+    }
+
+    /// <summary>Open the modal on an existing assessment (click its row).</summary>
+    public void BeginEditAssessment(AssessmentViewModel row)
+    {
+        _editingAssessment = row;
+        IsEditingAssessment = true;
+        AssessModalTitle = "編集 · edit assessment";
+        FormAssessTitle = row.Model.Title;
+        FormAssessCategory = row.Model.Category ?? string.Empty;
+        FormAssessWeight = (decimal)row.Model.Weight;
+        FormAssessGrade = row.Model.Grade is { } g ? (decimal)g : null;
+        FormAssessWhatIf = row.SimGrade;
+        FormAssessDate = row.Model.Date is { } d ? d.ToDateTime(TimeOnly.MinValue) : null;
+        IsAssessmentModalOpen = true;
+    }
+
+    [RelayCommand]
+    private void CancelAssessmentModal() => IsAssessmentModalOpen = false;
+
+    [RelayCommand]
+    private void SaveAssessment()
+    {
+        var title = FormAssessTitle?.Trim();
+        if (string.IsNullOrWhiteSpace(title) || FormAssessWeight is not { } w || w <= 0)
             return;
 
-        var assessment = new Assessment
+        var category = string.IsNullOrWhiteSpace(FormAssessCategory)
+            ? null : FormAssessCategory.Trim().ToLowerInvariant();
+        var weight = Math.Clamp((double)w, 0.1, 100);
+        var grade = FormAssessGrade is { } g ? (decimal?)Math.Clamp((double)g, 0, 100) : null;
+        var date = FormAssessDate is { } d ? DateOnly.FromDateTime(d) : (DateOnly?)null;
+        var whatIf = FormAssessWhatIf is { } wi ? (decimal?)Math.Clamp(wi, 0, 100) : null;
+
+        AssessmentViewModel row;
+        if (_editingAssessment is { } editing)
         {
-            Title = title,
-            Category = string.IsNullOrWhiteSpace(NewCategory) ? null : NewCategory.Trim().ToLowerInvariant(),
-            Weight = Math.Clamp((double)w, 0.1, 100),
-            Grade = NewGrade is { } g ? Math.Clamp((double)g, 0, 100) : null,
-            Date = NewDate is { } d ? DateOnly.FromDateTime(d) : null
-        };
+            editing.Model.Title = title;
+            editing.Model.Category = category;
+            editing.Model.Weight = weight;
+            editing.Model.Date = date;
+            editing.NotifyEdited();
+            row = editing;
+        }
+        else
+        {
+            var assessment = new Assessment { Title = title, Category = category, Weight = weight, Date = date };
+            Model.Assessments.Add(assessment);
+            row = Wrap(assessment);
+            OnPropertyChanged(nameof(HasAssessments));
+        }
 
-        Model.Assessments.Add(assessment);
-        Wrap(assessment);
+        // Grade and what-if fire their own change events (persist / re-simulate).
+        row.Grade = grade;
+        row.SimGrade = whatIf;
 
-        NewTitle = string.Empty;
-        NewCategory = string.Empty;
-        NewWeight = null;
-        NewGrade = null;
-        NewDate = null;
+        IsAssessmentModalOpen = false;
+        Recompute();
+        _changed();
+    }
 
+    [RelayCommand]
+    private void DeleteAssessment()
+    {
+        if (_editingAssessment is { } row)
+        {
+            Model.Assessments.Remove(row.Model);
+            row.Changed -= OnAssessmentChanged;
+            row.SimChanged -= OnSimChanged;
+            Assessments.Remove(row);
+            OnPropertyChanged(nameof(HasAssessments));
+        }
+
+        IsAssessmentModalOpen = false;
+        Recompute();
+        _changed();
+    }
+
+    /// <summary>Drop every what-if grade and clear the simulated standing.</summary>
+    [RelayCommand]
+    private void ClearWhatIfs()
+    {
+        foreach (var assessment in Assessments)
+            assessment.SimGrade = null;
+        Recompute();
+    }
+
+    [RelayCommand]
+    private void ToggleBulk() => IsBulkVisible = !IsBulkVisible;
+
+    /// <summary>Add many assessments at once from pasted lines, one per line:
+    /// <c>title, weight, [category], [date]</c>. Lenient — blank lines and
+    /// <c>#</c>/<c>//</c> comments are skipped; a token that parses as a date
+    /// is taken as the date, any other extra token as the category.</summary>
+    [RelayCommand]
+    private void AddBulk()
+    {
+        if (string.IsNullOrWhiteSpace(BulkText))
+            return;
+
+        var added = 0;
+        foreach (var rawLine in BulkText.Split('\n'))
+        {
+            var line = rawLine.Trim();
+            if (line.Length == 0 || line.StartsWith("#") || line.StartsWith("//"))
+                continue;
+
+            var parts = line.Split(new[] { ',', '\t' }).Select(p => p.Trim()).ToArray();
+            var title = parts[0];
+            if (string.IsNullOrWhiteSpace(title))
+                continue;
+
+            double weight = 0;
+            if (parts.Length > 1)
+                double.TryParse(parts[1].Replace("%", "").Trim(), out weight);
+            if (weight <= 0)
+                weight = 100; // a line with no weight is taken as the whole grade
+
+            string? category = null;
+            DateOnly? date = null;
+            for (var i = 2; i < parts.Length; i++)
+            {
+                var tok = parts[i];
+                if (tok.Length == 0)
+                    continue;
+                if (date is null && DateOnly.TryParse(tok, out var d))
+                    date = d;
+                else
+                    category ??= tok.ToLowerInvariant();
+            }
+
+            var assessment = new Assessment
+            {
+                Title = title,
+                Weight = Math.Clamp(weight, 0, 100),
+                Category = category,
+                Date = date
+            };
+            Model.Assessments.Add(assessment);
+            Wrap(assessment);
+            added++;
+        }
+
+        if (added == 0)
+            return;
+
+        BulkText = string.Empty;
+        IsBulkVisible = false;
         OnPropertyChanged(nameof(HasAssessments));
         Recompute();
         _changed();
@@ -240,23 +396,6 @@ public partial class SubjectViewModel : ViewModelBase
         _changed();
     }
 
-    /// <summary>Flip the what-if sandbox. Turning it off forgets every
-    /// hypothetical grade — nothing was ever saved.</summary>
-    [RelayCommand]
-    private void ToggleSimulation()
-    {
-        IsSimulating = !IsSimulating;
-
-        foreach (var row in Assessments)
-        {
-            if (!IsSimulating)
-                row.SimGrade = null;
-            row.IsSimVisible = IsSimulating && row.IsUngraded;
-        }
-
-        RecomputeSimulation();
-    }
-
     /// <summary>Re-derive after a name/code/credits/target/rules edit.</summary>
     public void NotifyModelEdited()
     {
@@ -266,36 +405,30 @@ public partial class SubjectViewModel : ViewModelBase
         OnPropertyChanged(nameof(CreditsLabel));
         OnPropertyChanged(nameof(TermLabel));
         Recompute();
-        RecomputeSimulation();
     }
 
     /// <summary>The grading scale changed — relabel everything.</summary>
     public void RefreshScale()
     {
         Recompute();
-        RecomputeSimulation();
     }
 
-    private void Wrap(Assessment assessment)
+    private AssessmentViewModel Wrap(Assessment assessment)
     {
         var row = new AssessmentViewModel(assessment);
         row.Changed += OnAssessmentChanged;
         row.SimChanged += OnSimChanged;
         Assessments.Add(row);
+        return row;
     }
 
     private void OnAssessmentChanged()
     {
-        // Grading a row mid-simulation retires its sim input.
-        foreach (var row in Assessments)
-            row.IsSimVisible = IsSimulating && row.IsUngraded;
-
         Recompute();
-        RecomputeSimulation();
         _changed();
     }
 
-    private void OnSimChanged() => RecomputeSimulation();
+    private void OnSimChanged() => Recompute();
 
     // ================== the compute core ==================
 
@@ -349,23 +482,39 @@ public partial class SubjectViewModel : ViewModelBase
     private void Recompute()
     {
         var scale = _scale();
-        var (gradedPoints, gradedWeight, totalWeight) = Compute(a => a.Grade);
 
-        if (gradedWeight > 0)
+        // Real standing — over graded weight only. This is what the page-level
+        // GPA, insights and goal read, so what-ifs never leak into them.
+        var (gradedPoints, gradedWeight, totalWeight) = Compute(a => a.Grade);
+        CurrentPercent = gradedWeight > 0 ? gradedPoints / gradedWeight : null;
+
+        // What-if standing — the same maths with the hypothetical grades folded
+        // in. The headline below shows this when any what-if is set.
+        var sims = Assessments
+            .Where(r => r.IsUngraded && r.SimGrade is not null)
+            .ToDictionary(r => r.Model, r => (double)r.SimGrade!.Value);
+        HasSimulation = sims.Count > 0;
+
+        var (dispPoints, dispGradedWeight, dispTotalWeight) = HasSimulation
+            ? Compute(a => a.Grade ?? (sims.TryGetValue(a, out var s) ? Math.Clamp(s, 0, 100) : null))
+            : (gradedPoints, gradedWeight, totalWeight);
+
+        double? dispPercent = dispGradedWeight > 0 ? dispPoints / dispGradedWeight : null;
+
+        if (dispPercent is { } pct)
         {
-            var pct = gradedPoints / gradedWeight;
-            CurrentPercent = pct;
             HasGrade = true;
             GradeLabel = $"{pct:0.#}%";
             LetterLabel = GradeScale.Label(scale, pct);
             PointsLabel = GradeScale.PointsLabel(scale, pct);
-            StandingCaption = gradedWeight < totalWeight
-                ? $"based on {gradedWeight:0.#}% graded of {totalWeight:0.#}%"
-                : "all assessments graded";
+            StandingCaption = HasSimulation
+                ? "projected with your what-ifs — not saved"
+                : dispGradedWeight < dispTotalWeight
+                    ? $"based on {dispGradedWeight:0.#}% graded of {dispTotalWeight:0.#}%"
+                    : "all assessments graded";
         }
         else
         {
-            CurrentPercent = null;
             HasGrade = false;
             GradeLabel = "—";
             LetterLabel = string.Empty;
@@ -373,13 +522,13 @@ public partial class SubjectViewModel : ViewModelBase
             StandingCaption = Model.Assessments.Count > 0 ? "nothing graded yet" : string.Empty;
         }
 
-        GradedShare = totalWeight > 0 ? gradedWeight / totalWeight : 0;
-        GradedShareCaption = totalWeight > 0 ? $"{GradedShare:P0} graded" : string.Empty;
+        GradedShare = dispTotalWeight > 0 ? dispGradedWeight / dispTotalWeight : 0;
+        GradedShareCaption = dispTotalWeight > 0 ? $"{GradedShare:P0} graded" : string.Empty;
 
-        StandingFraction = (CurrentPercent ?? 0) / 100.0;
+        StandingFraction = (dispPercent ?? 0) / 100.0;
         var reference = Model.TargetPercent ?? 65;
-        IsStandingGood = HasGrade && CurrentPercent >= reference;
-        IsStandingWarn = HasGrade && !IsStandingGood && CurrentPercent >= reference - 10;
+        IsStandingGood = HasGrade && dispPercent >= reference;
+        IsStandingWarn = HasGrade && !IsStandingGood && dispPercent >= reference - 10;
         IsStandingBad = HasGrade && !IsStandingGood && !IsStandingWarn;
 
         HasWeightWarning = Model.Assessments.Count > 0 && Math.Abs(totalWeight - 100) > 0.01;
@@ -515,33 +664,6 @@ public partial class SubjectViewModel : ViewModelBase
             OutlookLines.Add(NeedLine(m, $"{m:0}% overall ({GradeScale.Label(scale, m)})"));
 
         HasOutlook = true;
-    }
-
-    private void RecomputeSimulation()
-    {
-        var sims = Assessments
-            .Where(r => r.IsUngraded && r.SimGrade is not null)
-            .ToDictionary(r => r.Model, r => (double)r.SimGrade!.Value);
-
-        if (!IsSimulating || sims.Count == 0)
-        {
-            HasSimulation = false;
-            SimulationLabel = string.Empty;
-            return;
-        }
-
-        var (points, weight, _) = Compute(a =>
-            a.Grade ?? (sims.TryGetValue(a, out var s) ? Math.Clamp(s, 0, 100) : null));
-
-        if (weight <= 0)
-        {
-            HasSimulation = false;
-            return;
-        }
-
-        var pct = points / weight;
-        SimulationLabel = $"simulated · {pct:0.#}% ({GradeScale.Label(_scale(), pct)}) — not saved";
-        HasSimulation = true;
     }
 
     /// <summary>Standing after each dated, graded assessment in date order —

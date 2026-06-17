@@ -14,7 +14,6 @@ public enum Destination
     Subjects,
     Stats,
     Review,
-    Stickies,
     Shop,
     Settings
 }

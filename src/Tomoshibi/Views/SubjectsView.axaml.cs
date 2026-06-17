@@ -35,6 +35,16 @@ public partial class SubjectsView : UserControl
         }
     }
 
+    /// <summary>Click an assessment row to edit it (grade, weight, what-if…).</summary>
+    private void OnAssessmentPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is Control { DataContext: AssessmentViewModel a } && Vm?.SelectedSubject is { } subject)
+        {
+            subject.BeginEditAssessment(a);
+            e.Handled = true;
+        }
+    }
+
     private async void OnExportClick(object? sender, RoutedEventArgs e)
     {
         if (Vm is not { } vm)

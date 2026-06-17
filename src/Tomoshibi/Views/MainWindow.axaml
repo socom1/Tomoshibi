@@ -24,7 +24,9 @@
         <KeyBinding Gesture="Escape" Command="{Binding Today.Tasks.CancelAddTaskCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Todo.CancelModalCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Subjects.CancelModalCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding Subjects.SelectedSubject.CancelAssessmentModalCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Subjects.CloseDetailCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding Timetable.CancelSlotModalCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Review.EndReviewCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Review.CloseDeckCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding ExitZenCommand}" />
@@ -47,7 +49,7 @@
                 ClipToBounds="True"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0"
                 Background="{DynamicResource InkBrush}">
-            <DockPanel Margin="0,28,0,20" Width="207" HorizontalAlignment="Left">
+            <DockPanel Margin="0,28,0,20" Width="219" HorizontalAlignment="Left">
 
                 <!-- Brand -->
                 <TextBlock DockPanel.Dock="Top" Text="灯火 · tomoshibi" Classes="jp"
@@ -62,8 +64,8 @@
                     <Button Classes="nav" Classes.active="{Binding IsSettingsActive}"
                             Command="{Binding NavigateToSettingsCommand}">
                         <TextBlock>
-                            <Run Text="設定" />
-                            <Run Text="  settings" Foreground="{DynamicResource MutedTextBrush}" />
+                            <Run Text="設定　　　" />
+                            <Run Text=" settings" Foreground="{DynamicResource MutedTextBrush}" />
                         </TextBlock>
                     </Button>
                     <Button Classes="nav" Classes.active="{Binding IsShopActive}"
@@ -81,15 +83,15 @@
                     <Button Classes="nav" Classes.active="{Binding IsDashboardActive}"
                             Command="{Binding NavigateToDashboardCommand}">
                         <TextBlock>
-                            <Run Text="ダッシュ" />
-                            <Run Text="  dashboard" Foreground="{DynamicResource MutedTextBrush}" />
+                            <Run Text="ダッシュ　" />
+                            <Run Text=" dashboard" Foreground="{DynamicResource MutedTextBrush}" />
                         </TextBlock>
                     </Button>
                     <Button Classes="nav" Classes.active="{Binding IsTodayActive}"
                             Command="{Binding NavigateToTodayCommand}">
                         <TextBlock>
-                            <Run Text="今日" />
-                            <Run Text="  today" Foreground="{DynamicResource MutedTextBrush}" />
+                            <Run Text="ポモドーロ" />
+                            <Run Text=" pomodoro" Foreground="{DynamicResource MutedTextBrush}" />
                         </TextBlock>
                     </Button>
 
@@ -97,22 +99,22 @@
                     <Button Classes="nav" Classes.active="{Binding IsTimetableActive}"
                             Command="{Binding NavigateToTimetableCommand}">
                         <TextBlock>
-                            <Run Text="時間割" />
-                            <Run Text="  timetable" Foreground="{DynamicResource MutedTextBrush}" />
+                            <Run Text="時間割　　" />
+                            <Run Text=" timetable" Foreground="{DynamicResource MutedTextBrush}" />
                         </TextBlock>
                     </Button>
                     <Button Classes="nav" Classes.active="{Binding IsTodoActive}"
                             Command="{Binding NavigateToTodoCommand}">
                         <TextBlock>
-                            <Run Text="やること" />
-                            <Run Text="  todo" Foreground="{DynamicResource MutedTextBrush}" />
+                            <Run Text="やること　" />
+                            <Run Text=" todo" Foreground="{DynamicResource MutedTextBrush}" />
                         </TextBlock>
                     </Button>
                     <Button Classes="nav" Classes.active="{Binding IsSubjectsActive}"
                             Command="{Binding NavigateToSubjectsCommand}">
                         <TextBlock>
-                            <Run Text="科目" />
-                            <Run Text="  subjects" Foreground="{DynamicResource MutedTextBrush}" />
+                            <Run Text="科目　　　" />
+                            <Run Text=" subjects" Foreground="{DynamicResource MutedTextBrush}" />
                         </TextBlock>
                     </Button>
 
@@ -120,22 +122,15 @@
                     <Button Classes="nav" Classes.active="{Binding IsStatsActive}"
                             Command="{Binding NavigateToStatsCommand}">
                         <TextBlock>
-                            <Run Text="記録" />
-                            <Run Text="  stats" Foreground="{DynamicResource MutedTextBrush}" />
+                            <Run Text="記録　　　" />
+                            <Run Text=" stats" Foreground="{DynamicResource MutedTextBrush}" />
                         </TextBlock>
                     </Button>
                     <Button Classes="nav" Classes.active="{Binding IsReviewActive}"
                             Command="{Binding NavigateToReviewCommand}">
                         <TextBlock>
-                            <Run Text="復習" />
-                            <Run Text="  review" Foreground="{DynamicResource MutedTextBrush}" />
-                        </TextBlock>
-                    </Button>
-                    <Button Classes="nav" Classes.active="{Binding IsStickiesActive}"
-                            Command="{Binding NavigateToStickiesCommand}">
-                        <TextBlock>
-                            <Run Text="付箋" />
-                            <Run Text="  stickies" Foreground="{DynamicResource MutedTextBrush}" />
+                            <Run Text="復習　　　" />
+                            <Run Text=" review" Foreground="{DynamicResource MutedTextBrush}" />
                         </TextBlock>
                     </Button>
                 </StackPanel>
@@ -229,6 +224,247 @@
         </Border>
     </Border>
 
+    <!-- Add / edit subject modal — lives at the window root (not inside the
+         subjects view) so the backdrop dims the whole app, nav rail and header
+         included, like every other modal. Drilled to Subjects for its form. -->
+    <Border Classes="modal-backdrop"
+            IsVisible="{Binding Subjects.IsModalOpen}"
+            Background="#A0000000">
+        <Border Classes="card modal-card"
+                Width="420" Padding="22"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                DataContext="{Binding Subjects}"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+            </Border.RenderTransform>
+            <StackPanel Spacing="12">
+                <TextBlock Text="{Binding ModalTitle}" Classes="jp" />
+
+                <TextBox Text="{Binding FormName}" Watermark="subject name" />
+
+                <Grid ColumnDefinitions="*,8,110">
+                    <AutoCompleteBox Grid.Column="0" Text="{Binding FormCode}"
+                                     ItemsSource="{Binding KnownCourses}"
+                                     FilterMode="Contains"
+                                     Watermark="course code" />
+                    <NumericUpDown Grid.Column="2" Value="{Binding FormCredits}"
+                                   Watermark="credits"
+                                   Minimum="0.5" Maximum="60" Increment="0.5" FormatString="0.#"
+                                   ToolTip.Tip="weight toward the overall figure — credit hours / ects / units" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,8,*,8,*">
+                    <NumericUpDown Grid.Column="0" Value="{Binding FormYear}"
+                                   Watermark="year" Minimum="1" Maximum="10" FormatString="0" />
+                    <NumericUpDown Grid.Column="2" Value="{Binding FormSemester}"
+                                   Watermark="semester" Minimum="1" Maximum="4" FormatString="0" />
+                    <NumericUpDown Grid.Column="4" Value="{Binding FormTarget}"
+                                   Watermark="target %" Minimum="1" Maximum="100" FormatString="0.#"
+                                   ToolTip.Tip="the grade you're aiming for — drives the outlook" />
+                </Grid>
+
+                <NumericUpDown Value="{Binding FormTargetHours}"
+                               Watermark="study goal — hours / week"
+                               Minimum="0" Maximum="80" Increment="0.5" FormatString="0.#"
+                               ToolTip.Tip="weekly study-time goal — tracked against your focus minutes" />
+
+                <TextBox Text="{Binding FormDropRules}"
+                         Watermark="drop rules — e.g. quiz: best 8; lab: best 3"
+                         ToolTip.Tip="per category, only the best N count" />
+
+                <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                    <Button Grid.Column="0" Content="cancel"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding CancelModalCommand}" />
+                    <Button Grid.Column="1" Content="{Binding ModalAction}" Classes="accent"
+                            HorizontalAlignment="Stretch" Margin="8,0,0,0"
+                            Command="{Binding ConfirmModalCommand}" />
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Border>
+
+    <!-- Add / edit todo modal — root level so the backdrop dims the whole
+         app, like the others. Drilled to Todo for its form. -->
+    <Border Classes="modal-backdrop"
+            IsVisible="{Binding Todo.IsModalOpen}"
+            Background="#A0000000">
+        <Border Classes="card modal-card"
+                Width="420" Padding="22"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                DataContext="{Binding Todo}"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+            </Border.RenderTransform>
+            <StackPanel Spacing="12">
+                <TextBlock Text="{Binding ModalTitle}" Classes="jp" />
+
+                <TextBox Text="{Binding FormTitle}" Watermark="what needs doing?" />
+                <TextBox Text="{Binding FormDescription}"
+                         Watermark="notes — why, where, what 'done' means…"
+                         AcceptsReturn="True" TextWrapping="Wrap"
+                         MinHeight="84" VerticalContentAlignment="Top" />
+
+                <Grid ColumnDefinitions="*,8,*">
+                    <AutoCompleteBox Grid.Column="0" Text="{Binding FormCourse}"
+                                     ItemsSource="{Binding KnownCourses}"
+                                     FilterMode="Contains" Watermark="course" />
+                    <CalendarDatePicker Grid.Column="2" SelectedDate="{Binding FormDue}"
+                                        Watermark="due" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,8,*">
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding Priorities}"
+                              SelectedItem="{Binding FormPriority}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding, Converter={StaticResource Lower}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <NumericUpDown Grid.Column="2" Value="{Binding FormEstimate}"
+                                   Watermark="est. sessions"
+                                   Minimum="1" Maximum="50" FormatString="0" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                    <Button Grid.Column="0" Content="cancel"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding CancelModalCommand}" />
+                    <Button Grid.Column="1" Content="{Binding ModalAction}" Classes="accent"
+                            HorizontalAlignment="Stretch" Margin="8,0,0,0"
+                            Command="{Binding ConfirmModalCommand}" />
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Border>
+
+    <!-- Add / edit class-slot modal — root level so the backdrop dims the
+         whole app. Opened by the timetable + button or by clicking a class. -->
+    <Border Classes="modal-backdrop"
+            IsVisible="{Binding Timetable.IsSlotModalOpen}"
+            Background="#A0000000">
+        <Border Classes="card modal-card"
+                Width="380" Padding="22"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                DataContext="{Binding Timetable}"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+            </Border.RenderTransform>
+            <StackPanel Spacing="12">
+                <TextBlock Text="{Binding SlotModalTitle}" Classes="jp" />
+
+                <ComboBox SelectedItem="{Binding NewSlotDay}"
+                          ItemsSource="{Binding WeekDays}"
+                          HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding, Converter={StaticResource Lower}}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <!-- start / end as compact HH:MM spinners on their own rows -->
+                <Grid ColumnDefinitions="46,*,Auto,*" RowDefinitions="Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="start" Classes="key"
+                               Margin="0,0,8,0" />
+                    <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding StartHour}"
+                                   Minimum="0" Maximum="23" Increment="1" FormatString="00"
+                                   Margin="0,0,5,0" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text=":" VerticalAlignment="Center"
+                               Margin="0,0,5,0" />
+                    <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding StartMinute}"
+                                   Minimum="0" Maximum="59" Increment="5" FormatString="00" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="end" Classes="key"
+                               Margin="0,10,8,0" VerticalAlignment="Center" />
+                    <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding EndHour}"
+                                   Minimum="0" Maximum="23" Increment="1" FormatString="00"
+                                   Margin="0,10,5,0" />
+                    <TextBlock Grid.Row="1" Grid.Column="2" Text=":" VerticalAlignment="Center"
+                               Margin="0,10,5,0" />
+                    <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding EndMinute}"
+                                   Minimum="0" Maximum="59" Increment="5" FormatString="00"
+                                   Margin="0,10,0,0" />
+                </Grid>
+
+                <TextBox Watermark="class name" Text="{Binding NewSlotTitle}" />
+                <AutoCompleteBox Watermark="course"
+                                 Text="{Binding NewSlotCourse}"
+                                 ItemsSource="{Binding KnownCourses}"
+                                 FilterMode="Contains" />
+
+                <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
+                    <Button Grid.Column="0" Content="cancel"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding CancelSlotModalCommand}" />
+                    <Button Grid.Column="1" Content="{Binding SlotFormLabel}" Classes="accent"
+                            HorizontalAlignment="Stretch" Margin="8,0,0,0"
+                            Command="{Binding AddSlotCommand}" />
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Border>
+
+    <!-- Add / edit assessment modal — root level, bound to the open subject. -->
+    <Border Classes="modal-backdrop"
+            IsVisible="{Binding Subjects.SelectedSubject.IsAssessmentModalOpen, FallbackValue=False}"
+            Background="#A0000000">
+        <Border Classes="card modal-card"
+                Width="360" Padding="22"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                DataContext="{Binding Subjects.SelectedSubject}"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+            </Border.RenderTransform>
+            <StackPanel Spacing="12">
+                <TextBlock Text="{Binding AssessModalTitle}" Classes="jp" />
+
+                <TextBox Text="{Binding FormAssessTitle}" Watermark="exam, essay, lab…" />
+
+                <Grid ColumnDefinitions="*,8,110">
+                    <TextBox Grid.Column="0" Text="{Binding FormAssessCategory}"
+                             Watermark="category"
+                             ToolTip.Tip="optional — what drop rules target, e.g. quiz" />
+                    <NumericUpDown Grid.Column="2" Value="{Binding FormAssessWeight}"
+                                   Watermark="weight %" Minimum="0.1" Maximum="100" FormatString="0.#" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,8,*">
+                    <NumericUpDown Grid.Column="0" Value="{Binding FormAssessGrade}"
+                                   Watermark="grade %" Minimum="0" Maximum="100" FormatString="0.#"
+                                   ToolTip.Tip="the real result — leave empty until it lands" />
+                    <NumericUpDown Grid.Column="2" Value="{Binding FormAssessWhatIf}"
+                                   Watermark="what-if %" Minimum="0" Maximum="100" FormatString="0.#"
+                                   BorderBrush="{DynamicResource AmberBrush}"
+                                   ToolTip.Tip="hypothetical — planning only, never saved as a real grade" />
+                </Grid>
+
+                <CalendarDatePicker SelectedDate="{Binding FormAssessDate}" Watermark="date" />
+
+                <TextBlock Text="what-if is hypothetical — it tints the row amber and feeds the simulated standing, but is never saved as a grade"
+                           Classes="caption" TextWrapping="Wrap" />
+
+                <Grid ColumnDefinitions="Auto,*,*" Margin="0,4,0,0">
+                    <Button Grid.Column="0" Classes="seg" Content="delete"
+                            IsVisible="{Binding IsEditingAssessment}"
+                            Command="{Binding DeleteAssessmentCommand}" />
+                    <Button Grid.Column="1" Content="cancel"
+                            HorizontalAlignment="Stretch" Margin="8,0,0,0"
+                            Command="{Binding CancelAssessmentModalCommand}" />
+                    <Button Grid.Column="2" Content="save" Classes="accent"
+                            HorizontalAlignment="Stretch" Margin="8,0,0,0"
+                            Command="{Binding SaveAssessmentCommand}" />
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Border>
+
     <!-- Floating music player: equaliser bubble + slide-up panel -->
     <Border Classes="card musicpanel"
             Width="300" Padding="16"
@@ -277,9 +513,10 @@
         </StackPanel>
     </Border>
 
-    <!-- The bubble itself -->
+    <!-- The bubble itself — hidden entirely when music is switched off -->
     <Button Classes="musicbubble"
             Classes.playing="{Binding Music.IsPlaying}"
+            IsVisible="{Binding Music.IsEnabled}"
             HorizontalAlignment="Right" VerticalAlignment="Bottom"
             Margin="0,0,20,20"
             Command="{Binding Music.TogglePanelCommand}"

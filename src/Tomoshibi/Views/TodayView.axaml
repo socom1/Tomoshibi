@@ -18,8 +18,7 @@
         <!-- Page header -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,20">
             <StackPanel Grid.Column="0" Spacing="2">
-                <TextBlock Text="今日 · today" Classes="jp" />
-                <TextBlock Text="{Binding Greeting}" Classes="h1" />
+                <TextBlock Text="ポモドーロ · Pomodoro" Classes="jp" />
             </StackPanel>
 
             <Button Grid.Column="1" Classes="icon" Content="⛶" FontSize="20"
@@ -73,19 +72,42 @@
              (intention, stats, what's next) lives on the dashboard. -->
         <Grid Grid.Row="1" ColumnDefinitions="*,320">
 
-            <!-- Focus / pomodoro -->
-            <Border Grid.Column="0" Classes="card" Margin="0,0,20,0">
-                <Grid RowDefinitions="Auto,*,Auto">
-                    <TextBlock Grid.Row="0" Text="{Binding Pomodoro.PhaseLabel}" Classes="jp" />
+            <!-- Focus / pomodoro — a terminal "focus pane": phase-coloured
+                 border, a title bar with the live spinner, the clock + gauge,
+                 a session log, and a keybind footer. The "minimal" toggle
+                 drops the log + footer for a calmer view. -->
+            <Border Grid.Column="0" Classes="card" Margin="0,0,20,0"
+                    BorderThickness="1"
+                    BorderBrush="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}">
+                <Border.Transitions>
+                    <Transitions>
+                        <BrushTransition Property="BorderBrush" Duration="0:0:0.45" />
+                    </Transitions>
+                </Border.Transitions>
+                <Grid RowDefinitions="Auto,*,Auto,Auto">
 
-                    <!-- The clock group scales to fill the card — small on a
-                         compact window, large in full screen — capped so it
-                         never gets absurd. The fixed inner width gives the
-                         Viewbox a definite ratio to scale uniformly. -->
+                    <!-- Panel title bar -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Pomodoro.Spinner}" FontSize="13"
+                                       VerticalAlignment="Center"
+                                       Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}" />
+                            <TextBlock Text="{Binding Pomodoro.PhaseLabel}" Classes="jp"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                        <ToggleButton Grid.Column="1" Classes="seg" Content="minimal"
+                                      IsChecked="{Binding SimpleTimer}"
+                                      Classes.active="{Binding SimpleTimer}"
+                                      ToolTip.Tip="simple / full timer" />
+                    </Grid>
+
+                    <!-- The clock group scales to fill the card. The fixed inner
+                         width gives the Viewbox a definite ratio to scale by. -->
                     <Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="Both"
-                             MaxWidth="560" MaxHeight="380" Margin="10"
+                             MaxWidth="540" MaxHeight="320" Margin="10"
                              HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <StackPanel Width="300" HorizontalAlignment="Center" Spacing="10">
+                        <StackPanel Width="380" HorizontalAlignment="Center" Spacing="14">
+
                             <TextBlock Text="{Binding Pomodoro.TimeDisplay}" FontSize="86" FontWeight="Light"
                                        Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
                                        Classes="timer" Classes.paused="{Binding Pomodoro.IsPaused}"
@@ -97,17 +119,24 @@
                                     </Transitions>
                                 </TextBlock.Transitions>
                             </TextBlock>
-                            <ProgressBar Value="{Binding Pomodoro.Progress}" Minimum="0" Maximum="1"
-                                         Width="260" Height="4" MinHeight="0" HorizontalAlignment="Center"
-                                         Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
-                                         Background="{DynamicResource BorderBrush}">
-                                <ProgressBar.Transitions>
-                                    <Transitions>
-                                        <DoubleTransition Property="Value" Duration="0:0:1" />
-                                        <BrushTransition Property="Foreground" Duration="0:0:0.45" />
-                                    </Transitions>
-                                </ProgressBar.Transitions>
-                            </ProgressBar>
+
+                            <!-- Terminal progress bar: [//////.        ] filling
+                                 as the phase elapses, monospace and phase-tinted. -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                                <TextBlock Text="{Binding Pomodoro.Gauge}" FontSize="20"
+                                           Foreground="{Binding Pomodoro.Phase, Converter={StaticResource PhaseToBrush}}"
+                                           Classes="timer" Classes.paused="{Binding Pomodoro.IsPaused}">
+                                    <TextBlock.Transitions>
+                                        <Transitions>
+                                            <BrushTransition Property="Foreground" Duration="0:0:0.45" />
+                                            <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
+                                        </Transitions>
+                                    </TextBlock.Transitions>
+                                </TextBlock>
+                                <TextBlock Text="{Binding Pomodoro.PercentLabel}" Classes="caption"
+                                           FontSize="14" VerticalAlignment="Center" />
+                            </StackPanel>
+
                             <TextBlock Text="{Binding Pomodoro.RoundLabel}" Classes="caption"
                                        HorizontalAlignment="Center" />
                             <TextBlock Text="{Binding ActiveTaskLabel}" Classes="caption"
@@ -117,13 +146,53 @@
                         </StackPanel>
                     </Viewbox>
 
-                    <StackPanel Grid.Row="2" Orientation="Horizontal"
-                                HorizontalAlignment="Center" Spacing="12">
-                        <Button Content="{Binding Pomodoro.StartPauseLabel}" Classes="accent"
-                                Command="{Binding Pomodoro.ToggleRunCommand}" />
-                        <Button Content="reset" Command="{Binding Pomodoro.ResetCommand}" />
-                        <Button Content="skip" Command="{Binding Pomodoro.SkipCommand}" />
+                    <!-- Session log (full mode) -->
+                    <StackPanel Grid.Row="2" IsVisible="{Binding !SimpleTimer}">
+                        <Border Height="1" Background="{DynamicResource BorderBrush}"
+                                Margin="0,2,0,10" IsVisible="{Binding HasSessionLog}" />
+                        <ItemsControl ItemsSource="{Binding SessionLog}"
+                                      IsVisible="{Binding HasSessionLog}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:TimerLogEntry">
+                                    <Grid ColumnDefinitions="Auto,76,*" Margin="0,1,0,1">
+                                        <TextBlock Grid.Column="0" Text="{Binding TimeLabel}" FontSize="12"
+                                                   Foreground="{DynamicResource BorderBrush}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding PhaseLabel}" FontSize="12"
+                                                   Margin="12,0,0,0"
+                                                   Foreground="{Binding Phase, Converter={StaticResource PhaseToBrush}}" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Detail}" Classes="caption"
+                                                   FontSize="12" Margin="8,0,0,0" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
+
+                    <!-- Controls: keybind footer (full) or plain buttons (simple) -->
+                    <Grid Grid.Row="3" Margin="0,14,0,0">
+                        <WrapPanel HorizontalAlignment="Center"
+                                   IsVisible="{Binding !SimpleTimer}">
+                            <Button Classes="keyhint" Command="{Binding Pomodoro.ToggleRunCommand}">
+                                <TextBlock><Run Text="[space] " Foreground="{DynamicResource TextBrush}" /><Run Text="{Binding Pomodoro.StartPauseLabel}" /></TextBlock>
+                            </Button>
+                            <Button Classes="keyhint" Command="{Binding Pomodoro.ResetCommand}">
+                                <TextBlock><Run Text="[r] " Foreground="{DynamicResource TextBrush}" /><Run Text="reset" /></TextBlock>
+                            </Button>
+                            <Button Classes="keyhint" Command="{Binding Pomodoro.SkipCommand}">
+                                <TextBlock><Run Text="[s] " Foreground="{DynamicResource TextBrush}" /><Run Text="skip" /></TextBlock>
+                            </Button>
+                            <Button Classes="keyhint" Command="{Binding ToggleZenCommand}">
+                                <TextBlock><Run Text="[z] " Foreground="{DynamicResource TextBrush}" /><Run Text="zen" /></TextBlock>
+                            </Button>
+                        </WrapPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12"
+                                    IsVisible="{Binding SimpleTimer}">
+                            <Button Content="{Binding Pomodoro.StartPauseLabel}" Classes="accent"
+                                    Command="{Binding Pomodoro.ToggleRunCommand}" />
+                            <Button Content="reset" Command="{Binding Pomodoro.ResetCommand}" />
+                            <Button Content="skip" Command="{Binding Pomodoro.SkipCommand}" />
+                        </StackPanel>
+                    </Grid>
                 </Grid>
             </Border>
 

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Tomoshibi.Models;
 
 namespace Tomoshibi.Services;
@@ -6,10 +8,25 @@ namespace Tomoshibi.Services;
 /// Percentage → label conversion for every supported grading system, in one
 /// pure place. Grades are always stored as percentages; the scale decides
 /// what they're called. US letters/points use the standard table; UK honours
-/// uses the classification bands; ECTS uses the common fixed mapping.
+/// uses the classification bands; ECTS uses the common fixed mapping; and the
+/// Custom scale reads the user's own bands from <see cref="CustomBands"/>.
 /// </summary>
 public static class GradeScale
 {
+    /// <summary>The active custom bands, pointed at <c>AppState.CustomGradeBands</c>
+    /// so edits there are seen here without re-wiring. Null until set.</summary>
+    public static IReadOnlyList<GradeBand>? CustomBands { get; set; }
+
+    /// <summary>A reasonable starting scale for first-time custom users to edit.</summary>
+    public static List<GradeBand> DefaultCustomBands() => new()
+    {
+        new GradeBand { MinPercent = 90, Label = "A", Points = 4.0 },
+        new GradeBand { MinPercent = 80, Label = "B", Points = 3.0 },
+        new GradeBand { MinPercent = 70, Label = "C", Points = 2.0 },
+        new GradeBand { MinPercent = 60, Label = "D", Points = 1.0 },
+        new GradeBand { MinPercent = 0,  Label = "F", Points = 0.0 },
+    };
+
     public static double ToPoints(double percent) => percent switch
     {
         >= 93 => 4.0,
@@ -48,13 +65,50 @@ public static class GradeScale
             >= 50 => "E",
             _ => "F"
         },
+        GradeScaleKind.Custom => CustomBandFor(percent)?.Label ?? string.Empty,
         _ => string.Empty
     };
 
-    /// <summary>"3.0 pts" on the US scale; the other scales don't have a
-    /// points concept, so empty.</summary>
-    public static string PointsLabel(GradeScaleKind kind, double percent) =>
-        kind == GradeScaleKind.UsGpa ? $"{ToPoints(percent):0.0} pts" : string.Empty;
+    /// <summary>"3.0 pts" on scales that carry a points concept (US, or a custom
+    /// scale where the bands define points); empty otherwise.</summary>
+    public static string PointsLabel(GradeScaleKind kind, double percent) => kind switch
+    {
+        GradeScaleKind.UsGpa => $"{ToPoints(percent):0.0} pts",
+        GradeScaleKind.Custom when UsesPoints(kind) => $"{Points(kind, percent):0.0} pts",
+        _ => string.Empty
+    };
+
+    /// <summary>GPA points for a percent on a points-bearing scale (US table or
+    /// the custom bands). 0 for scales without a points concept.</summary>
+    public static double Points(GradeScaleKind kind, double percent) => kind switch
+    {
+        GradeScaleKind.UsGpa => ToPoints(percent),
+        GradeScaleKind.Custom => CustomBandFor(percent)?.Points ?? 0.0,
+        _ => 0.0
+    };
+
+    /// <summary>True when the scale yields a GPA — always on US, and on a custom
+    /// scale once any band carries non-zero points.</summary>
+    public static bool UsesPoints(GradeScaleKind kind) => kind switch
+    {
+        GradeScaleKind.UsGpa => true,
+        GradeScaleKind.Custom => CustomBands is { } b && b.Any(x => x.Points > 0),
+        _ => false
+    };
+
+    /// <summary>The custom band covering a percent: the highest band whose floor
+    /// it clears, or the lowest band when it's below them all.</summary>
+    private static GradeBand? CustomBandFor(double percent)
+    {
+        var bands = CustomBands;
+        if (bands is null || bands.Count == 0)
+            return null;
+
+        return bands.Where(b => percent >= b.MinPercent)
+                    .OrderByDescending(b => b.MinPercent)
+                    .FirstOrDefault()
+               ?? bands.OrderBy(b => b.MinPercent).First();
+    }
 
     private static string UsLetter(double percent) => percent switch
     {

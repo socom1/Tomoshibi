@@ -48,10 +48,18 @@ public partial class SubjectsViewModel : ViewModelBase
         new ScaleOption(GradeScaleKind.UkHonours, "uk honours"),
         new ScaleOption(GradeScaleKind.Ects, "ects"),
         new ScaleOption(GradeScaleKind.Percentage, "percentage"),
+        new ScaleOption(GradeScaleKind.Custom, "custom"),
     };
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCustomScale))]
     private ScaleOption _selectedScale;
+
+    /// <summary>True when the custom scale is selected — gates the band editor.</summary>
+    public bool IsCustomScale => SelectedScale?.Kind == GradeScaleKind.Custom;
+
+    /// <summary>The editable rows of the custom grade scale.</summary>
+    public ObservableCollection<GradeBandViewModel> CustomBands { get; } = new();
 
     [ObservableProperty] private bool _hasSubjects;
     [ObservableProperty] private bool _hasInsights;
@@ -123,6 +131,13 @@ public partial class SubjectsViewModel : ViewModelBase
 
         _overallGoal = _state.OverallGoalPercent is { } g ? (decimal)g : 75m;
 
+        // Seed a starter custom scale on first use and point the engine at the
+        // live list so band edits are seen everywhere without re-wiring.
+        if (_state.CustomGradeBands.Count == 0)
+            _state.CustomGradeBands.AddRange(GradeScale.DefaultCustomBands());
+        GradeScale.CustomBands = _state.CustomGradeBands;
+        RebuildCustomBands();
+
         foreach (var subject in _state.Subjects)
             Items.Add(NewRow(subject));
 
@@ -140,6 +155,51 @@ public partial class SubjectsViewModel : ViewModelBase
             row.RefreshScale();
         RebuildAll();
         _save();
+    }
+
+    private void RebuildCustomBands()
+    {
+        CustomBands.Clear();
+        foreach (var band in _state.CustomGradeBands.OrderByDescending(b => b.MinPercent))
+            CustomBands.Add(new GradeBandViewModel(band, OnCustomBandChanged));
+    }
+
+    /// <summary>A band's min/label/points changed — re-grade everything against
+    /// the new scale. The engine already points at the live list.</summary>
+    private void OnCustomBandChanged()
+    {
+        GradeScale.CustomBands = _state.CustomGradeBands;
+        foreach (var row in Items)
+            row.RefreshScale();
+        RebuildAll();
+        _save();
+    }
+
+    [RelayCommand]
+    private void AddBand()
+    {
+        var band = new GradeBand { MinPercent = 0, Label = "new", Points = 0 };
+        _state.CustomGradeBands.Add(band);
+        CustomBands.Add(new GradeBandViewModel(band, OnCustomBandChanged));
+        OnCustomBandChanged();
+    }
+
+    [RelayCommand]
+    private void RemoveBand(GradeBandViewModel? row)
+    {
+        if (row is null) return;
+        _state.CustomGradeBands.Remove(row.Model);
+        CustomBands.Remove(row);
+        OnCustomBandChanged();
+    }
+
+    [RelayCommand]
+    private void ResetBands()
+    {
+        _state.CustomGradeBands.Clear();
+        _state.CustomGradeBands.AddRange(GradeScale.DefaultCustomBands());
+        RebuildCustomBands();
+        OnCustomBandChanged();
     }
 
     /// <summary>Called on navigation here — picks up course codes added on
@@ -617,12 +677,15 @@ public partial class SubjectsViewModel : ViewModelBase
         var avg = graded.Sum(g => g.Percent * g.Credits) / totalCredits;
         var scale = _state.GradeScale;
 
+        double Gpa() => graded.Sum(g => GradeScale.Points(scale, g.Percent) * g.Credits) / totalCredits;
+
         GpaLabel = scale switch
         {
-            GradeScaleKind.UsGpa =>
-                $"{graded.Sum(g => GradeScale.ToPoints(g.Percent) * g.Credits) / totalCredits:0.00} gpa",
+            GradeScaleKind.UsGpa => $"{Gpa():0.00} gpa",
+            GradeScaleKind.Custom when GradeScale.UsesPoints(scale) => $"{Gpa():0.00} gpa",
             GradeScaleKind.UkHonours => $"{avg:0.#}% · on track for a {GradeScale.Label(scale, avg)}",
             GradeScaleKind.Ects => $"{avg:0.#}% · {GradeScale.Label(scale, avg)}",
+            GradeScaleKind.Custom => $"{avg:0.#}% · {GradeScale.Label(scale, avg)}",
             _ => $"{avg:0.#}% weighted avg"
         };
 

@@ -1,5 +1,6 @@
 using System.IO;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Tomoshibi.ViewModels;
@@ -15,17 +16,18 @@ public partial class TimetableView : UserControl
 
     private TimetableViewModel? Vm => DataContext as TimetableViewModel;
 
-    // The + buttons open their flyout natively; the click handler just makes
-    // sure a fresh form isn't carrying a half-finished edit.
-    private void OnAddSlotOpen(object? sender, RoutedEventArgs e) => Vm?.CancelEdits();
+    // The deadline + button opens its flyout natively; the handler just clears
+    // any half-finished edit so the fresh form starts empty.
     private void OnAddDeadlineOpen(object? sender, RoutedEventArgs e) => Vm?.CancelEdits();
 
-    private void OnEditSlotClick(object? sender, RoutedEventArgs e)
+    /// <summary>Click a class — in the list or on the week grid — to edit it.
+    /// The ✕ delete button consumes its own press, so it won't open the form.</summary>
+    private void OnSlotPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is Button { DataContext: ClassSlotItemViewModel item } && Vm is { } vm)
+        if (sender is Control { DataContext: ClassSlotItemViewModel item } && Vm is { } vm)
         {
             vm.BeginEditSlot(item);
-            AddSlotButton.Flyout?.ShowAt(AddSlotButton);
+            e.Handled = true;
         }
     }
 

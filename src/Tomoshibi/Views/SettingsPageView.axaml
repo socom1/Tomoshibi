@@ -7,148 +7,290 @@
              x:Class="Tomoshibi.Views.SettingsPageView"
              x:DataType="vm:SettingsPageViewModel">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="16" Margin="28,4,28,28" MaxWidth="620">
+    <Grid Margin="28,4,28,28" RowDefinitions="Auto,*" MaxWidth="860">
 
-            <!-- Page header -->
-            <StackPanel Spacing="2" Margin="0,0,0,4">
-                <TextBlock Text="設定 · settings" Classes="jp" />
-                <TextBlock Text="everything tweakable" Classes="h1" />
+        <!-- Page header -->
+        <StackPanel Grid.Row="0" Spacing="3" Margin="0,0,0,18">
+            <TextBlock Classes="path" Text="~/tomoshibi/settings.conf" />
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="❯" Classes="prompt" />
+                <TextBlock Text="設定 · config" Classes="h1 cjk" VerticalAlignment="Center" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Body: section list (master) + detail pane -->
+        <Grid Grid.Row="1" ColumnDefinitions="176,*">
+
+            <!-- ===================== Sidebar ===================== -->
+            <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock Text="セクション · sections" Classes="navsection" Margin="14,0,0,6" />
+
+                <Button Classes="confnav" Classes.active="{Binding IsTimerSection}"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="timer">
+                    <Grid ColumnDefinitions="12,*">
+                        <TextBlock Text="›" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MatchaBrush}"
+                                   IsVisible="{Binding IsTimerSection}" />
+                        <TextBlock Grid.Column="1" Classes="cjk"><Run Text="タイマー" /><Run Text="  timer" Foreground="{DynamicResource MutedTextBrush}" /></TextBlock>
+                    </Grid>
+                </Button>
+                <Button Classes="confnav" Classes.active="{Binding IsStartupSection}"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="startup">
+                    <Grid ColumnDefinitions="12,*">
+                        <TextBlock Text="›" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MatchaBrush}"
+                                   IsVisible="{Binding IsStartupSection}" />
+                        <TextBlock Grid.Column="1" Classes="cjk"><Run Text="起動" /><Run Text="  startup" Foreground="{DynamicResource MutedTextBrush}" /></TextBlock>
+                    </Grid>
+                </Button>
+                <Button Classes="confnav" Classes.active="{Binding IsRemindersSection}"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="reminders">
+                    <Grid ColumnDefinitions="12,*">
+                        <TextBlock Text="›" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MatchaBrush}"
+                                   IsVisible="{Binding IsRemindersSection}" />
+                        <TextBlock Grid.Column="1" Classes="cjk"><Run Text="通知" /><Run Text="  reminders" Foreground="{DynamicResource MutedTextBrush}" /></TextBlock>
+                    </Grid>
+                </Button>
+                <Button Classes="confnav" Classes.active="{Binding IsGradingSection}"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="grading">
+                    <Grid ColumnDefinitions="12,*">
+                        <TextBlock Text="›" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MatchaBrush}"
+                                   IsVisible="{Binding IsGradingSection}" />
+                        <TextBlock Grid.Column="1" Classes="cjk"><Run Text="成績" /><Run Text="  grading" Foreground="{DynamicResource MutedTextBrush}" /></TextBlock>
+                    </Grid>
+                </Button>
+                <Button Classes="confnav" Classes.active="{Binding IsMusicSection}"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="music">
+                    <Grid ColumnDefinitions="12,*">
+                        <TextBlock Text="›" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MatchaBrush}"
+                                   IsVisible="{Binding IsMusicSection}" />
+                        <TextBlock Grid.Column="1" Classes="cjk"><Run Text="音楽" /><Run Text="  music" Foreground="{DynamicResource MutedTextBrush}" /></TextBlock>
+                    </Grid>
+                </Button>
+                <Button Classes="confnav" Classes.active="{Binding IsDataSection}"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="data">
+                    <Grid ColumnDefinitions="12,*">
+                        <TextBlock Text="›" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MatchaBrush}"
+                                   IsVisible="{Binding IsDataSection}" />
+                        <TextBlock Grid.Column="1" Classes="cjk"><Run Text="データ" /><Run Text="  data" Foreground="{DynamicResource MutedTextBrush}" /></TextBlock>
+                    </Grid>
+                </Button>
+
+                <TextBlock Text="{Binding VersionLabel}" Classes="comment"
+                           Margin="14,22,0,0" />
             </StackPanel>
 
-            <!-- Timer -->
-            <Border Classes="card">
-                <StackPanel Spacing="12" DataContext="{Binding Timer}">
-                    <TextBlock Text="タイマー · timer" Classes="jp" />
+            <!-- ===================== Detail pane ===================== -->
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Margin="20,0,0,0">
+                <Panel>
 
-                    <Grid ColumnDefinitions="*,90">
-                        <TextBlock Text="focus (min)" VerticalAlignment="Center" />
-                        <NumericUpDown Grid.Column="1" Value="{Binding FocusMinutes}"
-                                       Minimum="1" Maximum="120" Increment="1" FormatString="0" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,90">
-                        <TextBlock Text="short break" VerticalAlignment="Center" />
-                        <NumericUpDown Grid.Column="1" Value="{Binding ShortBreakMinutes}"
-                                       Minimum="1" Maximum="60" Increment="1" FormatString="0" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,90">
-                        <TextBlock Text="long break" VerticalAlignment="Center" />
-                        <NumericUpDown Grid.Column="1" Value="{Binding LongBreakMinutes}"
-                                       Minimum="1" Maximum="60" Increment="1" FormatString="0" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,90">
-                        <TextBlock Text="rounds / long" VerticalAlignment="Center" />
-                        <NumericUpDown Grid.Column="1" Value="{Binding RoundsBeforeLongBreak}"
-                                       Minimum="1" Maximum="12" Increment="1" FormatString="0" />
-                    </Grid>
+                    <!-- Timer -->
+                    <Border Classes="card" IsVisible="{Binding IsTimerSection}">
+                        <StackPanel Spacing="10" DataContext="{Binding Timer}">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock Text="// タイマー · timer" Classes="jp" />
+                                <Border Grid.Column="1" Classes="rule" />
+                            </Grid>
 
-                    <CheckBox IsChecked="{Binding AutoContinue}" Content="auto-continue phases" />
-                    <CheckBox IsChecked="{Binding ChimeEnabled}" Content="chime on phase change" />
-                    <CheckBox IsChecked="{Binding NotificationsEnabled}" Content="notify on phase change" />
+                            <Grid ColumnDefinitions="*,100">
+                                <TextBlock Text="focus_min" Classes="key" />
+                                <NumericUpDown Grid.Column="1" Value="{Binding FocusMinutes}"
+                                               Minimum="1" Maximum="120" Increment="1" FormatString="0" />
+                            </Grid>
+                            <Grid ColumnDefinitions="*,100">
+                                <TextBlock Text="short_break" Classes="key" />
+                                <NumericUpDown Grid.Column="1" Value="{Binding ShortBreakMinutes}"
+                                               Minimum="1" Maximum="60" Increment="1" FormatString="0" />
+                            </Grid>
+                            <Grid ColumnDefinitions="*,100">
+                                <TextBlock Text="long_break" Classes="key" />
+                                <NumericUpDown Grid.Column="1" Value="{Binding LongBreakMinutes}"
+                                               Minimum="1" Maximum="60" Increment="1" FormatString="0" />
+                            </Grid>
+                            <Grid ColumnDefinitions="*,100">
+                                <TextBlock Text="rounds_per_long" Classes="key" />
+                                <NumericUpDown Grid.Column="1" Value="{Binding RoundsBeforeLongBreak}"
+                                               Minimum="1" Maximum="12" Increment="1" FormatString="0" />
+                            </Grid>
 
-                    <TextBlock Text="applies live · running phase finishes first · the active task can override the lengths"
-                               Classes="caption" TextWrapping="Wrap" />
-                </StackPanel>
-            </Border>
+                            <CheckBox IsChecked="{Binding AutoContinue}" Content="auto-continue phases" />
+                            <CheckBox IsChecked="{Binding ChimeEnabled}" Content="chime on phase change" />
+                            <CheckBox IsChecked="{Binding NotificationsEnabled}" Content="notify on phase change" />
 
-            <!-- Startup & window -->
-            <Border Classes="card">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="起動 · startup &amp; window" Classes="jp" />
-                    <CheckBox IsChecked="{Binding ShowWelcome}"
-                              Content="greet me on launch" />
-                    <CheckBox IsChecked="{Binding CloseToTray}"
-                              Content="keep running in the tray when the window closes" />
-                    <TextBlock Text="with this off, closing the window quits the app (and the timer)"
-                               Classes="caption" TextWrapping="Wrap" />
-                    <TextBlock Text="themes live in the shop now"
-                               Classes="caption" TextWrapping="Wrap" />
-                </StackPanel>
-            </Border>
+                            <TextBlock Text="# applies live · running phase finishes first · the active task can override the lengths"
+                                       Classes="comment" />
+                        </StackPanel>
+                    </Border>
 
-            <!-- Reminders -->
-            <Border Classes="card">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="通知 · reminders" Classes="jp" />
-                    <CheckBox IsChecked="{Binding RemindersEnabled}"
-                              Content="remind me about deadlines &amp; exams" />
-                    <TextBlock Text="a desktop notification three days out and again on the day — works while tomoshibi keeps running in the tray"
-                               Classes="caption" TextWrapping="Wrap" />
-                </StackPanel>
-            </Border>
+                    <!-- Startup & window -->
+                    <Border Classes="card" IsVisible="{Binding IsStartupSection}">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock Text="// 起動 · startup &amp; window" Classes="jp" />
+                                <Border Grid.Column="1" Classes="rule" />
+                            </Grid>
+                            <CheckBox IsChecked="{Binding ShowWelcome}"
+                                      Content="greet me on launch" />
+                            <CheckBox IsChecked="{Binding CloseToTray}"
+                                      Content="keep running in the tray when the window closes" />
+                            <TextBlock Text="# with this off, closing the window quits the app (and the timer)"
+                                       Classes="comment" />
+                            <TextBlock Text="# themes live in the shop now"
+                                       Classes="comment" />
+                        </StackPanel>
+                    </Border>
 
-            <!-- Grading -->
-            <Border Classes="card">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="成績 · grading" Classes="jp" />
-                    <Grid ColumnDefinitions="*,160">
-                        <TextBlock Text="grading scale" VerticalAlignment="Center" />
-                        <ComboBox Grid.Column="1"
-                                  ItemsSource="{Binding Subjects.ScaleOptions}"
-                                  SelectedItem="{Binding Subjects.SelectedScale}"
-                                  HorizontalAlignment="Stretch" Padding="10,6" />
-                    </Grid>
-                    <TextBlock Text="grades are always entered as percentages — the scale only changes the labels"
-                               Classes="caption" TextWrapping="Wrap" />
-                </StackPanel>
-            </Border>
+                    <!-- Reminders -->
+                    <Border Classes="card" IsVisible="{Binding IsRemindersSection}">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock Text="// 通知 · reminders" Classes="jp" />
+                                <Border Grid.Column="1" Classes="rule" />
+                            </Grid>
+                            <CheckBox IsChecked="{Binding RemindersEnabled}"
+                                      Content="remind me about deadlines &amp; exams" />
+                            <TextBlock Text="# a desktop notification three days out and again on the day — works while tomoshibi keeps running in the tray"
+                                       Classes="comment" />
+                        </StackPanel>
+                    </Border>
 
-            <!-- Music -->
-            <Border Classes="card">
-                <StackPanel Spacing="10" DataContext="{Binding Music}">
-                    <TextBlock Text="音楽 · music" Classes="jp" />
-                    <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Text="{Binding FolderLabel}" Classes="caption"
-                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                        <Button Grid.Column="1" Classes="seg" Content="choose folder…"
-                                Click="OnChooseMusicFolder" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,110">
-                        <TextBlock Text="volume (next track)" VerticalAlignment="Center" />
-                        <NumericUpDown Grid.Column="1" Value="{Binding Volume}"
-                                       Minimum="0" Maximum="100" FormatString="0" />
-                    </Grid>
-                    <CheckBox IsChecked="{Binding Shuffle}" IsEnabled="False"
-                              Content="shuffle (toggle in the player panel)" />
-                    <TextBlock Text="spotify connect — coming soon" Classes="caption" />
-                </StackPanel>
-            </Border>
+                    <!-- Grading -->
+                    <Border Classes="card" IsVisible="{Binding IsGradingSection}">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock Text="// 成績 · grading" Classes="jp" />
+                                <Border Grid.Column="1" Classes="rule" />
+                            </Grid>
+                            <Grid ColumnDefinitions="*,160">
+                                <TextBlock Text="grade_scale" Classes="key" />
+                                <ComboBox Grid.Column="1"
+                                          ItemsSource="{Binding Subjects.ScaleOptions}"
+                                          SelectedItem="{Binding Subjects.SelectedScale}"
+                                          HorizontalAlignment="Stretch" Padding="10,6" />
+                            </Grid>
+                            <TextBlock Text="# grades are always entered as percentages — the scale only changes the labels"
+                                       Classes="comment" />
 
-            <!-- Data -->
-            <Border Classes="card">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="データ · your data" Classes="jp" />
-                    <TextBlock Text="{Binding DataLocation}" FontSize="12"
-                               TextWrapping="Wrap" />
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Classes="seg" Content="open folder"
-                                Click="OnOpenDataFolder" />
-                        <Button Classes="seg" Content="backup (.json)"
-                                Click="OnBackup"
-                                ToolTip.Tip="save a full copy of your data — loads straight back" />
-                    </StackPanel>
-                    <TextBlock Text="saved atomically on every change, with a .bak of the last good state — corrupt files recover automatically"
-                               Classes="caption" TextWrapping="Wrap" />
+                            <!-- Custom-scale band editor -->
+                            <StackPanel Spacing="8" Margin="0,4,0,0"
+                                        IsVisible="{Binding Subjects.IsCustomScale}">
+                                <Grid ColumnDefinitions="74,*,80,Auto">
+                                    <TextBlock Text="min %" Classes="caption" />
+                                    <TextBlock Grid.Column="1" Text="label" Classes="caption" Margin="8,0,0,0" />
+                                    <TextBlock Grid.Column="2" Text="points" Classes="caption" Margin="8,0,0,0" />
+                                </Grid>
+                                <ItemsControl ItemsSource="{Binding Subjects.CustomBands}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:GradeBandViewModel">
+                                            <Grid ColumnDefinitions="74,*,80,Auto" Margin="0,2,0,0">
+                                                <NumericUpDown Grid.Column="0" Value="{Binding Min}"
+                                                               Minimum="0" Maximum="100" FormatString="0.#"
+                                                               FontSize="13" Padding="8,4" />
+                                                <TextBox Grid.Column="1" Text="{Binding Label}"
+                                                         Margin="8,0,0,0" FontSize="13" Padding="8,5" />
+                                                <NumericUpDown Grid.Column="2" Value="{Binding Points}"
+                                                               Minimum="0" Maximum="10" Increment="0.1"
+                                                               FormatString="0.0#" Margin="8,0,0,0"
+                                                               FontSize="13" Padding="8,4" />
+                                                <Button Grid.Column="3" Content="✕" Classes="icon" Margin="6,0,0,0"
+                                                        Command="{Binding $parent[ItemsControl].((vm:SettingsPageViewModel)DataContext).Subjects.RemoveBandCommand}"
+                                                        CommandParameter="{Binding}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Classes="seg" Content="+ band"
+                                            Command="{Binding Subjects.AddBandCommand}" />
+                                    <Button Classes="seg" Content="reset"
+                                            Command="{Binding Subjects.ResetBandsCommand}" />
+                                </StackPanel>
+                                <TextBlock Text="# each band covers its min % up to the next — set every points value to 0 for a percentage-only scale with no GPA"
+                                           Classes="comment" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
 
-                    <Border Height="1" Margin="0,2,0,2"
-                            Background="{DynamicResource BorderBrush}" />
+                    <!-- Music -->
+                    <Border Classes="card" IsVisible="{Binding IsMusicSection}">
+                        <StackPanel Spacing="10" DataContext="{Binding Music}">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock Text="// 音楽 · music" Classes="jp" />
+                                <Border Grid.Column="1" Classes="rule" />
+                            </Grid>
 
-                    <TextBlock Text="export" Classes="jp" />
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Classes="seg" Content="grades (.csv)"
-                                Click="OnExportGrades"
-                                ToolTip.Tip="every subject and assessment as a spreadsheet" />
-                        <Button Classes="seg" Content="timetable (.ics)"
-                                Click="OnExportTimetable"
-                                ToolTip.Tip="classes, exams and deadlines for your calendar app" />
-                    </StackPanel>
-                    <TextBlock Text="grades open in excel / sheets · the calendar drops into google / apple calendar"
-                               Classes="caption" TextWrapping="Wrap" />
-                </StackPanel>
-            </Border>
+                            <CheckBox IsChecked="{Binding IsEnabled}"
+                                      Content="enable the music player" />
+                            <TextBlock Text="# off hides the floating player entirely and stops playback — for a quieter, focus-only setup"
+                                       Classes="comment" />
 
-            <TextBlock Text="{Binding VersionLabel}" Classes="caption"
-                       HorizontalAlignment="Center" Margin="0,8,0,0" />
-        </StackPanel>
-    </ScrollViewer>
+                            <!-- Player knobs — disabled while music is switched off -->
+                            <StackPanel Spacing="10" Margin="0,4,0,0"
+                                        IsEnabled="{Binding IsEnabled}">
+                                <CheckBox IsChecked="{Binding Autoplay}"
+                                          Content="start playing on launch" />
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{Binding FolderLabel}" Classes="caption"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    <Button Grid.Column="1" Classes="seg" Content="choose folder…"
+                                            Click="OnChooseMusicFolder" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,100">
+                                    <TextBlock Text="volume" Classes="key" />
+                                    <NumericUpDown Grid.Column="1" Value="{Binding Volume}"
+                                                   Minimum="0" Maximum="100" FormatString="0" />
+                                </Grid>
+                                <CheckBox IsChecked="{Binding Shuffle}" IsEnabled="False"
+                                          Content="shuffle (toggle in the player panel)" />
+                            </StackPanel>
+
+                            <TextBlock Text="# volume applies to the next track · spotify connect — coming soon"
+                                       Classes="comment" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Data -->
+                    <Border Classes="card" IsVisible="{Binding IsDataSection}">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock Text="// データ · your data" Classes="jp" />
+                                <Border Grid.Column="1" Classes="rule" />
+                            </Grid>
+                            <TextBlock Text="{Binding DataLocation}" FontSize="12"
+                                       TextWrapping="Wrap" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Classes="seg" Content="open folder"
+                                        Click="OnOpenDataFolder" />
+                                <Button Classes="seg" Content="backup (.json)"
+                                        Click="OnBackup"
+                                        ToolTip.Tip="save a full copy of your data — loads straight back" />
+                            </StackPanel>
+                            <TextBlock Text="# saved atomically on every change, with a .bak of the last good state — corrupt files recover automatically"
+                                       Classes="comment" />
+
+                            <Grid ColumnDefinitions="Auto,*" Margin="0,4,0,0">
+                                <TextBlock Text="// 書き出し · export" Classes="jp" />
+                                <Border Grid.Column="1" Classes="rule" />
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Classes="seg" Content="grades (.csv)"
+                                        Click="OnExportGrades"
+                                        ToolTip.Tip="every subject and assessment as a spreadsheet" />
+                                <Button Classes="seg" Content="timetable (.ics)"
+                                        Click="OnExportTimetable"
+                                        ToolTip.Tip="classes, exams and deadlines for your calendar app" />
+                            </StackPanel>
+                            <TextBlock Text="# grades open in excel / sheets · the calendar drops into google / apple calendar"
+                                       Classes="comment" />
+                        </StackPanel>
+                    </Border>
+
+                </Panel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
 </UserControl>

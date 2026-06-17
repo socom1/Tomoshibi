@@ -32,6 +32,10 @@ public class AppState
 
     public PomodoroSettings Settings { get; set; } = new();
 
+    /// <summary>Strips the timer down to just the clock + gauge, hiding the
+    /// session log and keybind footer for a calmer view.</summary>
+    public bool SimpleTimer { get; set; }
+
     /// <summary>The user's "task code" — what they've typed in the today
     /// editor. Parsed at the view-model layer; persisted as-is.</summary>
     public string TaskTemplate { get; set; } = string.Empty;
@@ -79,13 +83,12 @@ public class AppState
     public List<TodoItem> Todos { get; set; } = new();
     public int NextTodoNumber { get; set; } = 1;
 
-    // Sticky notes
-    public List<StickyNote> Stickies { get; set; } = new();
-
     // Study video links (opened in the browser)
     public List<StudyLink> StudyLinks { get; set; } = new();
 
     // Music player
+    public bool MusicEnabled { get; set; } = true;
+    public bool MusicAutoplay { get; set; }
     public string? MusicFolder { get; set; }
     public double MusicVolume { get; set; } = 70;
     public bool MusicShuffle { get; set; } = true;
@@ -97,6 +100,10 @@ public class AppState
     public List<Subject> Subjects { get; set; } = new();
     public GradeScaleKind GradeScale { get; set; } = GradeScaleKind.UsGpa;
     public List<YearWeight> YearWeights { get; set; } = new();
+
+    /// <summary>The user's own grade boundaries, used when the scale is set to
+    /// Custom. Seeded with a sensible default on first use.</summary>
+    public List<GradeBand> CustomGradeBands { get; set; } = new();
 
     /// <summary>The overall percentage the user is aiming for across all
     /// subjects — drives the grade-goal planner. Null = not set yet.</summary>

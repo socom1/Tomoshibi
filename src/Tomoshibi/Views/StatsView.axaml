@@ -10,38 +10,56 @@
     <Grid RowDefinitions="Auto,Auto,*" Margin="28,4,28,28" MaxWidth="640">
 
         <!-- Page header -->
-        <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,16">
-            <TextBlock Text="記録 · stats" Classes="jp" />
-            <TextBlock Classes="h1">
-                <Run Text="{Binding CurrentStreak, Mode=OneWay}" />
-                <Run Text=" day streak" />
-            </TextBlock>
+        <StackPanel Grid.Row="0" Spacing="3" Margin="0,0,0,16">
+            <TextBlock Classes="path" Text="~/tomoshibi/stats" />
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="❯" Classes="prompt" />
+                <TextBlock Classes="h1 cjk" VerticalAlignment="Center">
+                    <Run Text="記録 · " />
+                    <Run Text="{Binding CurrentStreak, Mode=OneWay}" />
+                    <Run Text=" day streak" />
+                </TextBlock>
+            </StackPanel>
         </StackPanel>
 
-        <!-- All-time numbers -->
+        <!-- All-time numbers + 14-day focus sparkline -->
         <Border Grid.Row="1" Classes="card">
-            <Grid ColumnDefinitions="*,*,*,*">
-                <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock Text="{Binding BestStreak}" FontSize="26"
-                               Foreground="{DynamicResource MatchaBrush}" />
-                    <TextBlock Text="best streak" Classes="caption" />
-                </StackPanel>
-                <StackPanel Grid.Column="1" Spacing="2">
-                    <TextBlock Text="{Binding TotalSessions}" FontSize="26"
-                               Foreground="{DynamicResource BlueBrush}" />
-                    <TextBlock Text="sessions" Classes="caption" />
-                </StackPanel>
-                <StackPanel Grid.Column="2" Spacing="2">
-                    <TextBlock Text="{Binding TotalHours}" FontSize="26"
-                               Foreground="{DynamicResource AmberBrush}" />
-                    <TextBlock Text="hours" Classes="caption" />
-                </StackPanel>
-                <StackPanel Grid.Column="3" Spacing="2">
-                    <TextBlock Text="{Binding ActiveDays}" FontSize="26"
-                               Foreground="{DynamicResource TextBrush}" />
-                    <TextBlock Text="days focused" Classes="caption" />
-                </StackPanel>
-            </Grid>
+            <StackPanel Spacing="16">
+                <TextBlock Text="// 累計 · all-time" Classes="jp" />
+                <Grid ColumnDefinitions="*,*,*,*">
+                    <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="{Binding BestStreak}" FontSize="26"
+                                   Foreground="{DynamicResource MatchaBrush}" />
+                        <TextBlock Text="best streak" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock Text="{Binding TotalSessions}" FontSize="26"
+                                   Foreground="{DynamicResource BlueBrush}" />
+                        <TextBlock Text="sessions" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Spacing="2">
+                        <TextBlock Text="{Binding TotalHours}" FontSize="26"
+                                   Foreground="{DynamicResource AmberBrush}" />
+                        <TextBlock Text="hours" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" Spacing="2">
+                        <TextBlock Text="{Binding ActiveDays}" FontSize="26"
+                                   Foreground="{DynamicResource TextBrush}" />
+                        <TextBlock Text="days focused" Classes="caption" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Daily focus trend, drawn from block glyphs -->
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding Sparkline}"
+                               FontFamily="{DynamicResource MonoFont}" FontSize="20"
+                               Foreground="{DynamicResource MatchaBrush}"
+                               VerticalAlignment="Bottom" />
+                    <TextBlock Grid.Column="1" Text="{Binding SparklineSummary}"
+                               Classes="caption" Margin="10,0,0,2"
+                               VerticalAlignment="Bottom" />
+                </Grid>
+            </StackPanel>
         </Border>
 
         <!-- Calendar + focus breakdown, scrollable -->
@@ -106,6 +124,9 @@
                 <TextBlock Classes="caption"
                            Text="○ none · 淡 1 · 中 2 · 濃 3+ sessions"
                            HorizontalAlignment="Center" />
+                <TextBlock Classes="caption" Text="{Binding MonthSummary}"
+                           Foreground="{DynamicResource MatchaBrush}"
+                           HorizontalAlignment="Center" />
             </StackPanel>
         </Border>
 
@@ -114,7 +135,7 @@
                 VerticalAlignment="Top"
                 IsVisible="{Binding HasFocusByCourse}">
             <StackPanel Spacing="10">
-                <TextBlock Text="科目別 · focus by course · this week" Classes="jp" />
+                <TextBlock Text="// 科目別 · focus by course · this week" Classes="jp" />
                 <ItemsControl ItemsSource="{Binding FocusByCourse}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:CourseFocusViewModel">
@@ -123,11 +144,10 @@
                                            VerticalAlignment="Center" FontSize="13"
                                            Foreground="{Binding Course, Converter={StaticResource CourseColor}}"
                                            TextTrimming="CharacterEllipsis" />
-                                <ProgressBar Grid.Column="1" Value="{Binding Fraction}"
-                                             Minimum="0" Maximum="1" Height="6" MinHeight="0"
-                                             VerticalAlignment="Center"
-                                             Foreground="{Binding Course, Converter={StaticResource CourseColor}}"
-                                             Background="{DynamicResource SurfaceHoverBrush}" />
+                                <TextBlock Grid.Column="1" Text="{Binding Bar}"
+                                           FontFamily="{DynamicResource MonoFont}" FontSize="13"
+                                           VerticalAlignment="Center"
+                                           Foreground="{Binding Course, Converter={StaticResource CourseColor}}" />
                                 <TextBlock Grid.Column="2" Text="{Binding HoursLabel}"
                                            Classes="caption" HorizontalAlignment="Right"
                                            VerticalAlignment="Center" />
@@ -143,27 +163,38 @@
                 VerticalAlignment="Top"
                 IsVisible="{Binding HasJournal}">
             <StackPanel Spacing="12">
-                <TextBlock Text="振り返り · journal" Classes="jp" />
+                <TextBlock Text="// 振り返り · journal" Classes="jp" />
                 <ItemsControl ItemsSource="{Binding Journal}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:JournalEntryViewModel">
-                            <Grid ColumnDefinitions="96,*" Margin="0,2,0,8">
-                                <TextBlock Grid.Column="0" Text="{Binding DateLabel}"
-                                           Classes="caption" FontSize="13" VerticalAlignment="Top"
-                                           Classes.today="{Binding IsToday}" />
-                                <StackPanel Grid.Column="1" Spacing="3">
-                                    <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding HasIntention}">
-                                        <TextBlock Text="{Binding Intention}" FontSize="13"
-                                                   TextWrapping="Wrap" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1" Text="達成" FontSize="11"
-                                                   Margin="8,0,0,0" VerticalAlignment="Center"
-                                                   Foreground="{DynamicResource MatchaBrush}"
-                                                   IsVisible="{Binding Kept}" />
-                                    </Grid>
-                                    <TextBlock Text="{Binding Reflection}" Classes="caption"
-                                               TextWrapping="Wrap" IsVisible="{Binding HasReflection}" />
-                                </StackPanel>
-                            </Grid>
+                            <Border Classes="jentry" Classes.kept="{Binding Kept}"
+                                    Margin="0,0,0,8">
+                                <Grid ColumnDefinitions="84,*">
+                                    <TextBlock Grid.Column="0" Text="{Binding DateLabel}"
+                                               Classes="caption" FontSize="13" VerticalAlignment="Top"
+                                               Classes.today="{Binding IsToday}" />
+                                    <StackPanel Grid.Column="1" Spacing="5">
+                                        <!-- morning intention -->
+                                        <Grid ColumnDefinitions="14,*,Auto" IsVisible="{Binding HasIntention}">
+                                            <TextBlock Grid.Column="0" Text="›" VerticalAlignment="Top"
+                                                       Foreground="{DynamicResource MatchaBrush}" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Intention}"
+                                                       FontSize="13" TextWrapping="Wrap" />
+                                            <TextBlock Grid.Column="2" Text="達成" FontSize="11"
+                                                       Margin="8,1,0,0" VerticalAlignment="Top"
+                                                       Foreground="{DynamicResource MatchaBrush}"
+                                                       IsVisible="{Binding Kept}" />
+                                        </Grid>
+                                        <!-- evening reflection -->
+                                        <Grid ColumnDefinitions="14,*" IsVisible="{Binding HasReflection}">
+                                            <TextBlock Grid.Column="0" Text="↳" Classes="caption"
+                                                       VerticalAlignment="Top" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Reflection}"
+                                                       Classes="caption" TextWrapping="Wrap" />
+                                        </Grid>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

@@ -22,6 +22,9 @@ public partial class DeckViewModel : ViewModelBase
     [ObservableProperty] private bool _hasDue;
     [ObservableProperty] private string _countsLabel = string.Empty;
 
+    /// <summary>A █/░ meter of how much of the deck is due right now.</summary>
+    [ObservableProperty] private string _dueBar = string.Empty;
+
     // ---- New-card form ----
     [ObservableProperty] private string _newCardFront = string.Empty;
     [ObservableProperty] private string _newCardBack = string.Empty;
@@ -116,5 +119,6 @@ public partial class DeckViewModel : ViewModelBase
             : DueCount > 0
                 ? $"{DueCount} due · {CardCount} cards"
                 : $"caught up · {CardCount} cards";
+        DueBar = ReviewViewModel.AsciiBar(DueCount, Math.Max(CardCount, 1), 10);
     }
 }

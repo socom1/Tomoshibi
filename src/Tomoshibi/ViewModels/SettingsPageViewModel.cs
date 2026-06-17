@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Tomoshibi.Models;
 
 namespace Tomoshibi.ViewModels;
@@ -41,8 +42,32 @@ public partial class SettingsPageViewModel : ViewModelBase
     [ObservableProperty]
     private bool _remindersEnabled;
 
+    /// <summary>Which section the sidebar has selected. Drives the detail pane;
+    /// the Is*Section helpers light the matching nav item and show its card.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsTimerSection))]
+    [NotifyPropertyChangedFor(nameof(IsStartupSection))]
+    [NotifyPropertyChangedFor(nameof(IsRemindersSection))]
+    [NotifyPropertyChangedFor(nameof(IsGradingSection))]
+    [NotifyPropertyChangedFor(nameof(IsMusicSection))]
+    [NotifyPropertyChangedFor(nameof(IsDataSection))]
+    private string _section = "timer";
 
-    public string VersionLabel => "灯火 · tomoshibi — v1.5";
+    public bool IsTimerSection => Section == "timer";
+    public bool IsStartupSection => Section == "startup";
+    public bool IsRemindersSection => Section == "reminders";
+    public bool IsGradingSection => Section == "grading";
+    public bool IsMusicSection => Section == "music";
+    public bool IsDataSection => Section == "data";
+
+    [RelayCommand]
+    private void SelectSection(string? section)
+    {
+        if (!string.IsNullOrEmpty(section))
+            Section = section;
+    }
+
+    public string VersionLabel => "灯火 · tomoshibi — v1.3";
 
     public SettingsPageViewModel(AppState state, Action save,
                                  SettingsViewModel timer,

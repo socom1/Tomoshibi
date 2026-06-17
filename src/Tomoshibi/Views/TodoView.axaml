@@ -8,27 +8,25 @@
              x:Class="Tomoshibi.Views.TodoView"
              x:DataType="vm:TodoViewModel">
 
-    <UserControl.Resources>
-        <conv:LowercaseConverter x:Key="Lower" />
-    </UserControl.Resources>
-
     <Grid>
 
     <Grid RowDefinitions="Auto,Auto,*" Margin="28,4,28,28" MaxWidth="860">
 
         <!-- Page header -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
-            <StackPanel Spacing="2">
-                <TextBlock Text="やること · todo" Classes="jp" />
-                <TextBlock Classes="h1">
+            <StackPanel Spacing="3">
+                <TextBlock Classes="path" Text="~/tomoshibi/todo" />
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="❯" Classes="prompt" />
+                    <TextBlock Text="やること · backlog" Classes="h1 cjk" VerticalAlignment="Center" />
+                </StackPanel>
+                <TextBlock Classes="caption">
                     <Run Text="{Binding OpenCount, Mode=OneWay}" />
                     <Run Text=" backlog · " />
                     <Run Text="{Binding DoingCount, Mode=OneWay}" />
-                    <Run Text=" doing" />
-                </TextBlock>
-                <TextBlock Classes="caption">
+                    <Run Text=" doing · " />
                     <Run Text="{Binding DoneCount, Mode=OneWay}" />
-                    <Run Text=" shipped all-time" />
+                    <Run Text=" shipped" />
                 </TextBlock>
             </StackPanel>
 
@@ -66,10 +64,10 @@
                                     <!-- Row line -->
                                     <Border Classes="trow">
                                     <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
-                                        <ToggleButton Grid.Column="0" Classes="icon chev" Content="▸"
-                                                      FontSize="11" Padding="4,2"
-                                                      IsChecked="{Binding IsExpanded}"
-                                                      ToolTip.Tip="details" />
+                                        <Button Grid.Column="0" Classes="icon" Content="{Binding ChevronGlyph}"
+                                                FontSize="11" Padding="4,2"
+                                                Command="{Binding ToggleExpandedCommand}"
+                                                ToolTip.Tip="show / hide details" />
                                         <Button Grid.Column="1" Classes="icon status"
                                                 Classes.doing="{Binding IsDoing}"
                                                 Classes.donestat="{Binding IsDone}"
@@ -179,61 +177,6 @@
             </Grid>
         </Border>
     </Grid>
-
-    <!-- Add / edit modal -->
-    <Border Classes="modal-backdrop"
-            IsVisible="{Binding IsModalOpen}"
-            Background="#A0000000">
-        <Border Classes="card modal-card"
-                Width="420" Padding="22"
-                HorizontalAlignment="Center" VerticalAlignment="Center"
-                RenderTransformOrigin="0.5,0.5">
-            <Border.RenderTransform>
-                <ScaleTransform ScaleX="1" ScaleY="1" />
-            </Border.RenderTransform>
-            <StackPanel Spacing="12">
-                <TextBlock Text="{Binding ModalTitle}" Classes="jp" />
-
-                <TextBox Text="{Binding FormTitle}" Watermark="what needs doing?" />
-                <TextBox Text="{Binding FormDescription}"
-                         Watermark="notes — why, where, what 'done' means…"
-                         AcceptsReturn="True" TextWrapping="Wrap"
-                         MinHeight="84" VerticalContentAlignment="Top" />
-
-                <Grid ColumnDefinitions="*,8,*">
-                    <AutoCompleteBox Grid.Column="0" Text="{Binding FormCourse}"
-                                     ItemsSource="{Binding KnownCourses}"
-                                     FilterMode="Contains" Watermark="course" />
-                    <CalendarDatePicker Grid.Column="2" SelectedDate="{Binding FormDue}"
-                                        Watermark="due" />
-                </Grid>
-
-                <Grid ColumnDefinitions="*,8,*">
-                    <ComboBox Grid.Column="0" ItemsSource="{Binding Priorities}"
-                              SelectedItem="{Binding FormPriority}"
-                              HorizontalAlignment="Stretch">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding, Converter={StaticResource Lower}}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <NumericUpDown Grid.Column="2" Value="{Binding FormEstimate}"
-                                   Watermark="est. sessions"
-                                   Minimum="1" Maximum="50" FormatString="0" />
-                </Grid>
-
-                <Grid ColumnDefinitions="*,*" Margin="0,4,0,0">
-                    <Button Grid.Column="0" Content="cancel"
-                            HorizontalAlignment="Stretch"
-                            Command="{Binding CancelModalCommand}" />
-                    <Button Grid.Column="1" Content="{Binding ModalAction}" Classes="accent"
-                            HorizontalAlignment="Stretch" Margin="8,0,0,0"
-                            Command="{Binding ConfirmModalCommand}" />
-                </Grid>
-            </StackPanel>
-        </Border>
-    </Border>
 
     </Grid>
 </UserControl>

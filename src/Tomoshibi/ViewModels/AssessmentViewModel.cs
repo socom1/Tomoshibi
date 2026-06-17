@@ -19,18 +19,19 @@ public partial class AssessmentViewModel : ViewModelBase
     /// <summary>A hypothetical grade changed — recompute the simulation only.</summary>
     public event Action? SimChanged;
 
-    /// <summary>Decimal because NumericUpDown binds decimal; null = ungraded.</summary>
+    /// <summary>Decimal because the form binds decimal; null = ungraded.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsGraded))]
+    [NotifyPropertyChangedFor(nameof(IsUngraded))]
+    [NotifyPropertyChangedFor(nameof(GradeDisplay))]
+    [NotifyPropertyChangedFor(nameof(IsSimulated))]
     private decimal? _grade;
 
     /// <summary>What-if grade for the simulator. Transient, never saved.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSimulated))]
+    [NotifyPropertyChangedFor(nameof(SimLabel))]
     private decimal? _simGrade;
-
-    /// <summary>Set by the subject when the simulator toggles: the sim input
-    /// only shows on ungraded rows while simulating.</summary>
-    [ObservableProperty]
-    private bool _isSimVisible;
 
     public string Title => Model.Title;
     public string WeightLabel => $"{Model.Weight:0.#}%";
@@ -44,17 +45,35 @@ public partial class AssessmentViewModel : ViewModelBase
     public bool IsGraded => Model.Grade is not null;
     public bool IsUngraded => Model.Grade is null;
 
+    /// <summary>The grade shown on the row — "88%" once results land, "—" until.</summary>
+    public string GradeDisplay => Grade is { } g ? $"{g:0.#}%" : "—";
+
+    /// <summary>A what-if grade is set on a still-ungraded assessment — drives
+    /// the row's amber "what-if" treatment.</summary>
+    public bool IsSimulated => Grade is null && SimGrade is not null;
+    public string SimLabel => SimGrade is { } s ? $"what-if {s:0.#}%" : string.Empty;
+
     public AssessmentViewModel(Assessment model)
     {
         Model = model;
         _grade = model.Grade is { } g ? (decimal)g : null;
     }
 
+    /// <summary>Re-read the labels after the model's title/weight/category/date
+    /// were edited through the modal.</summary>
+    public void NotifyEdited()
+    {
+        OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(WeightLabel));
+        OnPropertyChanged(nameof(Category));
+        OnPropertyChanged(nameof(HasCategory));
+        OnPropertyChanged(nameof(DateLabel));
+        OnPropertyChanged(nameof(HasDate));
+    }
+
     partial void OnGradeChanged(decimal? value)
     {
         Model.Grade = value is { } g ? Math.Clamp((double)g, 0, 100) : null;
-        OnPropertyChanged(nameof(IsGraded));
-        OnPropertyChanged(nameof(IsUngraded));
         Changed?.Invoke();
     }
 

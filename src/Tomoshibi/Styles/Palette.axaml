@@ -40,6 +40,13 @@
          can hit a different system fallback, which makes baselines jitter. -->
     <FontFamily x:Key="MonoFont">Cascadia Code,JetBrains Mono,Consolas,Menlo,DejaVu Sans Mono,Hiragino Sans,Yu Gothic UI,Noto Sans CJK JP,monospace</FontFamily>
 
+    <!-- A single CJK-capable family for headings/labels that mix Japanese and
+         Latin (the "日本語 · english" pattern). Forcing the whole string onto
+         one font keeps both scripts on a shared baseline; the mono stack above
+         would otherwise split the line between Cascadia (Latin) and a CJK
+         fallback (kana/kanji), leaving the Latin part riding higher. -->
+    <FontFamily x:Key="JpFont">Hiragino Sans,Yu Gothic UI,Noto Sans CJK JP,sans-serif</FontFamily>
+
     <!-- Shape / spacing tokens -->
     <CornerRadius x:Key="CardRadius">14</CornerRadius>
     <Thickness x:Key="CardPadding">22</Thickness>
