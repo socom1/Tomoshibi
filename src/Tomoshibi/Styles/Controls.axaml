@@ -821,6 +821,38 @@
         <Setter Property="RenderTransform" Value="scale(1)" />
     </Style>
 
+    <!-- After-midnight sleep nudge — a quiet line whose dismiss ✕ only fades in
+         while the pointer is over it, so it stays calm when ignored. -->
+    <Style Selector="Border.sleep-nudge">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.nudge-dismiss">
+        <Setter Property="Opacity" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="4,0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Button.nudge-dismiss:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.nudge-dismiss:pointerover">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    </Style>
+    <Style Selector="Border.sleep-nudge:pointerover Button.nudge-dismiss">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+
     <!-- Streak calendar cells: heat-tinted by sessions that day. Idle days sit
          low-contrast so the green ones read as a heatmap; hover lifts a cell. -->
     <Style Selector="Border.cal">

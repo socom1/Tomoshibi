@@ -97,6 +97,16 @@ public partial class TodayViewModel : ViewModelBase
     [ObservableProperty]
     private bool _hasUpcomingDeadlines;
 
+    /// <summary>A gentle "rest soon" nudge shown on the timer once it's past
+    /// midnight, when enabled in settings. Recomputed each minute by the
+    /// day-watcher, so it appears and clears on its own.</summary>
+    [ObservableProperty]
+    private bool _showSleepNudge;
+
+    /// <summary>Set when the user dismisses tonight's nudge; cleared on its own
+    /// once we're past the window (after 5am), so it returns the next night.</summary>
+    private bool _sleepNudgeDismissed;
+
     /// <summary>The Pomodoro timer.</summary>
     public PomodoroViewModel Pomodoro { get; }
 
@@ -241,6 +251,21 @@ public partial class TodayViewModel : ViewModelBase
 
         DeadlinesLabel = string.Join(" · ", soon);
         HasUpcomingDeadlines = soon.Count > 0;
+
+        // After midnight (until 5am), gently suggest some sleep — unless the
+        // night owl switched it off, or dismissed it for tonight. Past the
+        // window, clear the dismissal so it can return next night.
+        if (now.Hour >= 5)
+            _sleepNudgeDismissed = false;
+        ShowSleepNudge = _state.SleepReminderEnabled && now.Hour < 5 && !_sleepNudgeDismissed;
+    }
+
+    /// <summary>Dismiss tonight's after-midnight nudge (the hover ✕).</summary>
+    [RelayCommand]
+    private void DismissSleepNudge()
+    {
+        _sleepNudgeDismissed = true;
+        ShowSleepNudge = false;
     }
 
     private static string DueWord(DateOnly due, DateOnly today)

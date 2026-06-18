@@ -155,6 +155,10 @@
                                       Content="remind me about deadlines &amp; exams" />
                             <TextBlock Text="# a desktop notification three days out and again on the day — works while tomoshibi keeps running in the tray"
                                        Classes="comment" />
+                            <CheckBox IsChecked="{Binding SleepReminderEnabled}"
+                                      Content="nudge me to rest after midnight" />
+                            <TextBlock Text="# a quiet line on the timer once it's past midnight — no notification, just a gentle reminder to call it a night"
+                                       Classes="comment" />
                         </StackPanel>
                     </Border>
 

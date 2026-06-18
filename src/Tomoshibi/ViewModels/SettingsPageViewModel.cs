@@ -42,6 +42,9 @@ public partial class SettingsPageViewModel : ViewModelBase
     [ObservableProperty]
     private bool _remindersEnabled;
 
+    [ObservableProperty]
+    private bool _sleepReminderEnabled;
+
     /// <summary>Which section the sidebar has selected. Drives the detail pane;
     /// the Is*Section helpers light the matching nav item and show its card.</summary>
     [ObservableProperty]
@@ -85,6 +88,7 @@ public partial class SettingsPageViewModel : ViewModelBase
         _showWelcome = state.ShowWelcome;
         _closeToTray = state.CloseToTray;
         _remindersEnabled = state.RemindersEnabled;
+        _sleepReminderEnabled = state.SleepReminderEnabled;
     }
 
     partial void OnShowWelcomeChanged(bool value)
@@ -102,6 +106,12 @@ public partial class SettingsPageViewModel : ViewModelBase
     partial void OnRemindersEnabledChanged(bool value)
     {
         _state.RemindersEnabled = value;
+        _save();
+    }
+
+    partial void OnSleepReminderEnabledChanged(bool value)
+    {
+        _state.SleepReminderEnabled = value;
         _save();
     }
 

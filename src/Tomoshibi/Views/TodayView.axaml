@@ -84,7 +84,7 @@
                         <BrushTransition Property="BorderBrush" Duration="0:0:0.45" />
                     </Transitions>
                 </Border.Transitions>
-                <Grid RowDefinitions="Auto,*,Auto,Auto">
+                <Grid RowDefinitions="Auto,*,Auto,Auto,Auto">
 
                     <!-- Panel title bar -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
@@ -170,21 +170,27 @@
 
                     <!-- Controls: keybind footer (full) or plain buttons (simple) -->
                     <Grid Grid.Row="3" Margin="0,14,0,0">
-                        <WrapPanel HorizontalAlignment="Center"
-                                   IsVisible="{Binding !SimpleTimer}">
-                            <Button Classes="keyhint" Command="{Binding Pomodoro.ToggleRunCommand}">
-                                <TextBlock><Run Text="[space] " Foreground="{DynamicResource TextBrush}" /><Run Text="{Binding Pomodoro.StartPauseLabel}" /></TextBlock>
-                            </Button>
-                            <Button Classes="keyhint" Command="{Binding Pomodoro.ResetCommand}">
-                                <TextBlock><Run Text="[r] " Foreground="{DynamicResource TextBrush}" /><Run Text="reset" /></TextBlock>
-                            </Button>
-                            <Button Classes="keyhint" Command="{Binding Pomodoro.SkipCommand}">
-                                <TextBlock><Run Text="[s] " Foreground="{DynamicResource TextBrush}" /><Run Text="skip" /></TextBlock>
-                            </Button>
-                            <Button Classes="keyhint" Command="{Binding ToggleZenCommand}">
-                                <TextBlock><Run Text="[z] " Foreground="{DynamicResource TextBrush}" /><Run Text="zen" /></TextBlock>
-                            </Button>
-                        </WrapPanel>
+                        <!-- Two centred rows rather than a WrapPanel, which would
+                             left-align the second row under the first. -->
+                        <StackPanel HorizontalAlignment="Center" Spacing="2"
+                                    IsVisible="{Binding !SimpleTimer}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Classes="keyhint" Command="{Binding Pomodoro.ToggleRunCommand}">
+                                    <TextBlock><Run Text="[space] " Foreground="{DynamicResource TextBrush}" /><Run Text="{Binding Pomodoro.StartPauseLabel}" /></TextBlock>
+                                </Button>
+                                <Button Classes="keyhint" Command="{Binding Pomodoro.ResetCommand}">
+                                    <TextBlock><Run Text="[r] " Foreground="{DynamicResource TextBrush}" /><Run Text="reset" /></TextBlock>
+                                </Button>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Classes="keyhint" Command="{Binding Pomodoro.SkipCommand}">
+                                    <TextBlock><Run Text="[s] " Foreground="{DynamicResource TextBrush}" /><Run Text="skip" /></TextBlock>
+                                </Button>
+                                <Button Classes="keyhint" Command="{Binding ToggleZenCommand}">
+                                    <TextBlock><Run Text="[z] " Foreground="{DynamicResource TextBrush}" /><Run Text="zen" /></TextBlock>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12"
                                     IsVisible="{Binding SimpleTimer}">
                             <Button Content="{Binding Pomodoro.StartPauseLabel}" Classes="accent"
@@ -193,6 +199,25 @@
                             <Button Content="skip" Command="{Binding Pomodoro.SkipCommand}" />
                         </StackPanel>
                     </Grid>
+
+                    <!-- After-midnight nudge — a quiet, ignorable line; hover to
+                         reveal the dismiss ✕. Off-switch in settings → reminders. -->
+                    <Border Grid.Row="4" Classes="sleep-nudge"
+                            HorizontalAlignment="Center" Margin="0,16,0,0"
+                            IsVisible="{Binding ShowSleepNudge}">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="☾" FontSize="13"
+                                       Foreground="{DynamicResource BlueBrush}"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="おやすみ · it's late — rest soon"
+                                       Classes="cjk" FontSize="13"
+                                       Foreground="{DynamicResource BlueBrush}"
+                                       VerticalAlignment="Center" />
+                            <Button Classes="nudge-dismiss" Content="✕"
+                                    Command="{Binding DismissSleepNudgeCommand}"
+                                    ToolTip.Tip="dismiss for tonight" />
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Border>
 

@@ -676,12 +676,31 @@
                        IsVisible="{Binding Today.DailyIntention, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal"
-                    HorizontalAlignment="Center" Spacing="12" Margin="0,0,0,12">
-            <Button Content="{Binding Today.Pomodoro.StartPauseLabel}" Classes="accent"
-                    Command="{Binding Today.Pomodoro.ToggleRunCommand}" />
-            <Button Content="reset" Command="{Binding Today.Pomodoro.ResetCommand}" />
-            <Button Content="skip" Command="{Binding Today.Pomodoro.SkipCommand}" />
+        <StackPanel Grid.Row="2" HorizontalAlignment="Center" Spacing="16" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+                <Button Content="{Binding Today.Pomodoro.StartPauseLabel}" Classes="accent"
+                        Command="{Binding Today.Pomodoro.ToggleRunCommand}" />
+                <Button Content="reset" Command="{Binding Today.Pomodoro.ResetCommand}" />
+                <Button Content="skip" Command="{Binding Today.Pomodoro.SkipCommand}" />
+            </StackPanel>
+
+            <!-- After-midnight nudge sits at the very bottom in zen, not under
+                 the timer. Hover to reveal the dismiss ✕. -->
+            <Border Classes="sleep-nudge" HorizontalAlignment="Center"
+                    IsVisible="{Binding Today.ShowSleepNudge}">
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <TextBlock Text="☾" FontSize="13"
+                               Foreground="{DynamicResource BlueBrush}"
+                               VerticalAlignment="Center" />
+                    <TextBlock Text="おやすみ · it's late — rest soon"
+                               Classes="cjk" FontSize="13"
+                               Foreground="{DynamicResource BlueBrush}"
+                               VerticalAlignment="Center" />
+                    <Button Classes="nudge-dismiss" Content="✕"
+                            Command="{Binding Today.DismissSleepNudgeCommand}"
+                            ToolTip.Tip="dismiss for tonight" />
+                </StackPanel>
+            </Border>
         </StackPanel>
     </Grid>
 

@@ -48,6 +48,9 @@ public class AppState
     // Deadline / exam reminders
     public bool RemindersEnabled { get; set; } = true;
 
+    /// <summary>Show the gentle "rest soon" line on the timer after midnight.</summary>
+    public bool SleepReminderEnabled { get; set; } = true;
+
     /// <summary>Keys of reminders already fired (item + threshold + date), so
     /// a deadline never notifies twice. Swept as dates pass.</summary>
     public List<string> NotifiedReminders { get; set; } = new();
