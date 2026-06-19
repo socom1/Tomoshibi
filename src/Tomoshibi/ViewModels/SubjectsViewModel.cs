@@ -559,13 +559,52 @@ public partial class SubjectsViewModel : ViewModelBase
         {
             var best = (gradedPoints + remaining * 100) / total;
             GoalResult = $"out of reach — the best you can finish is {best:0.#}%";
+            if (FocusHint() is { } hint)
+                GoalResult += $" · {hint}";
             Tone(false, false);
         }
         else
         {
             GoalResult = $"you're at {current:0.#}% — need avg {need:0.#}% across the rest to reach {target:0.#}%";
+            if (FocusHint() is { } hint)
+                GoalResult += $" · {hint}";
             Tone(need <= 70, need <= 88);
         }
+    }
+
+    /// <summary>Which subject to lean on to close the gap to the overall goal:
+    /// one that still has ungraded weight to play for, weakest first (furthest
+    /// below its own target, else the lowest standing, else most left to win).
+    /// Null when nothing's left to push on.</summary>
+    private string? FocusHint()
+    {
+        var improvable = Items
+            .Where(s => s.TotalWeightPct - s.GradedWeightPct > 0.01)
+            .ToList();
+        if (improvable.Count == 0)
+            return null;
+
+        var below = improvable
+            .Where(s => s.Model.TargetPercent is { } t && s.CurrentPercent is { } c && c < t)
+            .OrderByDescending(s => s.Model.TargetPercent!.Value - s.CurrentPercent!.Value)
+            .FirstOrDefault();
+        if (below is not null)
+        {
+            var gap = below.Model.TargetPercent!.Value - below.CurrentPercent!.Value;
+            return $"focus on {below.Name} — {gap:0.#}% below its target";
+        }
+
+        var lowest = improvable
+            .Where(s => s.CurrentPercent is not null)
+            .OrderBy(s => s.CurrentPercent)
+            .FirstOrDefault();
+        if (lowest is not null)
+            return $"focus on {lowest.Name} — your lowest at {lowest.CurrentPercent:0.#}%";
+
+        var lever = improvable
+            .OrderByDescending(s => s.TotalWeightPct - s.GradedWeightPct)
+            .First();
+        return $"focus on {lever.Name} — most still to play for";
     }
 
     /// <summary>The "how's the term going" read: strongest subject, the one
