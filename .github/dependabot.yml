@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # NuGet packages for the app and test project (the .sln at the root ties
+  # them together). Dependabot opens a PR when one is outdated or has a known
+  # vulnerability — CI then builds and tests the bump before it can merge.
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+
+  # Keep the GitHub Actions in the CI/CodeQL workflows current too.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
