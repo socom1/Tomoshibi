@@ -1083,13 +1083,36 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="9,5" />
-        <Setter Property="Margin" Value="2" />
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Padding" Value="6,3" />
+        <Setter Property="Margin" Value="1" />
+        <Setter Property="FontSize" Value="11" />
         <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
     </Style>
     <Style Selector="Button.keyhint:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+
+    <!-- Minimal-timer controls: compact, quiet icon buttons (play/pause, reset,
+         skip) so they read as glyphs and stay inside the card at the smallest
+         width, instead of overflowing as a row of text buttons. -->
+    <Style Selector="Button.timerctl">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="9" />
+        <Setter Property="Padding" Value="13,8" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+    </Style>
+    <Style Selector="Button.timerctl:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+    <Style Selector="Button.timerctl:pointerover">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    </Style>
+    <!-- Play / pause is the primary action — phase-green so the eye lands on it. -->
+    <Style Selector="Button.timerctl.primary">
+        <Setter Property="Foreground" Value="{DynamicResource MatchaBrush}" />
     </Style>
 
 </Styles>

@@ -112,7 +112,16 @@ public partial class TodayViewModel : ViewModelBase
 
     /// <summary>Strips the timer to just the clock + gauge when on. Persisted.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SimpleTimerGlyph))]
     private bool _simpleTimer;
+
+    /// <summary>Collapse (full → minimal) / expand glyph for the density toggle.</summary>
+    public string SimpleTimerGlyph => SimpleTimer ? "⊞" : "⊟";
+
+    /// <summary>Flip between the full and minimal timer — wired to the discreet
+    /// corner toggle so it can be a plain (flat) icon button.</summary>
+    [RelayCommand]
+    private void ToggleSimpleTimer() => SimpleTimer = !SimpleTimer;
 
     /// <summary>Recent completed blocks — the terminal-style session log feed.</summary>
     public ObservableCollection<TimerLogEntry> SessionLog { get; } = new();
