@@ -1,5 +1,7 @@
 # tomoshibi 灯火
 
+[![ci](https://github.com/socom1/Tomoshibi/actions/workflows/ci.yml/badge.svg)](https://github.com/socom1/Tomoshibi/actions/workflows/ci.yml)
+
 A calm, late-night study companion for university students. A Pomodoro timer
 and a daily intention sit at the centre; around them are a class timetable, a
 todo backlog, spaced-repetition flashcards, a grade tracker and a focus
@@ -71,8 +73,11 @@ src/Tomoshibi/
                  Review, Shop, Settings)
   Styles/        Tokyo Night palette + control styles
   Assets/        icon (png/ico/icns) + chime
+tests/Tomoshibi.Tests/   xUnit tests for the pure logic (grade engine,
+                 task-template parser, storage round-trip + crash recovery)
 scripts/         packaging scripts per platform
 docs/            roadmap, architecture, build journal
+.github/workflows/ci.yml   build + test on every push/PR, across win/mac/linux
 ```
 
 ## Getting started
@@ -84,6 +89,12 @@ git clone <your-repo-url> tomoshibi
 cd tomoshibi
 dotnet restore
 dotnet run --project src/Tomoshibi
+```
+
+Run the tests with:
+
+```bash
+dotnet test
 ```
 
 ## Building a release
