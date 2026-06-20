@@ -128,6 +128,29 @@
                 </Grid>
                 <TextBlock Text="{Binding MomentumLabel}" Classes="caption" Margin="2,-6,0,0" />
 
+                <!-- Daily focus goal: today's focused time against the target.
+                     Set the target inline; 0 hides this card. -->
+                <Border Classes="card" Margin="0,8,0,0" IsVisible="{Binding HasFocusGoal}">
+                    <StackPanel Spacing="8">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{Binding FocusGoalLabel}" Classes="caption"
+                                       VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="goal_min" Classes="caption" VerticalAlignment="Center" />
+                                <NumericUpDown Value="{Binding FocusGoalMinutes}"
+                                               Minimum="0" Maximum="600" Increment="15" FormatString="0"
+                                               Width="96" FontSize="12"
+                                               HorizontalContentAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+                        <ProgressBar Value="{Binding FocusGoalFraction}" Minimum="0" Maximum="1"
+                                     Height="5" MinHeight="0"
+                                     Foreground="{DynamicResource AmberBrush}"
+                                     Background="{DynamicResource SurfaceHoverBrush}" />
+                    </StackPanel>
+                </Border>
+
                 <!-- Review due -->
                 <Border Classes="card" IsVisible="{Binding Review.HasDue}">
                     <Grid ColumnDefinitions="*,Auto">
