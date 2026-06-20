@@ -64,6 +64,44 @@
                     </TextBlock>
                 </StackPanel>
 
+                <!-- First-run checklist — ticks off as you set up, pays a few
+                     embers per step, and retires once done or skipped. -->
+                <Border Classes="card" IsVisible="{Binding ShowGettingStarted}">
+                    <StackPanel Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="// はじめまして · getting started" Classes="jp"
+                                       VerticalAlignment="Center" />
+                            <Button Grid.Column="1" Classes="seg" Content="skip"
+                                    Command="{Binding SkipOnboardingCommand}"
+                                    ToolTip.Tip="dismiss for good" />
+                        </Grid>
+                        <TextBlock Classes="caption" FontSize="13" TextWrapping="Wrap"
+                                   Text="a few steps to light up the dashboard — each one earns you some embers." />
+                        <ItemsControl ItemsSource="{Binding FirstSteps}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:FirstStepViewModel">
+                                    <Button Classes="liststep" HorizontalAlignment="Stretch"
+                                            Margin="0,0,0,2" Command="{Binding GoCommand}">
+                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding Glyph}"
+                                                       Foreground="{DynamicResource MutedTextBrush}"
+                                                       VerticalAlignment="Center" Margin="0,0,10,0" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Label}"
+                                                       Classes.done="{Binding IsDone}"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding RewardLabel}"
+                                                       Classes="caption cjk" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Button Classes="seg" HorizontalAlignment="Left"
+                                Content="or try it with example data →"
+                                Command="{Binding LoadExampleCommand}" />
+                    </StackPanel>
+                </Border>
+
                 <!-- Intention -->
                 <Border Classes="card">
                     <StackPanel Spacing="8">

@@ -164,7 +164,9 @@ public partial class MainWindowViewModel : ViewModelBase
             openSubject: s => { Subjects.OpenDetail(s); ActiveDestination = Destination.Subjects; },
             goToday: () => ActiveDestination = Destination.Today,
             goReview: () => { ActiveDestination = Destination.Review; Review.ReviewAllCommand.Execute(null); },
-            openUrl: OpenUrl);
+            openUrl: OpenUrl,
+            navigate: d => ActiveDestination = d,
+            wallet: Wallet);
 
         CommandPalette = new CommandPaletteViewModel(() => IsCommandPaletteOpen = false);
 

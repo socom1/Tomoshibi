@@ -63,14 +63,14 @@
                             Background="{DynamicResource BorderBrush}" />
                     <Button Classes="nav" Classes.active="{Binding IsSettingsActive}"
                             Command="{Binding NavigateToSettingsCommand}">
-                        <TextBlock>
+                        <TextBlock Classes="cjk">
                             <Run Text="設定　　　" />
                             <Run Text=" settings" Foreground="{DynamicResource MutedTextBrush}" />
                         </TextBlock>
                     </Button>
                     <Button Classes="nav" Classes.active="{Binding IsShopActive}"
                             Command="{Binding NavigateToShopCommand}">
-                        <TextBlock>
+                        <TextBlock Classes="cjk">
                             <Run Text="火種" Foreground="{DynamicResource AmberBrush}" />
                             <Run Text="{Binding Wallet.Balance}" Foreground="{DynamicResource AmberBrush}" />
                             <Run Text="  · shop" Foreground="{DynamicResource MutedTextBrush}" />

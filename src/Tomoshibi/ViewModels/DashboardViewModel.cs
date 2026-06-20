@@ -23,6 +23,8 @@ public partial class DashboardViewModel : ViewModelBase
     private readonly Action _goToday;
     private readonly Action _goReview;
     private readonly Action<string> _openUrl;
+    private readonly Action<Destination> _navigate;
+    private readonly WalletViewModel _wallet;
 
     /// <summary>Exposed so the dashboard can bind their live labels directly
     /// (greeting, intention, stats, ticket counts, GPA, due cards).</summary>
@@ -52,6 +54,12 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty] private string _focusGoalLabel = string.Empty;
     [ObservableProperty] private bool _isFocusGoalMet;
 
+    // ---- First-run getting-started checklist ----
+    public ObservableCollection<FirstStepViewModel> FirstSteps { get; } = new();
+
+    /// <summary>Shown until the checklist is complete or skipped.</summary>
+    [ObservableProperty] private bool _showGettingStarted;
+
     // ---- New-link form ----
     [ObservableProperty] private string _newLinkTitle = string.Empty;
     [ObservableProperty] private string _newLinkUrl = string.Empty;
@@ -60,7 +68,8 @@ public partial class DashboardViewModel : ViewModelBase
                               TodayViewModel today, TodoViewModel todo, SubjectsViewModel subjects,
                               ReviewViewModel review,
                               Action<SubjectViewModel> openSubject, Action goToday,
-                              Action goReview, Action<string> openUrl)
+                              Action goReview, Action<string> openUrl,
+                              Action<Destination> navigate, WalletViewModel wallet)
     {
         _state = state;
         _save = save;
@@ -72,6 +81,8 @@ public partial class DashboardViewModel : ViewModelBase
         _goToday = goToday;
         _goReview = goReview;
         _openUrl = openUrl;
+        _navigate = navigate;
+        _wallet = wallet;
 
         foreach (var link in _state.StudyLinks)
             Links.Add(WrapLink(link));
@@ -93,6 +104,74 @@ public partial class DashboardViewModel : ViewModelBase
         RecomputeFocusGoal();
         RebuildWeakSpots();
         RebuildAgenda();
+
+        RebuildFirstSteps();
+    }
+
+    /// <summary>Build the first-run checklist, pay embers for each newly-done
+    /// step, and retire the card once every step is done.</summary>
+    private void RebuildFirstSteps()
+    {
+        if (_state.OnboardingDone)
+        {
+            ShowGettingStarted = false;
+            FirstSteps.Clear();
+            return;
+        }
+
+        var steps = new (string Key, string Label, bool Done, int Reward, Action Go)[]
+        {
+            ("subjects", "add your first subject", _state.Subjects.Any(), 10,
+                () => _navigate(Destination.Subjects)),
+            ("timetable", "set up your timetable", _state.ClassSlots.Any(), 10,
+                () => _navigate(Destination.Timetable)),
+            ("focus", "log a focus session",
+                _state.History.Any() || _state.Today.CompletedSessions > 0, 10,
+                () => _navigate(Destination.Today)),
+            ("deck", "make a flashcard deck", _state.Decks.Any(), 10,
+                () => _navigate(Destination.Review)),
+        };
+
+        // Pay out each step the first time it's complete (the wallet saves).
+        foreach (var s in steps)
+        {
+            if (s.Done && !_state.OnboardingRewarded.Contains(s.Key))
+            {
+                _state.OnboardingRewarded.Add(s.Key);
+                _wallet.Add(s.Reward);
+            }
+        }
+
+        FirstSteps.Clear();
+        foreach (var s in steps)
+            FirstSteps.Add(new FirstStepViewModel(s.Label, s.Done, s.Reward, s.Go));
+
+        if (steps.All(s => s.Done))
+        {
+            _state.OnboardingDone = true;
+            _save();
+        }
+
+        ShowGettingStarted = !_state.OnboardingDone;
+    }
+
+    /// <summary>Dismiss the first-run checklist for good.</summary>
+    [RelayCommand]
+    private void SkipOnboarding()
+    {
+        _state.OnboardingDone = true;
+        _save();
+        ShowGettingStarted = false;
+        FirstSteps.Clear();
+    }
+
+    /// <summary>Fill the grades tool with an example term so a first-timer sees
+    /// it working straight away, then refresh so the checklist ticks over.</summary>
+    [RelayCommand]
+    private void LoadExample()
+    {
+        Subjects.LoadSampleCommand.Execute(null);
+        Refresh();
     }
 
     partial void OnFocusGoalMinutesChanged(decimal value)

@@ -55,6 +55,14 @@ public class AppState
     /// dashboard. 0 hides it. Defaults to two hours.</summary>
     public int FocusGoalMinutes { get; set; } = 120;
 
+    /// <summary>Set once the first-run checklist is finished or skipped; the
+    /// getting-started card never shows again after.</summary>
+    public bool OnboardingDone { get; set; }
+
+    /// <summary>Keys of first-run steps already paid an ember reward, so each
+    /// step pays out only once.</summary>
+    public List<string> OnboardingRewarded { get; set; } = new();
+
     /// <summary>Keys of reminders already fired (item + threshold + date), so
     /// a deadline never notifies twice. Swept as dates pass.</summary>
     public List<string> NotifiedReminders { get; set; } = new();
