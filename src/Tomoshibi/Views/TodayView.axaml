@@ -95,10 +95,12 @@
                             <TextBlock Text="{Binding Pomodoro.PhaseLabel}" Classes="jp"
                                        VerticalAlignment="Center" />
                         </StackPanel>
-                        <ToggleButton Grid.Column="1" Classes="seg" Content="minimal"
-                                      IsChecked="{Binding SimpleTimer}"
-                                      Classes.active="{Binding SimpleTimer}"
-                                      ToolTip.Tip="simple / full timer" />
+                        <!-- Density toggle — a discreet corner glyph, not a button. -->
+                        <Button Grid.Column="1" Classes="icon" FontSize="15"
+                                VerticalAlignment="Top"
+                                Content="{Binding SimpleTimerGlyph}"
+                                Command="{Binding ToggleSimpleTimerCommand}"
+                                ToolTip.Tip="simple / full timer" />
                     </Grid>
 
                     <!-- The clock group scales to fill the card. The fixed inner
@@ -172,7 +174,9 @@
                     <Grid Grid.Row="3" Margin="0,14,0,0">
                         <!-- Two centred rows rather than a WrapPanel, which would
                              left-align the second row under the first. -->
-                        <StackPanel HorizontalAlignment="Center" Spacing="2"
+                        <!-- Quiet hint strip — dimmed and small so it sits well
+                             behind the clock; the keys keep a faint highlight. -->
+                        <StackPanel HorizontalAlignment="Center" Spacing="2" Opacity="0.5"
                                     IsVisible="{Binding !SimpleTimer}">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Button Classes="keyhint" Command="{Binding Pomodoro.ToggleRunCommand}">
@@ -191,12 +195,15 @@
                                 </Button>
                             </StackPanel>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12"
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6"
                                     IsVisible="{Binding SimpleTimer}">
-                            <Button Content="{Binding Pomodoro.StartPauseLabel}" Classes="accent"
-                                    Command="{Binding Pomodoro.ToggleRunCommand}" />
-                            <Button Content="reset" Command="{Binding Pomodoro.ResetCommand}" />
-                            <Button Content="skip" Command="{Binding Pomodoro.SkipCommand}" />
+                            <Button Classes="timerctl primary" Content="{Binding Pomodoro.StartPauseGlyph}"
+                                    Command="{Binding Pomodoro.ToggleRunCommand}"
+                                    ToolTip.Tip="start / pause · space" />
+                            <Button Classes="timerctl" Content="↺"
+                                    Command="{Binding Pomodoro.ResetCommand}" ToolTip.Tip="reset · r" />
+                            <Button Classes="timerctl" Content="»"
+                                    Command="{Binding Pomodoro.SkipCommand}" ToolTip.Tip="skip · s" />
                         </StackPanel>
                     </Grid>
 

@@ -96,6 +96,7 @@ public partial class PomodoroViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(StartPauseLabel))]
+    [NotifyPropertyChangedFor(nameof(StartPauseGlyph))]
     private bool _isRunning;
 
     /// <summary>True when stopped mid-phase — lets the view dim the clock so
@@ -104,6 +105,9 @@ public partial class PomodoroViewModel : ViewModelBase
     private bool _isPaused;
 
     public string StartPauseLabel => IsRunning ? "pause" : "start";
+
+    /// <summary>Play / pause glyph for the minimal timer's icon control.</summary>
+    public string StartPauseGlyph => IsRunning ? "❚❚" : "▶";
 
     /// <summary>Spin the spinner only while the clock runs; settle on a steady
     /// dot when it stops.</summary>
