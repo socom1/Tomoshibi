@@ -23,14 +23,20 @@ public class JsonStorageService : IStorageService
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
+    /// <summary>Stores under the OS application-data folder — the real app path.</summary>
     public JsonStorageService()
-    {
-        var dir = Path.Combine(
+        : this(Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Tomoshibi");
+            "Tomoshibi"))
+    {
+    }
 
-        Directory.CreateDirectory(dir);
-        _filePath = Path.Combine(dir, "tomoshibi.json");
+    /// <summary>Stores under an explicit directory. Lets tests point the service
+    /// at a throwaway folder instead of the user's real app-data.</summary>
+    public JsonStorageService(string directory)
+    {
+        Directory.CreateDirectory(directory);
+        _filePath = Path.Combine(directory, "tomoshibi.json");
         _tmpPath = _filePath + ".tmp";
         _bakPath = _filePath + ".bak";
     }
