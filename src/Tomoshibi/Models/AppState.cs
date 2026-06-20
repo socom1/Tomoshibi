@@ -51,6 +51,10 @@ public class AppState
     /// <summary>Show the gentle "rest soon" line on the timer after midnight.</summary>
     public bool SleepReminderEnabled { get; set; } = true;
 
+    /// <summary>Target minutes of focus per day, shown as a progress bar on the
+    /// dashboard. 0 hides it. Defaults to two hours.</summary>
+    public int FocusGoalMinutes { get; set; } = 120;
+
     /// <summary>Keys of reminders already fired (item + threshold + date), so
     /// a deadline never notifies twice. Swept as dates pass.</summary>
     public List<string> NotifiedReminders { get; set; } = new();

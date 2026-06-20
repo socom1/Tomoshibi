@@ -43,6 +43,15 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty] private bool _hasAgenda;
     [ObservableProperty] private bool _hasLinks;
 
+    // ---- Daily focus goal ----
+    /// <summary>The editable target in minutes; writes through to state and
+    /// re-derives the bar. 0 hides the goal.</summary>
+    [ObservableProperty] private decimal _focusGoalMinutes;
+    [ObservableProperty] private bool _hasFocusGoal;
+    [ObservableProperty] private double _focusGoalFraction;
+    [ObservableProperty] private string _focusGoalLabel = string.Empty;
+    [ObservableProperty] private bool _isFocusGoalMet;
+
     // ---- New-link form ----
     [ObservableProperty] private string _newLinkTitle = string.Empty;
     [ObservableProperty] private string _newLinkUrl = string.Empty;
@@ -68,6 +77,8 @@ public partial class DashboardViewModel : ViewModelBase
             Links.Add(WrapLink(link));
         HasLinks = Links.Count > 0;
 
+        _focusGoalMinutes = _state.FocusGoalMinutes;
+
         Refresh();
     }
 
@@ -79,8 +90,38 @@ public partial class DashboardViewModel : ViewModelBase
         DateLabel = $"{DateTime.Now:dddd, MMMM d}".ToLowerInvariant();
 
         RecomputeMomentum();
+        RecomputeFocusGoal();
         RebuildWeakSpots();
         RebuildAgenda();
+    }
+
+    partial void OnFocusGoalMinutesChanged(decimal value)
+    {
+        _state.FocusGoalMinutes = Math.Clamp((int)value, 0, 600);
+        _save();
+        RecomputeFocusGoal();
+    }
+
+    /// <summary>Today's focused minutes against the daily goal — the dashboard's
+    /// quiet progress bar. Hidden when no goal is set.</summary>
+    private void RecomputeFocusGoal()
+    {
+        var goal = _state.FocusGoalMinutes;
+        HasFocusGoal = goal > 0;
+        if (!HasFocusGoal)
+        {
+            FocusGoalLabel = string.Empty;
+            FocusGoalFraction = 0;
+            IsFocusGoalMet = false;
+            return;
+        }
+
+        var done = _state.Today.FocusedMinutes;
+        FocusGoalFraction = Math.Clamp(done / goal, 0.0, 1.0);
+        IsFocusGoalMet = done >= goal;
+        FocusGoalLabel = IsFocusGoalMet
+            ? $"focus goal met — {Services.FocusLog.HoursLabel(done)} today"
+            : $"{Services.FocusLog.HoursLabel(done)} of {Services.FocusLog.HoursLabel(goal)} · daily focus goal";
     }
 
     /// <summary>Jump to the review page and start working through the due
