@@ -80,7 +80,7 @@
                     </Grid>
                 </Button>
 
-                <TextBlock Text="{Binding VersionLabel}" Classes="comment"
+                <TextBlock Text="{Binding VersionLabel}" Classes="comment cjk"
                            Margin="14,22,0,0" />
             </StackPanel>
 
