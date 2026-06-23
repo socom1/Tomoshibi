@@ -70,7 +70,7 @@ public partial class SettingsPageViewModel : ViewModelBase
             Section = section;
     }
 
-    public string VersionLabel => "灯火 · tomoshibi — v1.3";
+    public string VersionLabel => $"灯火 · tomoshibi · {ReleaseNotes.VersionTag}";
 
     public SettingsPageViewModel(AppState state, Action save,
                                  SettingsViewModel timer,

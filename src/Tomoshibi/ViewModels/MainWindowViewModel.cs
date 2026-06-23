@@ -67,10 +67,19 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public CommandPaletteViewModel CommandPalette { get; }
 
+    /// <summary>The "what's new" modal, shown once after the app is updated.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CloseWhatsNewCommand))]
+    private bool _isWhatsNewOpen;
+
+    public string WhatsNewTitle => ReleaseNotes.Title;
+    public string WhatsNewBody => ReleaseNotes.Body;
+    public string AppVersionTag => ReleaseNotes.VersionTag;
+
     /// <summary>True while any modal overlay is up — global key shortcuts (like
     /// space-to-toggle) stand down so a dialog keeps the stage.</summary>
     public bool AnyModalOpen =>
-        IsCommandPaletteOpen || IsWelcomeOpen
+        IsCommandPaletteOpen || IsWelcomeOpen || IsWhatsNewOpen
         || Today.Tasks.IsAddTaskModalOpen
         || Todo.IsModalOpen
         || Subjects.IsModalOpen
@@ -182,6 +191,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _showWelcomeOnLaunch = _state.ShowWelcome;
         _isWelcomeOpen = _state.ShowWelcome;
+
+        // Announce an update once: if the build changed since the last launch
+        // (and it isn't a fresh install), pop the what's-new modal.
+        if (!string.IsNullOrEmpty(_state.LastSeenVersion) &&
+            _state.LastSeenVersion != ReleaseNotes.Version)
+        {
+            _isWhatsNewOpen = true;
+        }
+        _state.LastSeenVersion = ReleaseNotes.Version;
 
         Today.Pomodoro.PropertyChanged += OnPomodoroPropertyChanged;
 
@@ -324,6 +342,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private void CloseCommandPalette() => IsCommandPaletteOpen = false;
 
     private bool CanCloseCommandPalette() => IsCommandPaletteOpen;
+
+    [RelayCommand(CanExecute = nameof(IsWhatsNewOpen))]
+    private void CloseWhatsNew() => IsWhatsNewOpen = false;
 
     /// <summary>Pages, quick actions, every subject, and the user's own
     /// content — todo tickets, flashcard decks and journal reflections — all

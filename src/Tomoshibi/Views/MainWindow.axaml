@@ -20,6 +20,7 @@
 
     <Window.KeyBindings>
         <KeyBinding Gesture="Escape" Command="{Binding CloseCommandPaletteCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding CloseWhatsNewCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding CloseWelcomeCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Today.Tasks.CancelAddTaskCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding Todo.CancelModalCommand}" />
@@ -42,6 +43,7 @@
          between 0 and its open width via the .open class, so toggling the
          menu slides it in and out; an Auto column lets the main area follow. -->
     <Grid x:Name="NormalLayoutGrid" IsVisible="{Binding !IsZenMode}"
+          Classes.blurback="{Binding IsWhatsNewOpen}"
           ColumnDefinitions="Auto,*">
 
         <!-- ============ Nav rail ============ -->
@@ -624,6 +626,33 @@
 
                 <CheckBox IsChecked="{Binding ShowWelcomeOnLaunch}"
                           Content="greet me on launch" FontSize="12" />
+            </StackPanel>
+        </Border>
+    </Border>
+
+    <!-- What's new: shown once after an update; the app behind it blurs. -->
+    <Border Classes="modal-backdrop"
+            IsVisible="{Binding IsWhatsNewOpen}"
+            Classes.open="{Binding IsWhatsNewOpen}"
+            Background="#A0000000">
+        <Border Classes="card modal-card" Width="540" Padding="30"
+                HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Spacing="14">
+                <StackPanel Spacing="3">
+                    <TextBlock Text="灯火 · tomoshibi" Classes="jp" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding WhatsNewTitle}" Classes="h1"
+                                   VerticalAlignment="Bottom" />
+                        <TextBlock Grid.Column="1" Text="{Binding AppVersionTag}"
+                                   Classes="caption" VerticalAlignment="Bottom" />
+                    </Grid>
+                </StackPanel>
+                <Border Height="1" Background="{DynamicResource BorderBrush}" />
+                <TextBlock Text="{Binding WhatsNewBody}" TextWrapping="Wrap"
+                           FontSize="13" LineHeight="24"
+                           Foreground="{DynamicResource MutedTextBrush}" />
+                <Button Classes="accent" Content="got it" HorizontalAlignment="Right"
+                        Command="{Binding CloseWhatsNewCommand}" />
             </StackPanel>
         </Border>
     </Border>

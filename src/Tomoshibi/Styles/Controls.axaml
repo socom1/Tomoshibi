@@ -35,6 +35,20 @@
         <Setter Property="FontFamily" Value="{DynamicResource JpFont}" />
     </Style>
 
+    <!-- Hover tooltips render in the CJK-capable font so JP/EN pairs like
+         "menu · メニュー" share one baseline instead of the mono fallback. The
+         inner TextBlock needs targeting directly — the global TextBlock style
+         (mono) wins over a font merely inherited from the ToolTip. -->
+    <Style Selector="ToolTip">
+        <Setter Property="FontFamily" Value="{DynamicResource JpFont}" />
+    </Style>
+    <Style Selector="ToolTip TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource JpFont}" />
+    </Style>
+    <Style Selector="ToolTip /template/ ContentPresenter">
+        <Setter Property="FontFamily" Value="{DynamicResource JpFont}" />
+    </Style>
+
     <!-- Japanese / section labels. Force a CJK-capable font first so all
          characters in the "新しい課題 · new task" pattern render from one
          font and the baselines stay aligned. Trade-off: the Latin part
@@ -1113,6 +1127,13 @@
     <!-- Play / pause is the primary action — phase-green so the eye lands on it. -->
     <Style Selector="Button.timerctl.primary">
         <Setter Property="Foreground" Value="{DynamicResource MatchaBrush}" />
+    </Style>
+
+    <!-- Blur the app behind the what's-new modal. -->
+    <Style Selector="Grid.blurback">
+        <Setter Property="Effect">
+            <BlurEffect Radius="14" />
+        </Setter>
     </Style>
 
     <!-- A flat, full-width clickable row — used by the first-run checklist. -->

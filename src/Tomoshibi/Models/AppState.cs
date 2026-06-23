@@ -55,6 +55,11 @@ public class AppState
     /// dashboard. 0 hides it. Defaults to two hours.</summary>
     public int FocusGoalMinutes { get; set; } = 120;
 
+    /// <summary>The app version last launched. When it differs from the running
+    /// build (an update landed), the what's-new modal shows once. Empty on a
+    /// fresh install, which is treated as "no update to announce".</summary>
+    public string LastSeenVersion { get; set; } = string.Empty;
+
     /// <summary>Set once the first-run checklist is finished or skipped; the
     /// getting-started card never shows again after.</summary>
     public bool OnboardingDone { get; set; }
