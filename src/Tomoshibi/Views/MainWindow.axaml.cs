@@ -19,6 +19,32 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
+
+        // Space must toggle the timer even when a button still holds focus from
+        // an earlier click. A focused button consumes Space on the way up
+        // (bubbling), so we claim it on the way down (tunnelling), before the
+        // button ever sees it.
+        AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
+    }
+
+    /// <summary>Tunnelling Space-to-toggle: runs before the focused control, so
+    /// a button left focused by a click can't eat it. Held back while typing,
+    /// with a modal up, or mid-review (where Space flips the card instead).</summary>
+    private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (_vm is null || e.Handled || e.Key != Key.Space)
+            return;
+
+        if (FocusManager?.GetFocusedElement() is TextBox)
+            return;
+        if (_vm.AnyModalOpen)
+            return;
+        if (_vm.ActiveDestination == Destination.Review
+            && _vm.Review.IsReviewing && !_vm.Review.IsSessionDone)
+            return;
+
+        _vm.Today.Pomodoro.ToggleRunCommand.Execute(null);
+        e.Handled = true;
     }
 
     /// <summary>Hold the splash a beat after the window appears, then let it
@@ -113,19 +139,8 @@ public partial class MainWindow : Window
             }
         }
 
-        // Space toggles the timer from anywhere — except while typing in a
-        // text field or while the add-task modal is up.
-        if (e.Key != Key.Space)
-            return;
-
-        if (_vm.Today.Tasks.IsAddTaskModalOpen)
-            return;
-
-        if (FocusManager?.GetFocusedElement() is TextBox)
-            return;
-
-        _vm.Today.Pomodoro.ToggleRunCommand.Execute(null);
-        e.Handled = true;
+        // Space-to-toggle is handled in OnPreviewKeyDown (tunnelling) so a
+        // focused button can't intercept it first.
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)

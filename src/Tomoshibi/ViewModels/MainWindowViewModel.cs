@@ -67,6 +67,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public CommandPaletteViewModel CommandPalette { get; }
 
+    /// <summary>True while any modal overlay is up — global key shortcuts (like
+    /// space-to-toggle) stand down so a dialog keeps the stage.</summary>
+    public bool AnyModalOpen =>
+        IsCommandPaletteOpen || IsWelcomeOpen
+        || Today.Tasks.IsAddTaskModalOpen
+        || Todo.IsModalOpen
+        || Subjects.IsModalOpen
+        || Timetable.IsSlotModalOpen
+        || (Subjects.SelectedSubject?.IsAssessmentModalOpen ?? false);
+
     public string WelcomeDateLabel =>
         $"{DateTime.Now:dddd, MMMM d}".ToLowerInvariant();
 
