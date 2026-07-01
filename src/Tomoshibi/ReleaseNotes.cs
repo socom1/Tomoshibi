@@ -10,7 +10,7 @@ namespace Tomoshibi;
 /// </summary>
 public static class ReleaseNotes
 {
-    public const string Version = "1.5.0";
+    public const string Version = "1.8.0";
 
     public static string VersionTag => $"v{Version}";
 
@@ -18,11 +18,12 @@ public static class ReleaseNotes
 
     private static readonly string[] Lines =
     {
-        "a getting-started checklist that pays embers as you set up",
-        "a daily focus goal with a progress bar on the dashboard",
-        "a gentle after-midnight nudge to rest",
-        "search todos, decks and reflections from the ⌘K palette",
-        "smoother modal animations and a tidier minimal timer",
+        "the morning dashboard — your day at a glance",
+        "embers to earn while you focus, and a theme shop to spend them in",
+        "spaced-repetition flashcards with a review queue",
+        "an end-of-day reflection that banks into a journal look-back",
+        "deadline reminders, data exports and a first-run checklist",
+        "under the hood: a verified Windows build and a much larger test net",
     };
 
     /// <summary>The notes as one bulleted block for the modal.</summary>

@@ -31,10 +31,11 @@ sensible order of work.
 - **v1.8 — recall & reflection.** Spaced-repetition flashcards, study goals,
   per-subject notes, an end-of-day reflection journal, exports, deadline
   reminders and a first-run onboarding.
-- **v2.0 — the public release.** The final feature upgrades (Windows toast
-  notifications, deck import/export, timetable-aware focus suggestions, a
-  weekly retrospective, a global hotkey), then the public face: screenshots,
-  a catch-up what's-new, and a tagged, published build.
+- **v1.9 — final upgrades.** Windows toast notifications, deck
+  import/export, timetable-aware focus suggestions, a weekly retrospective
+  and a global hotkey — the last feature push before the public release.
+- **v2.0 — the public release.** Screenshots, repo polish and the first
+  published builds.
 - **Later** — soundscapes.
 
 ## v1.0 — core
@@ -134,13 +135,10 @@ backlog. Shipped, untagged so far.
 - [x] Deadline / exam reminders, first-run onboarding, and data exports
 - [x] Hardened notification escaping and a capped `.ics` import
 
-## v2.0 — the public release
+## v1.9 — final upgrades
 
-Everything since v1.5.0 ships in one tagged release — the app's first public
-one (v1.6–v1.8 landed without tags, so this is also the catch-up). Two
-halves: close the final upgrades, then dress the repo for visitors.
-
-Final upgrades:
+The last feature push before the public release. (v1.6–v1.8 shipped without
+tags; v1.8.0 is tagged as a catch-up on the state just before this work.)
 
 - [ ] Windows toast notifications (multi-targeted build + app identity)
 - [ ] Flashcard deck import/export — TSV, compatible with Anki's text format
@@ -148,12 +146,15 @@ Final upgrades:
 - [ ] Weekly retrospective — an auto-written look-back over the week's
       focus, courses and journal
 - [ ] Global start/pause hotkey (Windows first, behind an interface)
+- [ ] Bump ReleaseNotes to 1.9.0 and tag v1.9.0
 
-Release polish:
+## v2.0 — the public release
+
+Dress the repo for visitors and publish the first real builds.
 
 - [ ] Screenshots (+ a short GIF) in the README
 - [ ] Repo description + topics on GitHub
-- [ ] Bump ReleaseNotes to 2.0.0 with a catch-up what's-new (v1.6 → v2.0)
+- [ ] Bump ReleaseNotes to 2.0.0
 - [ ] Tag v2.0.0 and publish a GitHub Release with the platform builds
 
 ## Later
