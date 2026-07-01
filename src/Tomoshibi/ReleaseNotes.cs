@@ -18,12 +18,11 @@ public static class ReleaseNotes
 
     private static readonly string[] Lines =
     {
-        "the morning dashboard — your day at a glance",
-        "embers to earn while you focus, and a theme shop to spend them in",
-        "spaced-repetition flashcards with a review queue",
-        "an end-of-day reflection that banks into a journal look-back",
-        "deadline reminders, data exports and a first-run checklist",
-        "under the hood: a verified Windows build and a much larger test net",
+        "ticking a task done now hits exactly the one you clicked, even twins",
+        "saves swap in atomically — the backup rotates in the same breath",
+        "the Windows build is now verified end to end",
+        "a much larger test net under the daily reset, migrations and imports",
+        "the road to v2.0 is mapped out in the roadmap",
     };
 
     /// <summary>The notes as one bulleted block for the modal.</summary>

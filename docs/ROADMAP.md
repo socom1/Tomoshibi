@@ -137,8 +137,10 @@ backlog. Shipped, untagged so far.
 
 ## v1.9 — final upgrades
 
-The last feature push before the public release. (v1.6–v1.8 shipped without
-tags; v1.8.0 is tagged as a catch-up on the state just before this work.)
+The last feature push before the public release. (The milestone numbers
+above stopped matching the git tags after v1.2 — the v1.3–v1.8 feature work
+landed in one untagged run before tagging resumed at v1.4.0. From v1.8.0 on,
+tags and milestones line up again.)
 
 - [ ] Windows toast notifications (multi-targeted build + app identity)
 - [ ] Flashcard deck import/export — TSV, compatible with Anki's text format
