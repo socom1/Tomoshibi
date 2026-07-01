@@ -64,9 +64,10 @@ Tomoshibi.sln
 src/Tomoshibi/
   Models/        data classes (AppState, ClassSlot, TodoItem, Subject,
                  Deck, DayNote, …)
-  Services/      side effects behind interfaces: storage, sound, music,
-                 notifications + reminders, the task-template parser, the
-                 .ics importer, grade scales and the review scheduler
+  Services/      side effects behind interfaces (storage, sound, music,
+                 notifications + reminders) plus the pure logic: the
+                 task-template parser, the .ics importer, grade scales, the
+                 review scheduler, the daily reset and the state migrations
   ViewModels/    UI state + behaviour, one per destination + the shell
   Views/         .axaml UI (MainWindow shell + one view per destination:
                  Dashboard, Today, Timetable, Todo, Subjects, Stats,
@@ -74,7 +75,8 @@ src/Tomoshibi/
   Styles/        Tokyo Night palette + control styles
   Assets/        icon (png/ico/icns) + chime
 tests/Tomoshibi.Tests/   xUnit tests for the pure logic (grade engine,
-                 task-template parser, storage round-trip + crash recovery)
+                 task-template parser, storage round-trip + crash recovery,
+                 daily reset, state migrations, .ics importer)
 scripts/         packaging scripts per platform
 docs/            roadmap, architecture, build journal
 .github/workflows/ci.yml   build + test on every push/PR, across win/mac/linux
