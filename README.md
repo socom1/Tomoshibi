@@ -108,7 +108,7 @@ Use the packaging scripts — they handle the per-platform wrapping:
 # Linux: tar.gz with a .desktop launcher (written, not yet run on Linux)
 ./scripts/pack-linux.sh
 
-# Windows: zip of a self-contained folder (written, not yet run on Windows)
+# Windows: zip of a self-contained folder (tested)
 pwsh scripts/pack-win.ps1
 ```
 
