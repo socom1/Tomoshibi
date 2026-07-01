@@ -10,6 +10,11 @@ public class TaskBlock
 {
     public string Title { get; set; } = string.Empty;
 
+    /// <summary>Index of the block's first line in the LF-normalised source,
+    /// stamped by the parser. Anchors source surgery (the done toggle) to
+    /// this exact block, so two tasks with the same title stay independent.</summary>
+    public int StartLine { get; set; }
+
     /// <summary>Focus block length in minutes.</summary>
     public int? Study { get; set; }
 

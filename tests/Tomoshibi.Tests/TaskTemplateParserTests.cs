@@ -58,31 +58,46 @@ public class TaskTemplateParserTests
     }
 
     [Fact]
-    public void ToggleDone_adds_then_removes_the_flag_for_the_named_block()
+    public void Parse_stamps_each_block_with_its_source_line()
+    {
+        var blocks = TaskTemplateParser.Parse("// a\nstudy: 25\n\n\n// b\nstudy: 50");
+
+        Assert.Equal(0, blocks[0].StartLine);
+        Assert.Equal(4, blocks[1].StartLine);
+    }
+
+    [Fact]
+    public void ToggleDone_adds_then_removes_the_flag_for_the_given_block()
     {
         const string src = "// a\nstudy: 25\n\n// b\nstudy: 50";
 
-        var withDone = TaskTemplateParser.ToggleDone(src, "a");
+        var withDone = TaskTemplateParser.ToggleDone(src, TaskTemplateParser.Parse(src)[0]);
         Assert.True(TaskTemplateParser.Parse(withDone)[0].IsDone);
         Assert.False(TaskTemplateParser.Parse(withDone)[1].IsDone);
 
-        var toggledOff = TaskTemplateParser.ToggleDone(withDone, "a");
+        var toggledOff = TaskTemplateParser.ToggleDone(withDone, TaskTemplateParser.Parse(withDone)[0]);
         Assert.False(TaskTemplateParser.Parse(toggledOff)[0].IsDone);
     }
 
     [Fact]
-    public void ToggleDone_leaves_source_untouched_for_an_unknown_title()
+    public void ToggleDone_leaves_source_untouched_for_a_stale_block()
     {
         const string src = "// a\nstudy: 25";
-        Assert.Equal(src, TaskTemplateParser.ToggleDone(src, "nope"));
+
+        // A block whose anchor no longer points at anything real — e.g. parsed
+        // from an older, longer version of the source.
+        var stale = new Tomoshibi.Models.TaskBlock { Title = "a", StartLine = 40 };
+
+        Assert.Equal(src, TaskTemplateParser.ToggleDone(src, stale));
+        Assert.Equal(src, TaskTemplateParser.ToggleDone(src, null));
     }
 
     [Fact]
-    public void ToggleDone_only_touches_the_named_block_not_lines_around_it()
+    public void ToggleDone_only_touches_the_given_block_not_lines_around_it()
     {
         const string src = "// warm-up\nstudy: 25\n\n// deep work\nstudy: 50\ncourse: CS210";
 
-        var toggled = TaskTemplateParser.ToggleDone(src, "deep work");
+        var toggled = TaskTemplateParser.ToggleDone(src, TaskTemplateParser.Parse(src)[1]);
 
         var blocks = TaskTemplateParser.Parse(toggled);
         Assert.False(blocks[0].IsDone);
@@ -92,17 +107,17 @@ public class TaskTemplateParserTests
     }
 
     [Fact]
-    public void ToggleDone_with_duplicate_titles_targets_the_first_block()
+    public void ToggleDone_with_duplicate_titles_toggles_exactly_the_clicked_block()
     {
-        // Title is the only key ToggleDone has, so duplicates resolve to the
-        // first match — this pins that behaviour down.
+        // Two tasks may share a title ("revise"); the block anchor keeps them
+        // independent instead of always resolving to the first match.
         const string src = "// revise\nstudy: 25\n\n// revise\nstudy: 50";
 
-        var toggled = TaskTemplateParser.ToggleDone(src, "revise");
+        var toggled = TaskTemplateParser.ToggleDone(src, TaskTemplateParser.Parse(src)[1]);
 
         var blocks = TaskTemplateParser.Parse(toggled);
-        Assert.True(blocks[0].IsDone);
-        Assert.False(blocks[1].IsDone);
+        Assert.False(blocks[0].IsDone);
+        Assert.True(blocks[1].IsDone);
     }
 
     [Fact]
@@ -110,10 +125,23 @@ public class TaskTemplateParserTests
     {
         const string src = "// a\r\nstudy: 25\r\n\r\n// b\r\nstudy: 50";
 
-        var toggled = TaskTemplateParser.ToggleDone(src, "b");
+        var toggled = TaskTemplateParser.ToggleDone(src, TaskTemplateParser.Parse(src)[1]);
 
         var blocks = TaskTemplateParser.Parse(toggled);
         Assert.False(blocks[0].IsDone);
         Assert.True(blocks[1].IsDone);
+    }
+
+    [Fact]
+    public void ToggleDone_works_on_a_block_whose_title_line_is_not_its_first_line()
+    {
+        // The anchor is the block's first line, wherever the title sits.
+        const string src = "study: 25\n// late title\n\n// other\nstudy: 50";
+
+        var toggled = TaskTemplateParser.ToggleDone(src, TaskTemplateParser.Parse(src)[0]);
+
+        var blocks = TaskTemplateParser.Parse(toggled);
+        Assert.True(blocks[0].IsDone);
+        Assert.False(blocks[1].IsDone);
     }
 }
