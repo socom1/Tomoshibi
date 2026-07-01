@@ -6,8 +6,8 @@
 # Output: dist\Tomoshibi-win-<arch>.zip — unzip anywhere and run Tomoshibi.exe.
 # The EXE icon comes from Assets\icon.ico via the csproj.
 #
-# NOTE: written on macOS and not yet run on a real Windows box — if anything
-# misbehaves, the underlying command is just `dotnet publish` + Compress-Archive.
+# NOTE: written on macOS, since verified on a real Windows box — publishes,
+# zips, and the extracted Tomoshibi.exe runs.
 
 param([string]$Rid = "win-x64")
 
