@@ -146,9 +146,11 @@ backlog. Shipped, untagged so far.
 
 ## Testing
 
-Deliberately on hold. The candidates when that changes are all pure logic:
-the Pomodoro state machine, the daily-reset/history rules, the task-template
-parser (including the done-toggle source surgery) and the `.ics` importer.
+The pure logic is covered: the grade engine, the task-template parser
+(including the done-toggle source surgery), storage round-trip + crash
+recovery, the daily-reset/banking rules, the load-time migrations and the
+`.ics` importer. Still open: the Pomodoro state machine, which needs
+extracting from its timer before tests can drive it.
 
 ## Out of scope (for now)
 

@@ -20,7 +20,8 @@ src/Tomoshibi/
                  INotificationService (native alerts), IMusicService,
                  TaskTemplateParser (task code grammar), IcsImporter,
                  ReminderService (deadline alerts), ReviewScheduler (spaced
-                 repetition), GradeScale, ThemeService
+                 repetition), GradeScale, ThemeService, DailyReset (midnight
+                 banking rules), StateMigrations (load-time upgrades)
   ViewModels/    UI state and behaviour — the MainWindow shell plus one view
                  model per destination (Dashboard / Today / Timetable / Todo /
                  Subjects / Stats / Review / Shop / Settings), and the Cmd-K
@@ -122,10 +123,16 @@ before the window shows so there's no flash.
 
 ## Testing approach
 
-Deliberately deferred for now. The logic that would be tested first when that
-changes: the Pomodoro state machine, the daily-reset/history rules,
-`TaskTemplateParser` (parse + the done-toggle source surgery) and
-`IcsImporter`. All are pure and UI-free by design, so the door stays open.
+The pure logic is under xUnit tests: the grade engine, `TaskTemplateParser`
+(parse + the done-toggle source surgery), storage round-trip and crash
+recovery, the daily-reset/banking rules (`DailyReset`), the load-time
+migrations (`StateMigrations`) and `IcsImporter`. The daily reset and the
+migrations used to live inside the shell view model and were extracted into
+plain state-in/state-out services precisely so they could be tested.
+
+The one candidate still untested is the Pomodoro state machine — it's
+entangled with `DispatcherTimer` and needs the same extraction treatment
+before tests can drive it.
 
 ## Known limitations
 

@@ -13,8 +13,7 @@ namespace Tomoshibi.ViewModels;
 /// <summary>
 /// The "today" task list, edited as code: the user types a small template
 /// in <see cref="Source"/>, and the parser produces <see cref="Tasks"/> on
-/// every edit. Migrates the legacy <see cref="AppState.Tasks"/> list into
-/// the template on first construction.
+/// every edit.
 /// </summary>
 public partial class TaskTemplateViewModel : ViewModelBase
 {
@@ -74,14 +73,8 @@ public partial class TaskTemplateViewModel : ViewModelBase
         _save = save;
         _onActiveTaskChanged = onActiveTaskChanged;
 
-        // Migrate any legacy TaskItems into the code template on first load.
-        if (string.IsNullOrEmpty(_state.TaskTemplate) && _state.Tasks.Count > 0)
-        {
-            _state.TaskTemplate = TaskTemplateParser.FromTaskItems(_state.Tasks);
-            _state.Tasks.Clear();
-            _save();
-        }
-
+        // Legacy TaskItems are migrated into the template by StateMigrations
+        // before any view model is built, so the source is ready to read.
         _source = _state.TaskTemplate;
         Reparse();
     }

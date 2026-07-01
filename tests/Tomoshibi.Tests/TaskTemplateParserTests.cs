@@ -76,4 +76,44 @@ public class TaskTemplateParserTests
         const string src = "// a\nstudy: 25";
         Assert.Equal(src, TaskTemplateParser.ToggleDone(src, "nope"));
     }
+
+    [Fact]
+    public void ToggleDone_only_touches_the_named_block_not_lines_around_it()
+    {
+        const string src = "// warm-up\nstudy: 25\n\n// deep work\nstudy: 50\ncourse: CS210";
+
+        var toggled = TaskTemplateParser.ToggleDone(src, "deep work");
+
+        var blocks = TaskTemplateParser.Parse(toggled);
+        Assert.False(blocks[0].IsDone);
+        Assert.True(blocks[1].IsDone);
+        // The untouched block's text survives byte-for-byte.
+        Assert.StartsWith("// warm-up\nstudy: 25\n", toggled);
+    }
+
+    [Fact]
+    public void ToggleDone_with_duplicate_titles_targets_the_first_block()
+    {
+        // Title is the only key ToggleDone has, so duplicates resolve to the
+        // first match — this pins that behaviour down.
+        const string src = "// revise\nstudy: 25\n\n// revise\nstudy: 50";
+
+        var toggled = TaskTemplateParser.ToggleDone(src, "revise");
+
+        var blocks = TaskTemplateParser.Parse(toggled);
+        Assert.True(blocks[0].IsDone);
+        Assert.False(blocks[1].IsDone);
+    }
+
+    [Fact]
+    public void ToggleDone_handles_windows_line_endings()
+    {
+        const string src = "// a\r\nstudy: 25\r\n\r\n// b\r\nstudy: 50";
+
+        var toggled = TaskTemplateParser.ToggleDone(src, "b");
+
+        var blocks = TaskTemplateParser.Parse(toggled);
+        Assert.False(blocks[0].IsDone);
+        Assert.True(blocks[1].IsDone);
+    }
 }

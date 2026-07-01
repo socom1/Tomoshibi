@@ -159,9 +159,8 @@ public partial class MainWindowViewModel : ViewModelBase
         _storage = storage;
         _state = storage.Load();
 
-        MigrateDeadlinesToTickets();
-        MigrateTheme();
-        ApplyDailyReset(DateOnly.FromDateTime(DateTime.Now));
+        StateMigrations.Apply(_state);
+        DailyReset.Apply(_state, DateOnly.FromDateTime(DateTime.Now));
 
         _isNavOpen = _state.IsNavOpen;
         _activeDestination = _state.ActiveDestination;
@@ -233,45 +232,6 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>Parameterless ctor for the XAML designer preview only.</summary>
     public MainWindowViewModel() : this(new JsonStorageService())
     {
-    }
-
-    /// <summary>One-time migration: standalone deadlines became todo tickets
-    /// with due dates. Old state files may still carry a deadlines list —
-    /// convert each to a ticket (skipping ones that already exist) and empty
-    /// the legacy list.</summary>
-    /// <summary>Map the old light-theme bool onto the named-theme system, and
-    /// make sure the two free themes are always owned.</summary>
-    private void MigrateTheme()
-    {
-        if (string.IsNullOrEmpty(_state.ActiveThemeId))
-            _state.ActiveThemeId = _state.LightTheme ? "light" : "dark";
-
-        foreach (var free in new[] { "dark", "light" })
-            if (!_state.OwnedThemeIds.Contains(free))
-                _state.OwnedThemeIds.Add(free);
-    }
-
-    private void MigrateDeadlinesToTickets()
-    {
-        if (_state.Deadlines.Count == 0)
-            return;
-
-        foreach (var d in _state.Deadlines)
-        {
-            var exists = _state.Todos.Any(t => t.Due == d.Date && t.Title == d.Title);
-            if (!exists)
-            {
-                _state.Todos.Add(new TodoItem
-                {
-                    Number = _state.NextTodoNumber++,
-                    Title = d.Title,
-                    Course = d.Course,
-                    Due = d.Date
-                });
-            }
-        }
-
-        _state.Deadlines.Clear();
     }
 
     private void OnSettingsChanged()
@@ -605,64 +565,11 @@ public partial class MainWindowViewModel : ViewModelBase
         CheckReminders();
 
         var today = DateOnly.FromDateTime(now);
-        if (!ApplyDailyReset(today))
+        if (!DailyReset.Apply(_state, today))
             return;
 
         Today.RefreshFromState();
         Save();
-    }
-
-    private bool ApplyDailyReset(DateOnly today)
-    {
-        var changed = false;
-
-        if (_state.Today.Date != today)
-        {
-            // Bank the finished day before replacing it — the streak and the
-            // future calendar need the history. Empty days aren't recorded.
-            if (_state.Today.CompletedSessions > 0 || _state.Today.FocusedMinutes > 0)
-            {
-                _state.History.RemoveAll(d => d.Date == _state.Today.Date);
-                _state.History.Add(_state.Today);
-
-                // A year of history is plenty; keep the file small.
-                if (_state.History.Count > 400)
-                    _state.History.RemoveRange(0, _state.History.Count - 400);
-            }
-
-            _state.Today = new DailyStats { Date = today };
-            changed = true;
-        }
-
-        if (_state.IntentionDate != today)
-        {
-            // Bank the finished day's intention + reflection into the journal
-            // before clearing them, so the stats page keeps the look-back.
-            if (!string.IsNullOrWhiteSpace(_state.DailyIntention) ||
-                !string.IsNullOrWhiteSpace(_state.DailyReflection))
-            {
-                _state.Journal.RemoveAll(n => n.Date == _state.IntentionDate);
-                _state.Journal.Add(new DayNote
-                {
-                    Date = _state.IntentionDate,
-                    Intention = _state.DailyIntention,
-                    IntentionKept = _state.IntentionKept,
-                    Reflection = _state.DailyReflection
-                });
-
-                // A year of look-back is plenty; keep the file small.
-                if (_state.Journal.Count > 400)
-                    _state.Journal.RemoveRange(0, _state.Journal.Count - 400);
-            }
-
-            _state.DailyIntention = string.Empty;
-            _state.IntentionKept = false;
-            _state.DailyReflection = string.Empty;
-            _state.IntentionDate = today;
-            changed = true;
-        }
-
-        return changed;
     }
 
     /// <summary>Saved window placement, applied by the view at startup.
