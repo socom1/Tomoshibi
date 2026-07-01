@@ -31,7 +31,11 @@ sensible order of work.
 - **v1.8 — recall & reflection.** Spaced-repetition flashcards, study goals,
   per-subject notes, an end-of-day reflection journal, exports, deadline
   reminders and a first-run onboarding.
-- **Later** — soundscapes, a public release.
+- **v2.0 — the public release.** The final feature upgrades (Windows toast
+  notifications, deck import/export, timetable-aware focus suggestions, a
+  weekly retrospective, a global hotkey), then the public face: screenshots,
+  a catch-up what's-new, and a tagged, published build.
+- **Later** — soundscapes.
 
 ## v1.0 — core
 
@@ -130,6 +134,28 @@ backlog. Shipped, untagged so far.
 - [x] Deadline / exam reminders, first-run onboarding, and data exports
 - [x] Hardened notification escaping and a capped `.ics` import
 
+## v2.0 — the public release
+
+Everything since v1.5.0 ships in one tagged release — the app's first public
+one (v1.6–v1.8 landed without tags, so this is also the catch-up). Two
+halves: close the final upgrades, then dress the repo for visitors.
+
+Final upgrades:
+
+- [ ] Windows toast notifications (multi-targeted build + app identity)
+- [ ] Flashcard deck import/export — TSV, compatible with Anki's text format
+- [ ] Timetable-aware focus: suggest the class happening now as the course
+- [ ] Weekly retrospective — an auto-written look-back over the week's
+      focus, courses and journal
+- [ ] Global start/pause hotkey (Windows first, behind an interface)
+
+Release polish:
+
+- [ ] Screenshots (+ a short GIF) in the README
+- [ ] Repo description + topics on GitHub
+- [ ] Bump ReleaseNotes to 2.0.0 with a catch-up what's-new (v1.6 → v2.0)
+- [ ] Tag v2.0.0 and publish a GitHub Release with the platform builds
+
 ## Later
 
 - **Ambient soundscapes** — rain / café / waves / night (needs real audio
@@ -142,7 +168,8 @@ backlog. Shipped, untagged so far.
 - **Backup / restore** — export the whole state to a chosen file and read it
   back, on top of the automatic `.bak`.
 - **Bundle a coding font** — pixel-identical look across OSes.
-- **A tagged public release** — signed/notarized builds.
+- **Code signing** — signed/notarized builds, so SmartScreen and Gatekeeper
+  trust the download without a click-through.
 
 ## Testing
 
