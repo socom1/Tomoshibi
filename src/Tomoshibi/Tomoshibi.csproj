@@ -2,7 +2,13 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <!-- One flavour per build OS: Windows builds target the Windows TFM so
+         toast notifications get the WinRT projections; macOS/Linux stay on
+         plain net8.0. Each platform packs its own build (see scripts/), so
+         don't cross-publish a Windows-built output to mac/linux or back. -->
+    <TargetFramework Condition="!$([MSBuild]::IsOSPlatform('Windows'))">net8.0</TargetFramework>
+    <TargetFramework Condition="$([MSBuild]::IsOSPlatform('Windows'))">net8.0-windows10.0.17763.0</TargetFramework>
+    <SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
@@ -27,6 +33,12 @@
          0.21.3 is the backported fix and stays on the 0.21.x line Avalonia
          11.2.1 expects (the next fix, 0.92.0, is a much larger jump). -->
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+    <!-- Toast notifications for unpackaged Win32 apps: registers the app
+         identity on first use so toasts attribute to Tomoshibi. -->
+    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
   </ItemGroup>
 
   <ItemGroup>
