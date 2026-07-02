@@ -41,7 +41,8 @@ everything stays on your machine.
   cards by how well you recall them; decks import from and export to
   Anki-compatible text files.
 - **Focus stats & streak** — a month calendar tinted by focus, current and best
-  streak, a 14-day sparkline, focus-by-course, and the journal look-back.
+  streak, a 14-day sparkline, focus-by-course, an auto-written weekly
+  retrospective, and the journal look-back.
 - **Command palette** — `Cmd/Ctrl+K` to jump to any page, run a quick action,
   or search straight to a subject, todo ticket, deck or past reflection.
 - **Deadline reminders** — desktop notifications as exams and due dates
@@ -71,7 +72,8 @@ src/Tomoshibi/
                  notifications + reminders) plus the pure logic: the
                  task-template parser, the .ics importer, the Anki-style
                  deck reader/writer, grade scales, the review scheduler,
-                 the daily reset and the state migrations
+                 the weekly retrospective writer, the daily reset and the
+                 state migrations
   ViewModels/    UI state + behaviour, one per destination + the shell
   Views/         .axaml UI (MainWindow shell + one view per destination:
                  Dashboard, Today, Timetable, Todo, Subjects, Stats,
@@ -80,7 +82,8 @@ src/Tomoshibi/
   Assets/        icon (png/ico/icns) + chime
 tests/Tomoshibi.Tests/   xUnit tests for the pure logic (grade engine,
                  task-template parser, storage round-trip + crash recovery,
-                 daily reset, state migrations, .ics importer, deck files)
+                 daily reset, state migrations, .ics importer, deck files,
+                 weekly retrospective)
 scripts/         packaging scripts per platform
 docs/            roadmap, architecture, build journal
 .github/workflows/ci.yml   build + test on every push/PR, across win/mac/linux
