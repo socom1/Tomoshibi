@@ -146,7 +146,7 @@ tags and milestones line up again.)
       identity registration toasts require)
 - [x] Flashcard deck import/export — TSV, compatible with Anki's text format
 - [x] Timetable-aware focus: suggest the class happening now as the course
-- [ ] Weekly retrospective — an auto-written look-back over the week's
+- [x] Weekly retrospective — an auto-written look-back over the week's
       focus, courses and journal
 - [ ] Global start/pause hotkey (Windows first, behind an interface)
 - [ ] Bump ReleaseNotes to 1.9.0 and tag v1.9.0

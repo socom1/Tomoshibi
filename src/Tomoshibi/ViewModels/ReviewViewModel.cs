@@ -280,6 +280,7 @@ public partial class ReviewViewModel : ViewModelBase
             _passed++;
             _wallet.Add(EmberPerCard);
             _embersEarned += EmberPerCard;
+            _state.Today.ReviewedCards++;
         }
 
         _save();
