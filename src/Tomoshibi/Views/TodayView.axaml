@@ -145,6 +145,18 @@
                                        Foreground="{DynamicResource MatchaBrush}"
                                        HorizontalAlignment="Center"
                                        IsVisible="{Binding HasActiveTask}" />
+
+                            <!-- Timetable-aware nudge: while a class is on and
+                                 no task is active, one click makes the class
+                                 the active task (and tags its course). -->
+                            <Button Classes="keyhint" HorizontalAlignment="Center"
+                                    Command="{Binding FocusCurrentClassCommand}"
+                                    IsVisible="{Binding HasClassSuggestion}"
+                                    ToolTip.Tip="make this class the active task">
+                                <TextBlock Text="{Binding ClassSuggestionLabel}" FontSize="13"
+                                           Classes="cjk"
+                                           Foreground="{DynamicResource MatchaBrush}" />
+                            </Button>
                         </StackPanel>
                     </Viewbox>
 

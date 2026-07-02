@@ -28,7 +28,9 @@ everything stays on your machine.
   (`// title`, `study: 25`, `course: MATH101`, `done`), edited in a simple
   list, a form, or raw source. Click a task to make it drive the timer.
 - **Timetable** — weekly class schedule on a week grid (or list) plus dated
-  deadlines, with `.ics` import for university timetable exports.
+  deadlines, with `.ics` import for university timetable exports. While a
+  class is on, the timer offers it as a one-click focus so the session lands
+  on the right course.
 - **Todo backlog** — longer-horizon coursework as numbered tickets with
   statuses, priorities, due dates, effort estimates and subtask checklists;
   send an item to today's plan with one click.
