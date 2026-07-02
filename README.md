@@ -19,7 +19,8 @@ everything stays on your machine.
   due, your grade standing, the subjects that need work, and quick links.
 - **Pomodoro timer** — focus/break cycles with a longer break after every Nth
   round, a soft chime and a native notification on phase change, auto-continue,
-  and a progress bar. The active task can override the phase lengths.
+  and a progress bar. The active task can override the phase lengths, and a
+  global hotkey (`ctrl+alt+P` / `⌃⌥P`) starts or pauses from any app.
 - **Zen mode** — full-screen, just the clock, your intention and the controls.
 - **Daily intention & journal** — one line to set the day's focus, an
   end-of-day reflection on how it went; both bank into a journal look-back at

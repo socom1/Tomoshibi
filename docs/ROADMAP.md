@@ -148,7 +148,8 @@ tags and milestones line up again.)
 - [x] Timetable-aware focus: suggest the class happening now as the course
 - [x] Weekly retrospective — an auto-written look-back over the week's
       focus, courses and journal
-- [ ] Global start/pause hotkey (Windows first, behind an interface)
+- [x] Global start/pause hotkey — ctrl+alt+P / ⌃⌥P behind an interface
+      (Win32 RegisterHotKey + macOS Carbon; Linux ships the null service)
 - [ ] Bump ReleaseNotes to 1.9.0 and tag v1.9.0
 
 ## v2.0 — the public release

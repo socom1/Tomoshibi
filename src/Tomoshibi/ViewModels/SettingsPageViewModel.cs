@@ -6,6 +6,7 @@ using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Tomoshibi.Models;
+using Tomoshibi.Services;
 
 namespace Tomoshibi.ViewModels;
 
@@ -44,6 +45,17 @@ public partial class SettingsPageViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _sleepReminderEnabled;
+
+    // ---- Global hotkey (wired late by the shell — see InitHotkey) ----
+
+    [ObservableProperty] private bool _globalHotkeyEnabled;
+    [ObservableProperty] private bool _hotkeySupported;
+    [ObservableProperty] private string _hotkeyHint = string.Empty;
+
+    /// <summary>Why the chord isn't live — empty when all is well.</summary>
+    [ObservableProperty] private string _hotkeyStatus = string.Empty;
+
+    private Action<bool>? _applyHotkey;
 
     /// <summary>Which section the sidebar has selected. Drives the detail pane;
     /// the Is*Section helpers light the matching nav item and show its card.</summary>
@@ -89,6 +101,26 @@ public partial class SettingsPageViewModel : ViewModelBase
         _closeToTray = state.CloseToTray;
         _remindersEnabled = state.RemindersEnabled;
         _sleepReminderEnabled = state.SleepReminderEnabled;
+        _globalHotkeyEnabled = state.GlobalHotkeyEnabled;
+    }
+
+    /// <summary>Late wiring from the shell, once the platform hotkey service
+    /// exists — the checkbox is seeded from state in the constructor, this
+    /// fills in what only the service knows and arms the toggle.</summary>
+    public void InitHotkey(IGlobalHotkeyService hotkey, Action<bool> apply)
+    {
+        HotkeySupported = hotkey.IsSupported;
+        HotkeyHint = hotkey.IsSupported
+            ? $"# {hotkey.ChordLabel} starts/pauses the timer from any app — even from the tray"
+            : "# not available on this platform yet";
+        _applyHotkey = apply;
+    }
+
+    partial void OnGlobalHotkeyEnabledChanged(bool value)
+    {
+        _state.GlobalHotkeyEnabled = value;
+        _save();
+        _applyHotkey?.Invoke(value);
     }
 
     partial void OnShowWelcomeChanged(bool value)
