@@ -19,6 +19,7 @@ src/Tomoshibi/
                  IStorageService (JSON on disk), ISoundService (chime),
                  INotificationService (native alerts), IMusicService,
                  TaskTemplateParser (task code grammar), IcsImporter,
+                 DeckTsv (Anki-compatible deck import/export),
                  ReminderService (deadline alerts), ReviewScheduler (spaced
                  repetition), GradeScale, ThemeService, DailyReset (midnight
                  banking rules), StateMigrations (load-time upgrades)
@@ -131,7 +132,7 @@ before the window shows so there's no flash.
 The pure logic is under xUnit tests: the grade engine, `TaskTemplateParser`
 (parse + the done-toggle source surgery), storage round-trip and crash
 recovery, the daily-reset/banking rules (`DailyReset`), the load-time
-migrations (`StateMigrations`) and `IcsImporter`. The daily reset and the
+migrations (`StateMigrations`), `IcsImporter` and `DeckTsv`. The daily reset and the
 migrations used to live inside the shell view model and were extracted into
 plain state-in/state-out services precisely so they could be tested.
 
