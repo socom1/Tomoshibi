@@ -30,10 +30,11 @@ public static class TaskTemplateParser
             return blocks;
 
         TaskBlock? current = null;
+        var lines = source.Replace("\r\n", "\n").Split('\n');
 
-        foreach (var rawLine in source.Replace("\r\n", "\n").Split('\n'))
+        for (var i = 0; i < lines.Length; i++)
         {
-            var line = rawLine.Trim();
+            var line = lines[i].Trim();
 
             if (line.Length == 0)
             {
@@ -43,7 +44,7 @@ public static class TaskTemplateParser
                 continue;
             }
 
-            current ??= new TaskBlock();
+            current ??= new TaskBlock { StartLine = i };
 
             if (line.StartsWith("//"))
             {
@@ -118,37 +119,29 @@ public static class TaskTemplateParser
     }
 
     /// <summary>
-    /// Toggle the <c>done</c> flag on the block whose title matches, editing
-    /// the source surgically so the user's own formatting elsewhere survives.
-    /// Unknown title → source returned unchanged.
+    /// Toggle the <c>done</c> flag on one parsed block, editing the source
+    /// surgically so the user's own formatting elsewhere survives. The block
+    /// must come from parsing this same source — its <see cref="TaskBlock.StartLine"/>
+    /// anchors the edit, so two tasks with identical titles stay independent.
+    /// A stale block (out of range, or pointing at a blank line) leaves the
+    /// source unchanged.
     /// </summary>
-    public static string ToggleDone(string source, string title)
+    public static string ToggleDone(string source, TaskBlock? block)
     {
-        if (string.IsNullOrEmpty(source) || string.IsNullOrWhiteSpace(title))
+        if (string.IsNullOrEmpty(source) || block is null)
             return source;
 
         var lines = source.Replace("\r\n", "\n").Split('\n').ToList();
 
-        // Find the comment line carrying this title.
-        var titleLine = -1;
-        for (var i = 0; i < lines.Count; i++)
+        var blockStart = block.StartLine;
+        if (blockStart < 0 || blockStart >= lines.Count ||
+            lines[blockStart].Trim().Length == 0)
         {
-            var line = lines[i].Trim();
-            if (line.StartsWith("//") && line[2..].TrimStart() == title)
-            {
-                titleLine = i;
-                break;
-            }
-        }
-        if (titleLine < 0)
             return source;
+        }
 
-        // Walk out to the block's blank-line boundaries.
-        var blockStart = titleLine;
-        while (blockStart - 1 >= 0 && lines[blockStart - 1].Trim().Length > 0)
-            blockStart--;
-
-        var blockEnd = titleLine;
+        // Walk to the block's blank-line end.
+        var blockEnd = blockStart;
         while (blockEnd + 1 < lines.Count && lines[blockEnd + 1].Trim().Length > 0)
             blockEnd++;
 

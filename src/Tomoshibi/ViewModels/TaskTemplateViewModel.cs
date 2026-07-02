@@ -92,7 +92,7 @@ public partial class TaskTemplateViewModel : ViewModelBase
         if (task is null)
             return;
 
-        Source = TaskTemplateParser.ToggleDone(Source ?? string.Empty, task.Title);
+        Source = TaskTemplateParser.ToggleDone(Source ?? string.Empty, task);
     }
 
     [RelayCommand]

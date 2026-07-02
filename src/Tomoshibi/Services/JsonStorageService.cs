@@ -70,14 +70,14 @@ public class JsonStorageService : IStorageService
         var json = JsonSerializer.Serialize(state, Options);
 
         // Never write over the live file in place: serialise to a temp file,
-        // keep the previous good state as .bak, then swap the temp in with a
-        // rename. A crash at any point leaves either the old file or the
-        // backup intact instead of a truncated half-write.
+        // then swap it in atomically, rotating the previous good state to
+        // .bak in the same call. A crash at any point leaves either the old
+        // file or the backup intact instead of a truncated half-write.
         File.WriteAllText(_tmpPath, json);
 
         if (File.Exists(_filePath))
-            File.Copy(_filePath, _bakPath, overwrite: true);
-
-        File.Move(_tmpPath, _filePath, overwrite: true);
+            File.Replace(_tmpPath, _filePath, _bakPath);
+        else
+            File.Move(_tmpPath, _filePath);
     }
 }
