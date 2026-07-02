@@ -21,7 +21,8 @@ src/Tomoshibi/
                  TaskTemplateParser (task code grammar), IcsImporter,
                  DeckTsv (Anki-compatible deck import/export),
                  ReminderService (deadline alerts), ReviewScheduler (spaced
-                 repetition), GradeScale, ThemeService, DailyReset (midnight
+                 repetition), WeeklyRetrospective (the week written up),
+                 GradeScale, ThemeService, DailyReset (midnight
                  banking rules), StateMigrations (load-time upgrades)
   ViewModels/    UI state and behaviour — the MainWindow shell plus one view
                  model per destination (Dashboard / Today / Timetable / Todo /
@@ -132,7 +133,8 @@ before the window shows so there's no flash.
 The pure logic is under xUnit tests: the grade engine, `TaskTemplateParser`
 (parse + the done-toggle source surgery), storage round-trip and crash
 recovery, the daily-reset/banking rules (`DailyReset`), the load-time
-migrations (`StateMigrations`), `IcsImporter` and `DeckTsv`. The daily reset and the
+migrations (`StateMigrations`), `IcsImporter`, `DeckTsv` and
+`WeeklyRetrospective`. The daily reset and the
 migrations used to live inside the shell view model and were extracted into
 plain state-in/state-out services precisely so they could be tested.
 

@@ -63,6 +63,19 @@ public class DailyResetTests
     }
 
     [Fact]
+    public void A_review_only_day_is_still_banked()
+    {
+        var state = StateOn(Yesterday);
+        state.Today.ReviewedCards = 6;
+
+        Assert.True(DailyReset.Apply(state, Today));
+
+        var banked = Assert.Single(state.History);
+        Assert.Equal(6, banked.ReviewedCards);
+        Assert.Equal(0, state.Today.ReviewedCards);
+    }
+
+    [Fact]
     public void Banking_replaces_an_existing_entry_for_the_same_date()
     {
         var state = StateOn(Yesterday);

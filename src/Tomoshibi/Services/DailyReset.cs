@@ -25,7 +25,10 @@ public static class DailyReset
         {
             // Bank the finished day before replacing it — the streak and the
             // future calendar need the history. Empty days aren't recorded.
-            if (state.Today.CompletedSessions > 0 || state.Today.FocusedMinutes > 0)
+            // A review-only day still banks: the weekly retrospective counts
+            // cards, and the streak filters on sessions by itself.
+            if (state.Today.CompletedSessions > 0 || state.Today.FocusedMinutes > 0 ||
+                state.Today.ReviewedCards > 0)
             {
                 state.History.RemoveAll(d => d.Date == state.Today.Date);
                 state.History.Add(state.Today);
