@@ -178,6 +178,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Music = new MusicPlayerViewModel(_state, Save, new MusicService());
         SettingsPage = new SettingsPageViewModel(_state, Save, settings, Music, Subjects,
                                                  storage.Location);
+        SettingsPage.RestoreHandler = RestoreAndRestart;
         Dashboard = new DashboardViewModel(_state, Save, Today, Todo, Subjects, Review,
             openSubject: s => { Subjects.OpenDetail(s); ActiveDestination = Destination.Subjects; },
             goToday: () => ActiveDestination = Destination.Today,
@@ -632,8 +633,34 @@ public partial class MainWindowViewModel : ViewModelBase
     // nothing is lost.
     private DispatcherTimer? _saveTimer;
 
+    /// <summary>Set once a restore has written the new state to disk — from
+    /// then on the in-memory state is the old world and must not be saved
+    /// over it, including by the exit flush.</summary>
+    private bool _suppressSaves;
+
+    /// <summary>Swap the whole state for a restored backup: write it to disk,
+    /// stop the old world from saving over it, and relaunch so every view
+    /// model rebuilds from the restored file — the same path as any launch.</summary>
+    private void RestoreAndRestart(AppState restored)
+    {
+        _suppressSaves = true;
+        _saveTimer?.Stop();
+        _storage.Save(restored);
+
+        if (Environment.ProcessPath is { } exe)
+            System.Diagnostics.Process.Start(
+                new System.Diagnostics.ProcessStartInfo(exe) { UseShellExecute = true });
+
+        if (Avalonia.Application.Current?.ApplicationLifetime
+            is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            desktop.Shutdown();
+    }
+
     private void Save()
     {
+        if (_suppressSaves)
+            return;
+
         _saveTimer ??= CreateSaveTimer();
         _saveTimer.Stop();
         _saveTimer.Start();
@@ -654,6 +681,9 @@ public partial class MainWindowViewModel : ViewModelBase
     /// and app exit so a debounced edit never dies with the process.</summary>
     public void FlushSave()
     {
+        if (_suppressSaves)
+            return;
+
         if (_saveTimer?.IsEnabled == true)
             _saveTimer.Stop();
         _storage.Save(_state);
