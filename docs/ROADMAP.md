@@ -31,7 +31,12 @@ sensible order of work.
 - **v1.8 — recall & reflection.** Spaced-repetition flashcards, study goals,
   per-subject notes, an end-of-day reflection journal, exports, deadline
   reminders and a first-run onboarding.
-- **Later** — soundscapes, a public release.
+- **v1.9 — final upgrades.** Windows toast notifications, deck
+  import/export, timetable-aware focus suggestions, a weekly retrospective
+  and a global hotkey — the last feature push before the public release.
+- **v2.0 — the public release.** Screenshots, repo polish and the first
+  published builds.
+- **Later** — soundscapes.
 
 ## v1.0 — core
 
@@ -130,6 +135,30 @@ backlog. Shipped, untagged so far.
 - [x] Deadline / exam reminders, first-run onboarding, and data exports
 - [x] Hardened notification escaping and a capped `.ics` import
 
+## v1.9 — final upgrades
+
+The last feature push before the public release. (The milestone numbers
+above stopped matching the git tags after v1.2 — the v1.3–v1.8 feature work
+landed in one untagged run before tagging resumed at v1.4.0. From v1.8.0 on,
+tags and milestones line up again.)
+
+- [ ] Windows toast notifications (multi-targeted build + app identity)
+- [ ] Flashcard deck import/export — TSV, compatible with Anki's text format
+- [ ] Timetable-aware focus: suggest the class happening now as the course
+- [ ] Weekly retrospective — an auto-written look-back over the week's
+      focus, courses and journal
+- [ ] Global start/pause hotkey (Windows first, behind an interface)
+- [ ] Bump ReleaseNotes to 1.9.0 and tag v1.9.0
+
+## v2.0 — the public release
+
+Dress the repo for visitors and publish the first real builds.
+
+- [ ] Screenshots (+ a short GIF) in the README
+- [ ] Repo description + topics on GitHub
+- [ ] Bump ReleaseNotes to 2.0.0
+- [ ] Tag v2.0.0 and publish a GitHub Release with the platform builds
+
 ## Later
 
 - **Ambient soundscapes** — rain / café / waves / night (needs real audio
@@ -142,7 +171,8 @@ backlog. Shipped, untagged so far.
 - **Backup / restore** — export the whole state to a chosen file and read it
   back, on top of the automatic `.bak`.
 - **Bundle a coding font** — pixel-identical look across OSes.
-- **A tagged public release** — signed/notarized builds.
+- **Code signing** — signed/notarized builds, so SmartScreen and Gatekeeper
+  trust the download without a click-through.
 
 ## Testing
 

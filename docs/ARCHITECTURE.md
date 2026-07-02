@@ -81,7 +81,7 @@ launch ─▶ JsonStorageService.Load() ─▶ AppState
                                           │
                                           ▼
                                  MainWindowViewModel
-                    (migrations + daily reset + history/journal banking)
+                    (applies StateMigrations, then DailyReset, at load)
                        │        │        │        │        │
                        ▼        ▼        ▼        ▼        ▼
                     Today   Timetable  Todo   Subjects  Review  … (one per
@@ -93,11 +93,13 @@ launch ─▶ JsonStorageService.Load() ─▶ AppState
                        change ─▶ Save(AppState) back to disk
 ```
 
-State is loaded once at startup into `AppState`. On load the shell runs a few
-forward migrations (standalone deadlines → todo tickets, legacy task list →
-template text, theme ids), then applies the daily reset: when the calendar date
-rolls over it banks the finished day's stats into `History` and its
-intention + reflection into the `Journal`, then clears them. Each destination's
+State is loaded once at startup into `AppState`. On load the shell applies
+`StateMigrations` — the forward migrations (standalone deadlines → todo
+tickets, legacy task list → template text, theme ids) — then `DailyReset`:
+when the calendar date rolls over it banks the finished day's stats into
+`History` and its intention + reflection into the `Journal`, then clears
+them. Both are pure state-in/state-out services, kept out of the view models
+so their rules stay unit-testable. Each destination's
 view model exposes its slice as observable properties, and anything meaningful
 writes the whole state back to disk through a short debounce. Persistence is
 deliberately simple — serialise everything and replace the file — but never in
