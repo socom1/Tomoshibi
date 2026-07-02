@@ -150,6 +150,8 @@ tags and milestones line up again.)
       focus, courses and journal
 - [x] Global start/pause hotkey — ctrl+alt+P / ⌃⌥P behind an interface
       (Win32 RegisterHotKey + macOS Carbon; Linux ships the null service)
+- [x] Backup restore — read a backup file back over the live state and
+      relaunch into it (pulled forward from Later)
 - [ ] Bump ReleaseNotes to 1.9.0 and tag v1.9.0
 
 ## v2.0 — the public release
@@ -170,8 +172,6 @@ Dress the repo for visitors and publish the first real builds.
   course) so a typo or a partial still finds the row.
 - **Group-project awareness** — an optional owner on todo subtasks, so a shared
   project's split shows in the backlog without any sync or accounts.
-- **Backup / restore** — export the whole state to a chosen file and read it
-  back, on top of the automatic `.bak`.
 - **Bundle a coding font** — pixel-identical look across OSes.
 - **Code signing** — signed/notarized builds, so SmartScreen and Gatekeeper
   trust the download without a click-through.

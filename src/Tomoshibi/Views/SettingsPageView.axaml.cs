@@ -39,6 +39,43 @@ public partial class SettingsPageView : UserControl
                 "json", "*.json", vm.BuildBackupJson());
     }
 
+    private async void OnRestoreBackup(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is not { } vm)
+            return;
+
+        var top = TopLevel.GetTopLevel(this);
+        if (top is null)
+            return;
+
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "restore a tomoshibi backup",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("json") { Patterns = new[] { "*.json" } }
+            }
+        });
+
+        if (files.Count == 0)
+            return;
+
+        await using var stream = await files[0].OpenReadAsync();
+
+        // A year of state is well under a megabyte; refuse anything absurd
+        // rather than deserialising an unbounded file.
+        const long maxBytes = 20 * 1024 * 1024;
+        if (stream.CanSeek && stream.Length > maxBytes)
+        {
+            vm.RestoreStatus = "that file is too large to be a tomoshibi backup";
+            return;
+        }
+
+        using var reader = new StreamReader(stream);
+        vm.TryRestoreBackup(await reader.ReadToEndAsync());
+    }
+
     /// <summary>Prompt for a destination and write the text — shared by every
     /// export. A cancelled picker is a no-op.</summary>
     private async Task SaveText(string title, string suggestedName,
