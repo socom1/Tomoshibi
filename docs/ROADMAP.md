@@ -145,7 +145,7 @@ tags and milestones line up again.)
 - [x] Windows toast notifications (a Windows-flavoured build + the app
       identity registration toasts require)
 - [ ] Flashcard deck import/export — TSV, compatible with Anki's text format
-- [ ] Timetable-aware focus: suggest the class happening now as the course
+- [x] Timetable-aware focus: suggest the class happening now as the course
 - [ ] Weekly retrospective — an auto-written look-back over the week's
       focus, courses and journal
 - [ ] Global start/pause hotkey (Windows first, behind an interface)

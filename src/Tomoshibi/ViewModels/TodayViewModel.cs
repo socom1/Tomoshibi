@@ -89,6 +89,18 @@ public partial class TodayViewModel : ViewModelBase
     [ObservableProperty]
     private bool _hasNextClass;
 
+    /// <summary>One-click offer under the timer while a class is on and no
+    /// task is active: "▷ 授業中 · focus on algebra · MATH101". Clicking makes
+    /// the class the active task so the focus lands on the right course.</summary>
+    [ObservableProperty]
+    private string _classSuggestionLabel = string.Empty;
+
+    [ObservableProperty]
+    private bool _hasClassSuggestion;
+
+    /// <summary>The slot behind the suggestion, kept for the click.</summary>
+    private ClassSlot? _currentClass;
+
     /// <summary>The soonest deadlines within a week, e.g.
     /// "essay due tomorrow · quiz due fri". Empty when nothing's close.</summary>
     [ObservableProperty]
@@ -195,6 +207,10 @@ public partial class TodayViewModel : ViewModelBase
         var active = Tasks?.ActiveTask;
         HasActiveTask = active is not null;
         ActiveTaskLabel = active is null ? string.Empty : $"now · {active.Title}";
+
+        // The class suggestion stands down while any task is active, so
+        // picking (or dropping) one updates it right away.
+        RefreshScheduleInfo();
     }
 
     /// <summary>Called by the shell's day-watcher every minute so the greeting
@@ -238,6 +254,19 @@ public partial class TodayViewModel : ViewModelBase
         }
         HasNextClass = NextClassLabel.Length > 0;
 
+        // Offer the running class as the focus, but only when the user has
+        // no plan of their own — an active task means they've already chosen.
+        _currentClass = current;
+        var suggest = current is not null &&
+                      !string.IsNullOrWhiteSpace(current.Title) &&
+                      Tasks?.ActiveTask is null;
+        ClassSuggestionLabel = !suggest
+            ? string.Empty
+            : string.IsNullOrWhiteSpace(current!.Course)
+                ? $"▷ 授業中 · focus on {current.Title}"
+                : $"▷ 授業中 · focus on {current.Title} · {current.Course}";
+        HasClassSuggestion = suggest;
+
         // Due things come from two places: open tickets with due dates, and
         // dated, still-ungraded assessments (exams, essay hand-ins).
         var dueTickets = _state.Todos
@@ -267,6 +296,35 @@ public partial class TodayViewModel : ViewModelBase
         if (now.Hour >= 5)
             _sleepNudgeDismissed = false;
         ShowSleepNudge = _state.SleepReminderEnabled && now.Hour < 5 && !_sleepNudgeDismissed;
+    }
+
+    /// <summary>Make the class happening now the active task: reuse a task
+    /// block whose title matches the class, or append a new one (course-tagged
+    /// when the slot has a course) — so the session's focus lands on the right
+    /// course without any typing.</summary>
+    [RelayCommand]
+    private void FocusCurrentClass()
+    {
+        if (_currentClass is null || string.IsNullOrWhiteSpace(_currentClass.Title))
+            return;
+
+        var existing = Tasks.Tasks.FirstOrDefault(t =>
+            string.Equals(t.Title, _currentClass.Title, StringComparison.OrdinalIgnoreCase));
+
+        if (existing is null)
+        {
+            var block = $"// {_currentClass.Title}";
+            if (!string.IsNullOrWhiteSpace(_currentClass.Course))
+                block += $"\ncourse: {_currentClass.Course}";
+
+            var source = (Tasks.Source ?? string.Empty).TrimEnd();
+            Tasks.Source = string.IsNullOrEmpty(source) ? block : $"{source}\n\n{block}";
+
+            existing = Tasks.Tasks.FirstOrDefault(t =>
+                string.Equals(t.Title, _currentClass.Title, StringComparison.OrdinalIgnoreCase));
+        }
+
+        Tasks.ActiveTask = existing;
     }
 
     /// <summary>Dismiss tonight's after-midnight nudge (the hover ✕).</summary>
