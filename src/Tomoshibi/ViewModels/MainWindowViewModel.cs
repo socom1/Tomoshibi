@@ -211,6 +211,43 @@ public partial class MainWindowViewModel : ViewModelBase
         Save();
     }
 
+    // ---- Global hotkey ----
+
+    private IGlobalHotkeyService? _hotkey;
+
+    /// <summary>Hand the shell the platform hotkey service once the window
+    /// exists (the Windows one needs its handle). Claims the chord straight
+    /// away when the setting is on.</summary>
+    public void AttachHotkey(IGlobalHotkeyService hotkey)
+    {
+        _hotkey = hotkey;
+        SettingsPage.InitHotkey(hotkey, ApplyHotkey);
+
+        if (_state.GlobalHotkeyEnabled && hotkey.IsSupported)
+            ApplyHotkey(true);
+    }
+
+    /// <summary>Claim or release the chord as the settings toggle flips. A
+    /// failed claim (another app holds it) surfaces on the settings page
+    /// rather than erroring — the app works fine without it.</summary>
+    private void ApplyHotkey(bool enabled)
+    {
+        if (_hotkey is null || !_hotkey.IsSupported)
+            return;
+
+        if (!enabled)
+        {
+            _hotkey.Unregister();
+            SettingsPage.HotkeyStatus = string.Empty;
+            return;
+        }
+
+        var claimed = _hotkey.Register(() => Today.Pomodoro.ToggleRunCommand.Execute(null));
+        SettingsPage.HotkeyStatus = claimed
+            ? string.Empty
+            : "couldn't claim the chord — another app may be holding it";
+    }
+
     /// <summary>Fire any due deadline/exam reminders and persist the fired-keys
     /// set if it changed. Cheap to call often — it just reads the dedup set.</summary>
     private void CheckReminders()

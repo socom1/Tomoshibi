@@ -15,6 +15,7 @@ public partial class App : Application
 {
     private TrayIcon? _tray;
     private NativeMenuItem? _trayToggle;
+    private IGlobalHotkeyService? _hotkey;
     private MainWindowViewModel? _vm;
 
     public override void Initialize()
@@ -41,11 +42,13 @@ public partial class App : Application
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             desktop.Exit += (_, _) =>
             {
+                _hotkey?.Dispose();
                 _vm?.FlushSave();
                 _vm?.Music.Shutdown();
             };
 
             SetupTray(desktop);
+            SetupHotkey(desktop);
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -95,6 +98,21 @@ public partial class App : Application
         // Keep the tooltip and the start/pause entry in step with the timer.
         _vm.Today.Pomodoro.PropertyChanged += OnPomodoroChanged;
         UpdateTray();
+    }
+
+    /// <summary>Pick the platform's global-hotkey flavour and hand it to the
+    /// shell, which claims the chord if the setting says so. The Windows one
+    /// rides the main window's handle, so this runs after the window exists.</summary>
+    private void SetupHotkey(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        if (_vm is null || desktop.MainWindow is not { } window)
+            return;
+
+        _hotkey = OperatingSystem.IsWindows() ? new WindowsHotkeyService(window)
+            : OperatingSystem.IsMacOS() ? new MacHotkeyService()
+            : new NullHotkeyService();
+
+        _vm.AttachHotkey(_hotkey);
     }
 
     private void OnPomodoroChanged(object? sender, PropertyChangedEventArgs e)
