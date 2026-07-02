@@ -147,6 +147,33 @@ public partial class SettingsPageViewModel : ViewModelBase
         _save();
     }
 
+    // ===================== Restore =====================
+
+    /// <summary>Why a restore didn't happen — empty when nothing to report.
+    /// A successful restore restarts the app, so success needs no line.</summary>
+    [ObservableProperty] private string _restoreStatus = string.Empty;
+
+    /// <summary>Wired by the shell: takes the parsed state, writes it to disk
+    /// and relaunches. Lives up there because the swap touches the storage
+    /// and the application lifetime — things this page doesn't hold.</summary>
+    public Action<AppState>? RestoreHandler { get; set; }
+
+    /// <summary>Read a backup file back over the live state. Anything that
+    /// doesn't parse as a tomoshibi backup is refused whole — no half
+    /// restores. On success the handler restarts the app into the new file.</summary>
+    public void TryRestoreBackup(string json)
+    {
+        var restored = BackupRestore.Parse(json);
+        if (restored is null)
+        {
+            RestoreStatus = "that file didn't read as a tomoshibi backup — nothing was changed";
+            return;
+        }
+
+        RestoreStatus = string.Empty;
+        RestoreHandler?.Invoke(restored);
+    }
+
     // ===================== Export / backup =====================
 
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
