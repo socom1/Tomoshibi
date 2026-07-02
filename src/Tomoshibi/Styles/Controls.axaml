@@ -30,9 +30,20 @@
     <!-- Add to any heading that mixes Japanese + Latin (e.g. an .h1 reading
          "やること · backlog"). Only overrides the font family, so it composes
          with .h1 (size/weight) without fighting it — the whole string renders
-         from one CJK font and both scripts share a baseline. -->
+         from one CJK font and both scripts share a baseline.
+
+         The bottom padding is load-bearing: the CJK fonts this resolves to
+         (Hiragino Sans, Yu Gothic UI) report line metrics tighter than their
+         Latin descenders, so the tail of a g/y/p spills below the reserved
+         line box and gets clipped flat ("config" → "confi̶g"). The padding
+         buys the spill room; it scales with the font size, hence the larger
+         value on the h1 combination. -->
     <Style Selector="TextBlock.cjk">
         <Setter Property="FontFamily" Value="{DynamicResource JpFont}" />
+        <Setter Property="Padding" Value="0,0,0,2" />
+    </Style>
+    <Style Selector="TextBlock.h1.cjk">
+        <Setter Property="Padding" Value="0,0,0,5" />
     </Style>
 
     <!-- Hover tooltips render in the CJK-capable font so JP/EN pairs like
@@ -58,6 +69,8 @@
         <Setter Property="FontSize" Value="13" />
         <Setter Property="LetterSpacing" Value="0.5" />
         <Setter Property="FontFamily" Value="{DynamicResource JpFont}" />
+        <!-- Same descender room as .cjk — see the comment there. -->
+        <Setter Property="Padding" Value="0,0,0,2" />
     </Style>
 
     <!-- Small captions under stats -->
