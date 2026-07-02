@@ -72,7 +72,10 @@ and it keeps the app fully offline. No database, no accounts.
 **Side effects shell out.** Sound and notifications call the OS's own tools
 (afplay / osascript on macOS, paplay / notify-send on Linux) instead of
 pulling in audio or notification libraries. A missing tool means silence, not
-a crash.
+a crash. The one exception is Windows toasts: there is nothing to shell out
+to, so the Windows-flavoured build (see the csproj's per-OS target framework)
+uses the notifications toolkit, which also registers the app identity an
+unpackaged EXE otherwise lacks.
 
 ## Data flow
 
@@ -144,5 +147,3 @@ before tests can drive it.
   lag the latest Avalonia release; bump deliberately.
 - `.ics` import reads times as wall-clock and only maps weekly recurrences;
   exotic RRULEs are counted and skipped.
-- Windows has no native notification yet (the chime still fires); toast
-  notifications need an app identity that plain unpackaged EXEs don't have.
