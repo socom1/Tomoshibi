@@ -44,6 +44,9 @@ public partial class ReviewViewModel : ViewModelBase
     [ObservableProperty] private string _newDeckName = string.Empty;
     [ObservableProperty] private string _newDeckCourse = string.Empty;
 
+    /// <summary>What the last deck import did — shown under the page header.</summary>
+    [ObservableProperty] private string _importSummary = string.Empty;
+
     // ---- Review session ----
     private readonly List<Flashcard> _queue = new();
     private DateOnly _sessionDate;
@@ -149,6 +152,38 @@ public partial class ReviewViewModel : ViewModelBase
         Refresh();
         _save();
     }
+
+    // ---- Deck import / export ----
+
+    /// <summary>Bring an Anki-style text export in as a brand-new deck named
+    /// after the file. Every card arrives due, like any other new card.</summary>
+    public void ImportDeck(string name, string text)
+    {
+        var parsed = DeckTsv.Parse(text);
+        if (parsed.Cards.Count == 0)
+        {
+            ImportSummary = "no cards found in that file";
+            return;
+        }
+
+        var deck = new Deck
+        {
+            Name = string.IsNullOrWhiteSpace(name) ? "imported deck" : name.Trim()
+        };
+        deck.Cards.AddRange(parsed.Cards);
+
+        _state.Decks.Add(deck);
+        Decks.Add(new DeckViewModel(deck, OnDeckChanged));
+
+        ImportSummary = $"imported {parsed.Cards.Count} cards into “{deck.Name}”" +
+                        (parsed.Skipped > 0 ? $" · {parsed.Skipped} rows skipped" : string.Empty);
+
+        Refresh();
+        _save();
+    }
+
+    /// <summary>The open deck as Anki-importable text for the export picker.</summary>
+    public string BuildDeckTsv(DeckViewModel deck) => DeckTsv.Write(deck.Model);
 
     // ---- Review session ----
 
