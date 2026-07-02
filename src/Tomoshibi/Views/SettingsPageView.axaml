@@ -139,6 +139,13 @@
                                       Content="keep running in the tray when the window closes" />
                             <TextBlock Text="# with this off, closing the window quits the app (and the timer)"
                                        Classes="comment" />
+                            <CheckBox IsChecked="{Binding GlobalHotkeyEnabled}"
+                                      IsEnabled="{Binding HotkeySupported}"
+                                      Content="global start/pause hotkey" />
+                            <TextBlock Text="{Binding HotkeyHint}" Classes="comment" />
+                            <TextBlock Text="{Binding HotkeyStatus}" Classes="comment"
+                                       Foreground="{DynamicResource AmberBrush}"
+                                       IsVisible="{Binding HotkeyStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                             <TextBlock Text="# themes live in the shop now"
                                        Classes="comment" />
                         </StackPanel>

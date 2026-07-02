@@ -22,6 +22,8 @@ src/Tomoshibi/
                  DeckTsv (Anki-compatible deck import/export),
                  ReminderService (deadline alerts), ReviewScheduler (spaced
                  repetition), WeeklyRetrospective (the week written up),
+                 IGlobalHotkeyService (system-wide start/pause: Win32
+                 RegisterHotKey / macOS Carbon / null on Linux),
                  GradeScale, ThemeService, DailyReset (midnight
                  banking rules), StateMigrations (load-time upgrades)
   ViewModels/    UI state and behaviour — the MainWindow shell plus one view

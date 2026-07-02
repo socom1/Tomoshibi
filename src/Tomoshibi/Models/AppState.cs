@@ -78,6 +78,10 @@ public class AppState
     public bool CloseToTray { get; set; } = true;
     public bool LightTheme { get; set; }
 
+    /// <summary>The system-wide start/pause chord (ctrl+alt+P / ⌃⌥P), on
+    /// platforms that support one. Off releases the chord to other apps.</summary>
+    public bool GlobalHotkeyEnabled { get; set; } = true;
+
     // Currency + cosmetics
     public int Embers { get; set; }
     public string ActiveThemeId { get; set; } = string.Empty;
