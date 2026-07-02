@@ -51,7 +51,8 @@ everything stays on your machine.
 - **Themes & embers** — earn embers as you focus and spend them in a small shop
   on extra colour themes; a music player can loop a local folder while you work.
 - **Local-first** — all data in a single JSON file on your computer, written
-  atomically with a `.bak` fallback; no account, no network.
+  atomically with a `.bak` fallback; no account, no network. One-click backup
+  to a file of your choosing, and restore reads it straight back.
 
 Roadmap and longer-term ideas live in [docs/ROADMAP.md](docs/ROADMAP.md).
 

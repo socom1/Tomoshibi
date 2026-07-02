@@ -279,7 +279,24 @@
                                 <Button Classes="seg" Content="backup (.json)"
                                         Click="OnBackup"
                                         ToolTip.Tip="save a full copy of your data — loads straight back" />
+                                <Button Classes="seg" Content="restore…"
+                                        ToolTip.Tip="read a backup file back in — replaces everything">
+                                    <Button.Flyout>
+                                        <Flyout Placement="Bottom">
+                                            <StackPanel Spacing="10" MaxWidth="280">
+                                                <TextBlock Text="restore replaces everything with the backup file, then restarts the app. your current data is overwritten."
+                                                           Classes="caption" TextWrapping="Wrap" />
+                                                <Button Classes="accent" Content="choose backup file…"
+                                                        HorizontalAlignment="Left"
+                                                        Click="OnRestoreBackup" />
+                                            </StackPanel>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                </Button>
                             </StackPanel>
+                            <TextBlock Text="{Binding RestoreStatus}" Classes="comment"
+                                       Foreground="{DynamicResource AmberBrush}"
+                                       IsVisible="{Binding RestoreStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                             <TextBlock Text="# saved atomically on every change, with a .bak of the last good state — corrupt files recover automatically"
                                        Classes="comment" />
 
