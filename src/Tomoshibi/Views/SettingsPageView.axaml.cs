@@ -122,6 +122,22 @@ public partial class SettingsPageView : UserControl
             vm.Music.SetFolder(path);
     }
 
+    /// <summary>Open the GitHub releases page — the update button's target.</summary>
+    private void OnOpenReleases(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(Services.UpdateCheck.ReleasesUrl)
+            {
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+            // No browser — nothing useful to do.
+        }
+    }
+
     /// <summary>Reveal the data folder in the OS file manager.</summary>
     private void OnOpenDataFolder(object? sender, RoutedEventArgs e)
     {
