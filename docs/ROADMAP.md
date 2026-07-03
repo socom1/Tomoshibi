@@ -158,6 +158,8 @@ tags and milestones line up again.)
 
 Dress the repo for visitors and publish the first real builds.
 
+- [x] Source-available license (MIT stays in force for ≤ v1.9.0)
+- [x] Seal the ember wallet against casual JSON edits
 - [ ] Screenshots (+ a short GIF) in the README
 - [ ] Repo description + topics on GitHub
 - [ ] Bump ReleaseNotes to 2.0.0
