@@ -57,6 +57,15 @@ public partial class SettingsPageViewModel : ViewModelBase
 
     private Action<bool>? _applyHotkey;
 
+    // ---- Update check ----
+
+    [ObservableProperty] private bool _updateCheckEnabled;
+
+    /// <summary>"v2.1.0 is out …" once the launch check finds one. Empty
+    /// means up to date — or the check is off, or the machine is offline;
+    /// the app deliberately can't tell those apart.</summary>
+    [ObservableProperty] private string _updateAvailable = string.Empty;
+
     /// <summary>Which section the sidebar has selected. Drives the detail pane;
     /// the Is*Section helpers light the matching nav item and show its card.</summary>
     [ObservableProperty]
@@ -102,6 +111,13 @@ public partial class SettingsPageViewModel : ViewModelBase
         _remindersEnabled = state.RemindersEnabled;
         _sleepReminderEnabled = state.SleepReminderEnabled;
         _globalHotkeyEnabled = state.GlobalHotkeyEnabled;
+        _updateCheckEnabled = state.UpdateCheckEnabled;
+    }
+
+    partial void OnUpdateCheckEnabledChanged(bool value)
+    {
+        _state.UpdateCheckEnabled = value;
+        _save();
     }
 
     /// <summary>Late wiring from the shell, once the platform hotkey service

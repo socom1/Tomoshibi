@@ -51,6 +51,14 @@ public class AppState
     /// <summary>Show the gentle "rest soon" line on the timer after midnight.</summary>
     public bool SleepReminderEnabled { get; set; } = true;
 
+    /// <summary>Ask GitHub for the latest release tag once per launch. Off
+    /// keeps the app fully offline; failures read as "no update".</summary>
+    public bool UpdateCheckEnabled { get; set; } = true;
+
+    /// <summary>The release tag the user was last notified about, so a new
+    /// version announces itself once, not on every launch.</summary>
+    public string UpdateNotifiedFor { get; set; } = string.Empty;
+
     /// <summary>Target minutes of focus per day, shown as a progress bar on the
     /// dashboard. 0 hides it. Defaults to two hours.</summary>
     public int FocusGoalMinutes { get; set; } = 120;
