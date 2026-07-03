@@ -139,4 +139,6 @@ Delete it to reset the app to a clean state.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Source-available — you're welcome to download, build and run tomoshibi
+for yourself, but not to redistribute copies or reuse the code elsewhere.
+See [LICENSE](LICENSE). Releases up to v1.9.0 remain MIT.
