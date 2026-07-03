@@ -10,7 +10,7 @@ namespace Tomoshibi;
 /// </summary>
 public static class ReleaseNotes
 {
-    public const string Version = "1.8.0";
+    public const string Version = "1.9.0";
 
     public static string VersionTag => $"v{Version}";
 
@@ -18,11 +18,12 @@ public static class ReleaseNotes
 
     private static readonly string[] Lines =
     {
-        "ticking a task done now hits exactly the one you clicked, even twins",
-        "saves swap in atomically — the backup rotates in the same breath",
-        "the Windows build is now verified end to end",
-        "a much larger test net under the daily reset, migrations and imports",
-        "the road to v2.0 is mapped out in the roadmap",
+        "decks import and export as anki-compatible text files",
+        "the stats page now writes your week up — a little retrospective",
+        "ctrl+alt+P (⌃⌥P on mac) starts or pauses the timer from any app",
+        "restore a backup from settings — the other half of the backup button",
+        "windows gets native toasts; mac banners now wear the app icon",
+        "while a class is on, the timer offers it as a one-click focus",
     };
 
     /// <summary>The notes as one bulleted block for the modal.</summary>
