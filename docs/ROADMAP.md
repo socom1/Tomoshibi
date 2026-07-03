@@ -152,7 +152,7 @@ tags and milestones line up again.)
       (Win32 RegisterHotKey + macOS Carbon; Linux ships the null service)
 - [x] Backup restore — read a backup file back over the live state and
       relaunch into it (pulled forward from Later)
-- [ ] Bump ReleaseNotes to 1.9.0 and tag v1.9.0
+- [x] Bump ReleaseNotes to 1.9.0 and tag v1.9.0
 
 ## v2.0 — the public release
 
