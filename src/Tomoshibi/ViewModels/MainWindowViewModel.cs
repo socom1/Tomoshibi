@@ -210,6 +210,32 @@ public partial class MainWindowViewModel : ViewModelBase
 
         CheckReminders();
         Save();
+
+        if (_state.UpdateCheckEnabled)
+            _ = AnnounceUpdateAsync();
+    }
+
+    /// <summary>The launch-time update check: ask GitHub for the latest tag
+    /// and, if it's newer than this build, surface it on the settings page —
+    /// plus one notification per version, so an update never nags twice.</summary>
+    private async System.Threading.Tasks.Task AnnounceUpdateAsync()
+    {
+        var tag = await UpdateCheck.FetchLatestTagAsync();
+        if (tag is null || !UpdateCheck.IsNewer(ReleaseNotes.Version, tag))
+            return;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            SettingsPage.UpdateAvailable = $"{tag} is out — the releases page has it";
+
+            if (_state.UpdateNotifiedFor != tag)
+            {
+                _state.UpdateNotifiedFor = tag;
+                new NotificationService().Notify("update available",
+                    $"tomoshibi {tag} is out — grab it from the releases page");
+                Save();
+            }
+        });
     }
 
     // ---- Global hotkey ----
