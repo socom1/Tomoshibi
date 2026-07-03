@@ -86,6 +86,11 @@ public class AppState
     public int Embers { get; set; }
     public string ActiveThemeId { get; set; } = string.Empty;
     public System.Collections.Generic.List<string> OwnedThemeIds { get; set; } = new();
+
+    /// <summary>HMAC over the wallet (embers + themes), stamped on every save
+    /// and checked on load — a hand-edited balance resets instead of being
+    /// believed. See <c>EmberSeal</c>.</summary>
+    public string EmberSeal { get; set; } = string.Empty;
     public Destination ActiveDestination { get; set; } = Destination.Dashboard;
 
     // Window placement (0 width = never saved, use the XAML defaults)

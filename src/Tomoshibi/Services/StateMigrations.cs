@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Tomoshibi.Models;
 
@@ -14,6 +15,12 @@ public static class StateMigrations
     /// <summary>Run every migration in order. Callers save afterwards.</summary>
     public static void Apply(AppState state)
     {
+        // Seal first: it must judge the file exactly as it was read, before
+        // any migration below rewrites a sealed field (MigrateTheme fills an
+        // empty ActiveThemeId, for one). Saves re-stamp, so the seal on disk
+        // always describes post-migration state anyway.
+        EnforceEmberSeal(state);
+
         MigrateDeadlinesToTickets(state);
         MigrateLegacyTasks(state);
         MigrateTheme(state);
@@ -67,5 +74,26 @@ public static class StateMigrations
         foreach (var free in new[] { "dark", "light" })
             if (!state.OwnedThemeIds.Contains(free))
                 state.OwnedThemeIds.Add(free);
+    }
+
+    /// <summary>Check the wallet against its tamper seal. A file last saved
+    /// by a build from before the seal existed is trusted once and stamped —
+    /// upgrades never empty anyone's wallet. From then on the file always
+    /// carries a seal, so a missing or wrong one means a hand edit, and the
+    /// wallet resets. Runs on every load and on backup restore.</summary>
+    private static void EnforceEmberSeal(AppState state)
+    {
+        var preSeal = string.IsNullOrEmpty(state.LastSeenVersion) ||
+                      (Version.TryParse(state.LastSeenVersion, out var last) &&
+                       last < EmberSeal.IntroducedIn);
+
+        if (string.IsNullOrEmpty(state.EmberSeal) && preSeal)
+        {
+            EmberSeal.Apply(state);
+            return;
+        }
+
+        if (!EmberSeal.Verify(state))
+            EmberSeal.Reset(state);
     }
 }
