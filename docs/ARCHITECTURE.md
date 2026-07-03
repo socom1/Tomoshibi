@@ -26,7 +26,8 @@ src/Tomoshibi/
                  RegisterHotKey / macOS Carbon / null on Linux),
                  GradeScale, ThemeService, DailyReset (midnight
                  banking rules), StateMigrations (load-time upgrades),
-                 BackupRestore (backup files read back in, migrated)
+                 BackupRestore (backup files read back in, migrated),
+                 EmberSeal (the wallet's tamper stamp)
   ViewModels/    UI state and behaviour — the MainWindow shell plus one view
                  model per destination (Dashboard / Today / Timetable / Todo /
                  Subjects / Stats / Review / Shop / Settings), and the Cmd-K
