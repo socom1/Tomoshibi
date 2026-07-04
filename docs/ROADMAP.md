@@ -166,8 +166,9 @@ Dress the repo for visitors and publish the first real builds.
       checklist steps (tasks-as-code, the palette) — and ⌘K now works on
       mac even while typing
 - [x] Palette polish — fuzzy, typo-tolerant matching (pulled forward from
-      Later); arrows always drive the selection; theme switching, music and
-      mark-intention-kept join the actions. The build journal is retired
+      Later); frecency, so familiar picks float up; arrows always drive the
+      selection; theme switching, music and mark-intention-kept join the
+      actions. The build journal is retired
 - [ ] A short demo GIF for the README
 - [ ] Repo description + topics on GitHub
 - [ ] Bump ReleaseNotes to 2.0.0

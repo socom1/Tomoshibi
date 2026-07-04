@@ -80,6 +80,10 @@ public class AppState
     /// first-run checklist step that teaches the shortcut.</summary>
     public bool PaletteOpenedOnce { get; set; }
 
+    /// <summary>Palette frecency: "kind:title" → how often / how recently
+    /// that row was run. Capped small; see <c>PaletteFrecency</c>.</summary>
+    public Dictionary<string, PaletteUse> PaletteUsage { get; set; } = new();
+
     /// <summary>Keys of reminders already fired (item + threshold + date), so
     /// a deadline never notifies twice. Swept as dates pass.</summary>
     public List<string> NotifiedReminders { get; set; } = new();

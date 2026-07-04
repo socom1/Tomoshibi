@@ -250,7 +250,13 @@ public partial class MainWindowViewModel : ViewModelBase
             wallet: Wallet,
             openPalette: OpenCommandPalette);
 
-        CommandPalette = new CommandPaletteViewModel(() => IsCommandPaletteOpen = false);
+        CommandPalette = new CommandPaletteViewModel(
+            () => IsCommandPaletteOpen = false,
+            recordUse: item =>
+            {
+                PaletteFrecency.Record(_state.PaletteUsage, item.UsageKey, DateTimeOffset.Now);
+                Save();
+            });
 
         _showWelcomeOnLaunch = _state.ShowWelcome;
         _isWelcomeOpen = _state.ShowWelcome;
@@ -416,12 +422,19 @@ public partial class MainWindowViewModel : ViewModelBase
         ActiveDestination = NavOrder[oneBased - 1];
     }
 
-    /// <summary>Open the command palette with a fresh candidate list.</summary>
+    /// <summary>Open the command palette with a fresh candidate list, each
+    /// row stamped with its frecency warmth for the ranking.</summary>
     public void OpenCommandPalette()
     {
         if (IsZenMode)
             return;
-        CommandPalette.Load(BuildCommands());
+
+        var commands = BuildCommands();
+        var now = DateTimeOffset.Now;
+        foreach (var item in commands)
+            item.SortHint = PaletteFrecency.Score(_state.PaletteUsage, item.UsageKey, now);
+
+        CommandPalette.Load(commands);
         IsCommandPaletteOpen = true;
 
         // The first open completes a first-run checklist step.
