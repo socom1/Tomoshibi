@@ -147,7 +147,11 @@ A single `tomoshibi.json` file in your OS application-data folder:
 - macOS — `~/Library/Application Support/Tomoshibi/`
 - Linux — `~/.config/Tomoshibi/`
 
-Delete it to reset the app to a clean state.
+Delete it to reset the app to a clean state. If the app ever crashes, a
+`crash-*.log` lands in the same folder (settings → open folder takes you
+there) — attach it when you
+[open an issue](https://github.com/socom1/Tomoshibi/issues) and the bug
+gets much easier to catch.
 
 ## License
 
