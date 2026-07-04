@@ -10,7 +10,7 @@ namespace Tomoshibi;
 /// </summary>
 public static class ReleaseNotes
 {
-    public const string Version = "1.9.0";
+    public const string Version = "2.0.0";
 
     public static string VersionTag => $"v{Version}";
 
@@ -18,12 +18,10 @@ public static class ReleaseNotes
 
     private static readonly string[] Lines =
     {
-        "decks import and export as anki-compatible text files",
-        "the stats page now writes your week up — a little retrospective",
-        "ctrl+alt+P (⌃⌥P on mac) starts or pauses the timer from any app",
-        "restore a backup from settings — the other half of the backup button",
-        "windows gets native toasts; mac banners now wear the app icon",
-        "while a class is on, the timer offers it as a one-click focus",
+        "tomoshibi is public now — screenshots, a license and real releases",
+        "a quiet launch-time update check, with an off-switch in settings",
+        "the ember wallet now carries a tamper seal — edited balances reset",
+        "descenders stopped getting clipped in the CJK headings",
     };
 
     /// <summary>The notes as one bulleted block for the modal.</summary>

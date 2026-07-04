@@ -102,7 +102,25 @@ docs/            roadmap, architecture, screenshots
 .github/workflows/ci.yml   build + test on every push/PR, across win/mac/linux
 ```
 
-## Getting started
+## Download & install
+
+Grab the build for your OS from the
+[releases page](https://github.com/socom1/Tomoshibi/releases/latest), unzip,
+and run. The builds are self-contained — no .NET install needed.
+
+The builds aren't code-signed (yet), so on first launch your OS will be
+suspicious on your behalf:
+
+- **macOS** — Gatekeeper says the app "cannot be opened because it is from an
+  unidentified developer". Right-click the app → **Open** → **Open** once;
+  after that it launches normally.
+- **Windows** — SmartScreen shows "Windows protected your PC". Click
+  **More info** → **Run anyway** once.
+
+The app tells you in settings when a newer release is out (you can turn that
+check off). On Linux, build from source below — the packaged build is coming.
+
+## Building from source
 
 You'll need the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
 
