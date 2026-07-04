@@ -72,8 +72,7 @@ Roadmap and longer-term ideas live in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 Avalonia + .NET 8, MVVM with CommunityToolkit.Mvvm. One codebase, published
 self-contained for Windows, macOS and Linux. Architecture notes are in
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); the full build story is in
-[docs/BUILD_JOURNAL.md](docs/BUILD_JOURNAL.md).
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Project layout
 
@@ -99,7 +98,7 @@ tests/Tomoshibi.Tests/   xUnit tests for the pure logic (grade engine,
                  daily reset, state migrations, .ics importer, deck files,
                  weekly retrospective)
 scripts/         packaging scripts per platform
-docs/            roadmap, architecture, build journal
+docs/            roadmap, architecture, screenshots
 .github/workflows/ci.yml   build + test on every push/PR, across win/mac/linux
 ```
 

@@ -40,12 +40,20 @@ public partial class CommandPaletteViewModel : ViewModelBase
 
     private void Filter()
     {
-        var q = Query?.Trim() ?? string.Empty;
-
         Results.Clear();
-        foreach (var item in _all)
-            if (q.Length == 0 || item.Title.Contains(q, StringComparison.OrdinalIgnoreCase))
-                Results.Add(item);
+
+        // Fuzzy, typo-tolerant scoring — see PaletteMatcher for the ranking
+        // rules. Ties keep the shell's build order, so pages stay on top of
+        // an empty query and content stays grouped.
+        var ranked = _all
+            .Select((item, index) => (Item: item,
+                Score: Services.PaletteMatcher.Score(Query, item.Title), Index: index))
+            .Where(x => x.Score is not null)
+            .OrderByDescending(x => x.Score)
+            .ThenBy(x => x.Index);
+
+        foreach (var match in ranked)
+            Results.Add(match.Item);
 
         SelectedIndex = Results.Count > 0 ? 0 : -1;
     }

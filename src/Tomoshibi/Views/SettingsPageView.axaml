@@ -160,6 +160,10 @@
                                       Content="check for updates on launch" />
                             <TextBlock Text="# one quiet ask of github for the latest version number — nothing about you rides along · off keeps tomoshibi fully offline"
                                        Classes="comment" />
+                            <Button Classes="seg" Content="show the tour"
+                                    HorizontalAlignment="Left" Margin="0,4,0,0"
+                                    Command="{Binding ShowTourCommand}"
+                                    ToolTip.Tip="the four-page primer from first launch" />
                             <TextBlock Text="# themes live in the shop now"
                                        Classes="comment" />
                         </StackPanel>
