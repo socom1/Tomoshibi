@@ -161,6 +161,14 @@ Dress the repo for visitors and publish the first real builds.
 - [x] Source-available license (MIT stays in force for ≤ v1.9.0)
 - [x] Seal the ember wallet against casual JSON edits
 - [x] Screenshots in the README (docs/screenshots, taken over demo data)
+- [x] First-run tour — a four-page primer behind "take the quick tour" on
+      the welcome, reopenable from settings and the palette; two new
+      checklist steps (tasks-as-code, the palette) — and ⌘K now works on
+      mac even while typing
+- [x] Palette polish — fuzzy, typo-tolerant matching (pulled forward from
+      Later); frecency, so familiar picks float up; arrows always drive the
+      selection; theme switching, music and mark-intention-kept join the
+      actions. The build journal is retired
 - [ ] A short demo GIF for the README
 - [ ] Repo description + topics on GitHub
 - [ ] Bump ReleaseNotes to 2.0.0
@@ -171,8 +179,9 @@ Dress the repo for visitors and publish the first real builds.
 - **Ambient soundscapes** — rain / café / waves / night (needs real audio
   assets; synthesis won't cut it). The local-folder music player is the
   nearest thing today.
-- **Smarter palette** — fuzzy matching and content beyond titles (description,
-  course) so a typo or a partial still finds the row.
+- **Palette content beyond titles** — search descriptions and course codes
+  too, so "MATH201" finds every row that touches the course. (The fuzzy,
+  typo-tolerant matching itself shipped in v2.0.)
 - **Group-project awareness** — an optional owner on todo subtasks, so a shared
   project's split shows in the backlog without any sync or accounts.
 - **Bundle a coding font** — pixel-identical look across OSes.
