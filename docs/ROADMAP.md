@@ -162,9 +162,14 @@ Dress the repo for visitors and publish the first real builds.
 - [x] Seal the ember wallet against casual JSON edits
 - [x] Screenshots in the README (docs/screenshots, taken over demo data)
 - [ ] A short demo GIF for the README
-- [ ] Repo description + topics on GitHub
-- [ ] Bump ReleaseNotes to 2.0.0
+- [x] Repo description + topics on GitHub
+- [x] Launch-time update check pointing at the releases page
+- [x] Download & install section in the README (Gatekeeper / SmartScreen
+      notes for the unsigned builds)
+- [x] Bump ReleaseNotes to 2.0.0
 - [ ] Tag v2.0.0 and publish a GitHub Release with the platform builds
+      (mac + windows first — the linux script is still unproven, so linux
+      stays build-from-source for now)
 
 ## Later
 
