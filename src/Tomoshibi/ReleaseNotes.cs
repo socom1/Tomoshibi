@@ -19,9 +19,11 @@ public static class ReleaseNotes
     private static readonly string[] Lines =
     {
         "tomoshibi is public now — screenshots, a license and real releases",
+        "a quick tour for newcomers — on the welcome, in settings, in the palette",
+        "the palette forgives typos, floats your favourites, and ⌘K works on mac",
         "a quiet launch-time update check, with an off-switch in settings",
         "the ember wallet now carries a tamper seal — edited balances reset",
-        "descenders stopped getting clipped in the CJK headings",
+        "crash logs land next to your data now, ready to ride along a bug report",
     };
 
     /// <summary>The notes as one bulleted block for the modal.</summary>
