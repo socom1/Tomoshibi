@@ -16,6 +16,7 @@ namespace Tomoshibi.ViewModels;
 public partial class CommandPaletteViewModel : ViewModelBase
 {
     private readonly Action _close;
+    private readonly Action<PaletteItemViewModel>? _recordUse;
     private List<PaletteItemViewModel> _all = new();
 
     public ObservableCollection<PaletteItemViewModel> Results { get; } = new();
@@ -23,9 +24,11 @@ public partial class CommandPaletteViewModel : ViewModelBase
     [ObservableProperty] private string _query = string.Empty;
     [ObservableProperty] private int _selectedIndex;
 
-    public CommandPaletteViewModel(Action close)
+    public CommandPaletteViewModel(Action close,
+        Action<PaletteItemViewModel>? recordUse = null)
     {
         _close = close;
+        _recordUse = recordUse;
     }
 
     /// <summary>Reset with a fresh candidate set when the palette opens.</summary>
@@ -43,13 +46,15 @@ public partial class CommandPaletteViewModel : ViewModelBase
         Results.Clear();
 
         // Fuzzy, typo-tolerant scoring — see PaletteMatcher for the ranking
-        // rules. Ties keep the shell's build order, so pages stay on top of
-        // an empty query and content stays grouped.
+        // rules. Frecency breaks ties, so familiar picks float up (and, on
+        // an empty query where every score is 0, order the list outright);
+        // build order settles what's left, keeping pages grouped on top.
         var ranked = _all
             .Select((item, index) => (Item: item,
                 Score: Services.PaletteMatcher.Score(Query, item.Title), Index: index))
             .Where(x => x.Score is not null)
             .OrderByDescending(x => x.Score)
+            .ThenByDescending(x => x.Item.SortHint)
             .ThenBy(x => x.Index);
 
         foreach (var match in ranked)
@@ -75,6 +80,7 @@ public partial class CommandPaletteViewModel : ViewModelBase
     {
         if (item is null)
             return;
+        _recordUse?.Invoke(item); // frecency notes the pick
         _close();
         item.Run();
     }
