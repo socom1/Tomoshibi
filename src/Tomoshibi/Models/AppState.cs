@@ -76,6 +76,10 @@ public class AppState
     /// step pays out only once.</summary>
     public List<string> OnboardingRewarded { get; set; } = new();
 
+    /// <summary>Set the first time the command palette opens — feeds the
+    /// first-run checklist step that teaches the shortcut.</summary>
+    public bool PaletteOpenedOnce { get; set; }
+
     /// <summary>Keys of reminders already fired (item + threshold + date), so
     /// a deadline never notifies twice. Swept as dates pass.</summary>
     public List<string> NotifiedReminders { get; set; } = new();

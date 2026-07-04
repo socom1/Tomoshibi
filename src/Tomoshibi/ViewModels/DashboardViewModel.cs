@@ -24,6 +24,7 @@ public partial class DashboardViewModel : ViewModelBase
     private readonly Action _goReview;
     private readonly Action<string> _openUrl;
     private readonly Action<Destination> _navigate;
+    private readonly Action _openPalette;
     private readonly WalletViewModel _wallet;
 
     /// <summary>Exposed so the dashboard can bind their live labels directly
@@ -69,7 +70,8 @@ public partial class DashboardViewModel : ViewModelBase
                               ReviewViewModel review,
                               Action<SubjectViewModel> openSubject, Action goToday,
                               Action goReview, Action<string> openUrl,
-                              Action<Destination> navigate, WalletViewModel wallet)
+                              Action<Destination> navigate, WalletViewModel wallet,
+                              Action openPalette)
     {
         _state = state;
         _save = save;
@@ -83,6 +85,7 @@ public partial class DashboardViewModel : ViewModelBase
         _openUrl = openUrl;
         _navigate = navigate;
         _wallet = wallet;
+        _openPalette = openPalette;
 
         foreach (var link in _state.StudyLinks)
             Links.Add(WrapLink(link));
@@ -119,6 +122,8 @@ public partial class DashboardViewModel : ViewModelBase
             return;
         }
 
+        var paletteChord = OperatingSystem.IsMacOS() ? "⌘K" : "ctrl+K";
+
         var steps = new (string Key, string Label, bool Done, int Reward, Action Go)[]
         {
             ("subjects", "add your first subject", _state.Subjects.Any(), 10,
@@ -128,8 +133,13 @@ public partial class DashboardViewModel : ViewModelBase
             ("focus", "log a focus session",
                 _state.History.Any() || _state.Today.CompletedSessions > 0, 10,
                 () => _navigate(Destination.Today)),
+            ("taskcode", "write today's plan as code",
+                !string.IsNullOrWhiteSpace(_state.TaskTemplate), 10,
+                () => _navigate(Destination.Today)),
             ("deck", "make a flashcard deck", _state.Decks.Any(), 10,
                 () => _navigate(Destination.Review)),
+            ("palette", $"open the command palette — {paletteChord}",
+                _state.PaletteOpenedOnce, 10, _openPalette),
         };
 
         // Pay out each step the first time it's complete (the wallet saves).

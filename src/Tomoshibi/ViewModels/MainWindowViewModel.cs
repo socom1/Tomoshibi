@@ -76,10 +76,71 @@ public partial class MainWindowViewModel : ViewModelBase
     public string WhatsNewBody => ReleaseNotes.Body;
     public string AppVersionTag => ReleaseNotes.VersionTag;
 
+    // ---- The tour: a four-page primer, reachable from the welcome modal,
+    // ---- settings and the palette. Static content, shell-level overlay.
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CloseTourCommand))]
+    private bool _isTourOpen;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsTourPage0))]
+    [NotifyPropertyChangedFor(nameof(IsTourPage1))]
+    [NotifyPropertyChangedFor(nameof(IsTourPage2))]
+    [NotifyPropertyChangedFor(nameof(IsTourPage3))]
+    [NotifyPropertyChangedFor(nameof(IsTourLastPage))]
+    [NotifyPropertyChangedFor(nameof(TourDots))]
+    private int _tourPage;
+
+    private const int TourPageCount = 4;
+
+    public bool IsTourPage0 => TourPage == 0;
+    public bool IsTourPage1 => TourPage == 1;
+    public bool IsTourPage2 => TourPage == 2;
+    public bool IsTourPage3 => TourPage == 3;
+    public bool IsTourLastPage => TourPage == TourPageCount - 1;
+
+    public string TourDots => string.Join("  ",
+        Enumerable.Range(0, TourPageCount).Select(i => i == TourPage ? "●" : "○"));
+
+    /// <summary>The palette chord as this OS writes it — ⌘K on a mac.</summary>
+    public string PaletteChordLabel => OperatingSystem.IsMacOS() ? "⌘K" : "ctrl+K";
+
+    /// <summary>The global start/pause chord, same idea.</summary>
+    public string GlobalChordLabel => OperatingSystem.IsMacOS() ? "⌃⌥P" : "ctrl+alt+P";
+
+    [RelayCommand]
+    private void OpenTour()
+    {
+        IsWelcomeOpen = false; // the tour takes the stage from the greeting
+        TourPage = 0;
+        IsTourOpen = true;
+    }
+
+    [RelayCommand(CanExecute = nameof(IsTourOpen))]
+    private void CloseTour() => IsTourOpen = false;
+
+    /// <summary>Advance a page; the last page's button closes instead.</summary>
+    [RelayCommand]
+    private void NextTourPage()
+    {
+        if (IsTourLastPage)
+            IsTourOpen = false;
+        else
+            TourPage++;
+    }
+
+    [RelayCommand]
+    private void PrevTourPage()
+    {
+        if (TourPage > 0)
+            TourPage--;
+    }
+
     /// <summary>True while any modal overlay is up — global key shortcuts (like
     /// space-to-toggle) stand down so a dialog keeps the stage.</summary>
     public bool AnyModalOpen =>
-        IsCommandPaletteOpen || IsWelcomeOpen || IsWhatsNewOpen
+        IsCommandPaletteOpen || IsWelcomeOpen || IsWhatsNewOpen || IsTourOpen
         || Today.Tasks.IsAddTaskModalOpen
         || Todo.IsModalOpen
         || Subjects.IsModalOpen
@@ -179,13 +240,15 @@ public partial class MainWindowViewModel : ViewModelBase
         SettingsPage = new SettingsPageViewModel(_state, Save, settings, Music, Subjects,
                                                  storage.Location);
         SettingsPage.RestoreHandler = RestoreAndRestart;
+        SettingsPage.TourHandler = OpenTour;
         Dashboard = new DashboardViewModel(_state, Save, Today, Todo, Subjects, Review,
             openSubject: s => { Subjects.OpenDetail(s); ActiveDestination = Destination.Subjects; },
             goToday: () => ActiveDestination = Destination.Today,
             goReview: () => { ActiveDestination = Destination.Review; Review.ReviewAllCommand.Execute(null); },
             openUrl: OpenUrl,
             navigate: d => ActiveDestination = d,
-            wallet: Wallet);
+            wallet: Wallet,
+            openPalette: OpenCommandPalette);
 
         CommandPalette = new CommandPaletteViewModel(() => IsCommandPaletteOpen = false);
 
@@ -360,6 +423,13 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         CommandPalette.Load(BuildCommands());
         IsCommandPaletteOpen = true;
+
+        // The first open completes a first-run checklist step.
+        if (!_state.PaletteOpenedOnce)
+        {
+            _state.PaletteOpenedOnce = true;
+            Save();
+        }
     }
 
     [RelayCommand(CanExecute = nameof(CanCloseCommandPalette))]
@@ -398,6 +468,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         Action("start / pause timer", () => Today.Pomodoro.ToggleRunCommand.Execute(null));
         Action("zen mode", () => IsZenMode = true);
+        Action("take the tour", OpenTour);
         Action("new task", () =>
         {
             ActiveDestination = Destination.Today;
@@ -418,6 +489,26 @@ public partial class MainWindowViewModel : ViewModelBase
             ActiveDestination = Destination.Review;
             Review.ReviewAllCommand.Execute(null);
         });
+        Action("play / pause music", () => Music.PlayPauseCommand.Execute(null));
+
+        // Only while there's an intention to keep — the list is rebuilt on
+        // every open, so this appears and disappears with the day.
+        if (Today.CanKeepIntention)
+            Action("mark today's intention kept", () => Today.KeepIntentionCommand.Execute(null));
+
+        // Owned themes switch directly; the rest still live in the shop.
+        foreach (var theme in Shop.Themes)
+        {
+            if (!theme.IsOwned || theme.IsActive)
+                continue;
+            var captured = theme;
+            items.Add(new PaletteItemViewModel
+            {
+                Title = $"theme · {theme.En}",
+                Kind = "theme",
+                Run = () => Shop.ActivateCommand.Execute(captured)
+            });
+        }
 
         foreach (var subject in Subjects.Items)
         {

@@ -174,6 +174,12 @@ public partial class SettingsPageViewModel : ViewModelBase
     /// and the application lifetime — things this page doesn't hold.</summary>
     public Action<AppState>? RestoreHandler { get; set; }
 
+    /// <summary>Wired by the shell: opens the four-page tour overlay.</summary>
+    public Action? TourHandler { get; set; }
+
+    [RelayCommand]
+    private void ShowTour() => TourHandler?.Invoke();
+
     /// <summary>Read a backup file back over the live state. Anything that
     /// doesn't parse as a tomoshibi backup is refused whole — no half
     /// restores. On success the handler restarts the app into the new file.</summary>
