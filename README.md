@@ -12,6 +12,8 @@ everything stays on your machine.
 > *tomoshibi* (灯火) — a small light or lamp; the bit of light you keep on while
 > you work into the night.
 
+![the dashboard — a morning glance over today's focus, what's due and where the grades stand](docs/screenshots/dashboard.png)
+
 ## Features
 
 - **Dashboard** — a morning landing page that pulls a glance together: today's
@@ -57,6 +59,14 @@ everything stays on your machine.
   of GitHub you can switch off.
 
 Roadmap and longer-term ideas live in [docs/ROADMAP.md](docs/ROADMAP.md).
+
+## Screenshots
+
+| | |
+|---|---|
+| ![the weekly class schedule on the timetable grid, with deadlines beneath](docs/screenshots/timetable.png) | ![subjects with weighted assessments, targets and a GPA goal planner](docs/screenshots/subjects.png) |
+| ![focus stats — streak calendar, sparkline and the auto-written weekly retrospective](docs/screenshots/stats.png) | ![spaced-repetition decks with due-counts on the review page](docs/screenshots/review.png) |
+| ![the todo backlog as numbered tickets with statuses and due dates](docs/screenshots/todo.png) | |
 
 ## Tech
 
