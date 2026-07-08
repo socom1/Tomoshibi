@@ -66,6 +66,68 @@
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
           <StackPanel>
 
+        <!-- Review stats: retention + heatmap -->
+        <Border Classes="card" Margin="0,20,0,0" VerticalAlignment="Top"
+                IsVisible="{Binding HasReviewData}">
+            <StackPanel Spacing="14">
+                <TextBlock Text="// 復習 · review" Classes="jp" />
+
+                <Grid ColumnDefinitions="*,*,*,*">
+                    <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="{Binding RetentionOverall}" FontSize="26"
+                                   Foreground="{DynamicResource MatchaBrush}" />
+                        <TextBlock Text="retention" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock Text="{Binding RetentionMature}" FontSize="26"
+                                   Foreground="{DynamicResource BlueBrush}" />
+                        <TextBlock Text="mature" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Spacing="2">
+                        <TextBlock Text="{Binding RetentionYoung}" FontSize="26"
+                                   Foreground="{DynamicResource AmberBrush}" />
+                        <TextBlock Text="young" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" Spacing="2">
+                        <TextBlock Text="{Binding TotalReviews}" FontSize="26"
+                                   Foreground="{DynamicResource TextBrush}" />
+                        <TextBlock Text="reviews" Classes="caption" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Review heatmap for the shown month -->
+                <ItemsControl ItemsSource="{Binding ReviewDays}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="7" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CalendarDayViewModel">
+                            <Border Classes="cal"
+                                    Classes.t1="{Binding IsTier1}"
+                                    Classes.t2="{Binding IsTier2}"
+                                    Classes.t3="{Binding IsTier3}"
+                                    Classes.caltoday="{Binding IsToday}"
+                                    Classes.calfuture="{Binding IsFuture}"
+                                    Classes.calpad="{Binding IsPlaceholder}"
+                                    ToolTip.Tip="{Binding Tooltip}">
+                                <TextBlock Text="{Binding Label}" FontSize="11"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Classes="caption"
+                           Text="○ none · 淡 &lt;20 · 中 20+ · 濃 60+ reviews"
+                           HorizontalAlignment="Center" />
+                <TextBlock Classes="caption" Text="{Binding ReviewMonthSummary}"
+                           Foreground="{DynamicResource MatchaBrush}"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
         <!-- Weekly retrospective: the last seven days, written up -->
         <Border Classes="card" Margin="0,20,0,0"
                 VerticalAlignment="Top"

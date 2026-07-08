@@ -24,6 +24,53 @@ public static class StateMigrations
         MigrateDeadlinesToTickets(state);
         MigrateLegacyTasks(state);
         MigrateTheme(state);
+        MigrateFlashcardsToNotes(state);
+    }
+
+    /// <summary>The flat front/back <see cref="Flashcard"/> list on each deck
+    /// became the note/card model. Fold every legacy card into a Basic
+    /// <see cref="Note"/> with one <see cref="Card"/>, mapping the old SM-2
+    /// interval/ease onto an approximate FSRS stability/difficulty, then clear
+    /// the legacy list. No-op once a deck's cards have been migrated.</summary>
+    private static void MigrateFlashcardsToNotes(AppState state)
+    {
+        foreach (var deck in state.Decks)
+        {
+            if (deck.Cards.Count == 0)
+                continue;
+
+            foreach (var old in deck.Cards)
+            {
+                var card = new Card { Ord = 0 };
+                var brandNew = old.Reps == 0 && old.Due == default;
+                if (brandNew)
+                {
+                    card.State = CardState.New;
+                    card.Due = DateTime.Now;
+                }
+                else
+                {
+                    card.State = CardState.Review;
+                    // At retention 0.9, FSRS interval == stability, so the old
+                    // interval maps straight onto stability. Ease (SM-2, ~1.3–2.5+)
+                    // maps inversely onto difficulty (1 easy … 10 hard).
+                    card.Stability = Math.Max(0.1, old.Interval);
+                    card.Difficulty = Math.Clamp(5 + (2.5 - old.Ease) * 4.5, 1, 10);
+                    card.Reps = old.Reps;
+                    card.Due = old.Due.ToDateTime(TimeOnly.MinValue);
+                    card.LastReviewed = old.LastReviewed?.ToDateTime(TimeOnly.MinValue);
+                }
+
+                deck.Notes.Add(new Note
+                {
+                    Type = NoteType.Basic,
+                    Fields = { old.Front, old.Back },
+                    Cards = { card }
+                });
+            }
+
+            deck.Cards.Clear();
+        }
     }
 
     /// <summary>Standalone deadlines became todo tickets with due dates. Old

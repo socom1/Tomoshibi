@@ -30,6 +30,14 @@
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <!-- Read Anki's SQLite collection for .apkg import (bundles native e_sqlite3). -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.10" />
+    <!-- Material Design Icons (vector, theme-aware) for deck icons etc. -->
+    <PackageReference Include="Material.Icons.Avalonia" Version="2.1.10" />
+    <!-- Embedded audio + video for flashcards (and a real Windows music
+         backend). LibVLCSharp is the managed binding; the native libvlc comes
+         from the per-OS packages below. -->
+    <PackageReference Include="LibVLCSharp.Avalonia" Version="3.9.2" />
     <!-- Pin the patched Tmds.DBus.Protocol over the 0.20.0 that Avalonia
          pulls in transitively (GHSA-xrw6-gwf8-vvr9, High). Linux D-Bus only;
          0.21.3 is the backported fix and stays on the 0.21.x line Avalonia
@@ -41,6 +49,16 @@
     <!-- Toast notifications for unpackaged Win32 apps: registers the app
          identity on first use so toasts attribute to Tomoshibi. -->
     <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
+  </ItemGroup>
+
+  <!-- Native libvlc, per OS. Linux uses the system libvlc (documented), so no
+       native package there — the media service degrades gracefully if it's
+       missing. -->
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.20" />
+  </ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <PackageReference Include="VideoLAN.LibVLC.Mac" Version="3.1.3.1" />
   </ItemGroup>
 
   <ItemGroup>

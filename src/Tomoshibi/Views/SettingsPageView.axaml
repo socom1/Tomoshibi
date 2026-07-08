@@ -52,6 +52,15 @@
                         <TextBlock Grid.Column="1" Classes="cjk"><Run Text="通知" /><Run Text="  reminders" Foreground="{DynamicResource MutedTextBrush}" /></TextBlock>
                     </Grid>
                 </Button>
+                <Button Classes="confnav" Classes.active="{Binding IsReviewSection}"
+                        Command="{Binding SelectSectionCommand}" CommandParameter="review">
+                    <Grid ColumnDefinitions="12,*">
+                        <TextBlock Text="›" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MatchaBrush}"
+                                   IsVisible="{Binding IsReviewSection}" />
+                        <TextBlock Grid.Column="1" Classes="cjk"><Run Text="復習" /><Run Text="  review" Foreground="{DynamicResource MutedTextBrush}" /></TextBlock>
+                    </Grid>
+                </Button>
                 <Button Classes="confnav" Classes.active="{Binding IsGradingSection}"
                         Command="{Binding SelectSectionCommand}" CommandParameter="grading">
                     <Grid ColumnDefinitions="12,*">
@@ -82,6 +91,9 @@
 
                 <TextBlock Text="{Binding VersionLabel}" Classes="comment cjk"
                            Margin="14,22,0,0" />
+                <TextBlock Text="{Binding VerifiedLabel}" Classes="comment"
+                           Foreground="{DynamicResource MatchaBrush}"
+                           Margin="14,2,0,0" />
 
                 <!-- Only appears when the launch check found a newer release -->
                 <StackPanel Margin="14,8,0,0" Spacing="6"
@@ -184,6 +196,20 @@
                                       Content="nudge me to rest after midnight" />
                             <TextBlock Text="# a quiet line on the timer once it's past midnight — no notification, just a gentle reminder to call it a night"
                                        Classes="comment" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Review -->
+                    <Border Classes="card" IsVisible="{Binding IsReviewSection}">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock Text="// 復習 · review" Classes="jp" />
+                                <Border Grid.Column="1" Classes="rule" />
+                            </Grid>
+                            <CheckBox IsChecked="{Binding HideFrontOnReveal}"
+                                      Content="replace the prompt with the answer when I reveal" />
+                            <TextBlock Text="# on — flipping hides the prompt and shows only the answer (Anki-style). off — the prompt stays and the answer appears beneath it"
+                                       Classes="comment" TextWrapping="Wrap" />
                         </StackPanel>
                     </Border>
 

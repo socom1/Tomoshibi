@@ -25,14 +25,36 @@ public partial class MainWindow : Window
         // (bubbling), so we claim it on the way down (tunnelling), before the
         // button ever sees it.
         AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
+
+        // Also swallow the *release* of review keys. When a card flips, focus can
+        // land on a grade button; without this, that button fires its click on
+        // the space/enter key-up and skips to the next card (the answer seems to
+        // vanish on release). Claiming key-up during review kills that path.
+        AddHandler(KeyUpEvent, OnPreviewKeyUp, RoutingStrategies.Tunnel);
     }
 
-    /// <summary>Tunnelling shortcuts: they run before the focused control, so
-    /// a button left focused by a click can't eat Space — and, on macOS, a
-    /// focused TextBox can't swallow ⌘-combos before they'd bubble (which
-    /// used to leave the palette reachable only via the ctrl fallback while
-    /// typing). Space is held back while typing, with a modal up, or
-    /// mid-review (where it flips the card instead).</summary>
+    private void OnPreviewKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (_vm is null || e.Handled)
+            return;
+
+        if (_vm.ActiveDestination == Destination.Review
+            && _vm.Review.IsReviewing && !_vm.Review.IsSessionDone
+            && FocusManager?.GetFocusedElement() is not TextBox
+            && e.Key is Key.Space or Key.Enter
+                     or Key.D1 or Key.D2 or Key.D3 or Key.D4
+                     or Key.NumPad1 or Key.NumPad2 or Key.NumPad3 or Key.NumPad4)
+        {
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>Tunnelling key handling: runs before the focused control, so an
+    /// inner control (a focused button, or the review card's ScrollViewer) can't
+    /// eat the keys. Drives the command palette, the ⌘ chords (also so a focused
+    /// TextBox can't swallow them on macOS) and the keyboard review session;
+    /// Space is held back while typing, with a modal up, or mid-review (where it
+    /// flips the card).</summary>
     private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
     {
         if (_vm is null || e.Handled)
@@ -40,8 +62,6 @@ public partial class MainWindow : Window
 
         // While the palette is up it owns the keyboard: arrows move the
         // selection and Enter runs it no matter which control holds focus.
-        // Without this, a missed Focus() left the arrow keys steering the
-        // app's focus around behind the overlay.
         if (_vm.IsCommandPaletteOpen)
         {
             switch (e.Key)
@@ -76,6 +96,18 @@ public partial class MainWindow : Window
             return;
         }
 
+        // Review sessions are keyboard-driven — claim the keys here so the
+        // ScrollViewer/buttons around the card never intercept them first.
+        if (!cmd && _vm.ActiveDestination == Destination.Review
+                 && _vm.Review.IsReviewing && !_vm.Review.IsSessionDone
+                 && !_vm.AnyModalOpen
+                 && FocusManager?.GetFocusedElement() is not TextBox
+                 && HandleReviewKey(e.Key))
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key != Key.Space)
             return;
 
@@ -86,9 +118,46 @@ public partial class MainWindow : Window
         if (_vm.ActiveDestination == Destination.Review
             && _vm.Review.IsReviewing && !_vm.Review.IsSessionDone)
             return;
+        // In the card browser a focused row would otherwise turn space into a
+        // pomodoro toggle — leave space alone there.
+        if (_vm.ActiveDestination == Destination.Review && _vm.Review.IsBrowserOpen)
+            return;
 
         _vm.Today.Pomodoro.ToggleRunCommand.Execute(null);
         e.Handled = true;
+    }
+
+    /// <summary>The review-session keybinds: space/enter reveals, 1–4 grade
+    /// (again/hard/good/easy), S suspends, B buries. Returns true if the key was
+    /// one of them.</summary>
+    private bool HandleReviewKey(Key key)
+    {
+        var review = _vm!.Review;
+
+        switch (key)
+        {
+            case Key.S: review.SuspendCurrentCommand.Execute(null); return true;
+            case Key.B: review.BuryCurrentCommand.Execute(null); return true;
+
+            // Space/Enter reveal the answer. Always consume them (even once
+            // flipped) so a grade button that took focus on reveal can't fire
+            // its click when the key is released.
+            case Key.Space or Key.Enter:
+                if (!review.IsFlipped) review.FlipCommand.Execute(null);
+                return true;
+        }
+
+        if (!review.IsFlipped)
+            return false;
+
+        switch (key)
+        {
+            case Key.D1 or Key.NumPad1: review.GradeAgainCommand.Execute(null); return true;
+            case Key.D2 or Key.NumPad2: review.GradeHardCommand.Execute(null); return true;
+            case Key.D3 or Key.NumPad3: review.GradeGoodCommand.Execute(null); return true;
+            case Key.D4 or Key.NumPad4: review.GradeEasyCommand.Execute(null); return true;
+            default: return false;
+        }
     }
 
     /// <summary>Hold the splash a beat after the window appears, then let it
@@ -126,35 +195,17 @@ public partial class MainWindow : Window
         var cmd = e.KeyModifiers.HasFlag(KeyModifiers.Meta) ||
                   e.KeyModifiers.HasFlag(KeyModifiers.Control);
 
-        // Review sessions are keyboard-driven: space/enter reveals the answer,
-        // then 1/2/3 grade the card. This sits above the global space-to-toggle
-        // handler so space doesn't start the pomodoro timer mid-review.
-        if (!cmd && _vm.ActiveDestination == Destination.Review
-                 && _vm.Review.IsReviewing && !_vm.Review.IsSessionDone
-                 && FocusManager?.GetFocusedElement() is not TextBox)
+        // Esc backs out of the card browser / deck-options / deck detail.
+        if (!cmd && e.Key == Key.Escape && _vm.ActiveDestination == Destination.Review
+                 && !_vm.Review.IsReviewing && FocusManager?.GetFocusedElement() is not TextBox)
         {
-            if (!_vm.Review.IsFlipped)
-            {
-                if (e.Key is Key.Space or Key.Enter)
-                {
-                    _vm.Review.FlipCommand.Execute(null);
-                    e.Handled = true;
-                    return;
-                }
-            }
-            else
-            {
-                switch (e.Key)
-                {
-                    case Key.D1 or Key.NumPad1:
-                        _vm.Review.GradeAgainCommand.Execute(null); e.Handled = true; return;
-                    case Key.D2 or Key.NumPad2:
-                        _vm.Review.GradeGoodCommand.Execute(null); e.Handled = true; return;
-                    case Key.D3 or Key.NumPad3:
-                        _vm.Review.GradeEasyCommand.Execute(null); e.Handled = true; return;
-                }
-            }
+            if (_vm.Review.IsDeckOptionsOpen) { _vm.Review.CloseDeckOptionsCommand.Execute(null); e.Handled = true; return; }
+            if (_vm.Review.IsBrowserOpen) { _vm.Review.CloseBrowserCommand.Execute(null); e.Handled = true; return; }
+            if (_vm.Review.IsDeckOpen) { _vm.Review.CloseDeckCommand.Execute(null); e.Handled = true; return; }
         }
+
+        // (Review-session keys — space/enter/1–4/S/B — are claimed in the
+        // tunnelling OnPreviewKeyDown so no inner control can intercept them.)
 
         // Single-key timer controls, only on the Today page and never while
         // typing or with the add-task modal up: r reset, s skip, z zen.

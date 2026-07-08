@@ -141,6 +141,11 @@ public class AppState
     // Flashcard decks (spaced repetition)
     public List<Deck> Decks { get; set; } = new();
 
+    /// <summary>When true, revealing a card's answer hides the prompt so only
+    /// the answer shows (Anki-style flip). When false (default), the prompt
+    /// stays and the answer appears beneath it (a Q→A transcript).</summary>
+    public bool ReviewHideFrontOnReveal { get; set; }
+
     // Subjects + grades
     public List<Subject> Subjects { get; set; } = new();
     public GradeScaleKind GradeScale { get; set; } = GradeScaleKind.UsGpa;
