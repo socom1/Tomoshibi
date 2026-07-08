@@ -47,7 +47,12 @@ public class BackupRestoreTests
         Assert.Equal(42, restored.Embers);
         Assert.Equal(90, restored.FocusGoalMinutes);
         Assert.Equal("revise chapter 3", Assert.Single(restored.Todos).Title);
-        Assert.Equal("dog", Assert.Single(Assert.Single(restored.Decks).Cards).Back);
+
+        // The legacy flashcard is migrated into a Basic note on the way in
+        // (same as a load from disk), so it lands in Notes, not the old list.
+        var deck = Assert.Single(restored.Decks);
+        Assert.Empty(deck.Cards);
+        Assert.Equal("dog", Assert.Single(deck.Notes).Fields[1]);
     }
 
     [Fact]
