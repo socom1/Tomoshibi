@@ -61,6 +61,11 @@ public partial class StatsViewModel : ViewModelBase
     /// <summary>Right-hand caption for the sparkline, e.g. "14d · 12.5h".</summary>
     [ObservableProperty] private string _sparklineSummary = string.Empty;
 
+    /// <summary>The auto-written week look-back, one "›" line per finding.</summary>
+    [ObservableProperty] private string _weeklyRetro = string.Empty;
+
+    [ObservableProperty] private bool _hasWeeklyRetro;
+
     [ObservableProperty] private int _currentStreak;
     [ObservableProperty] private int _bestStreak;
     [ObservableProperty] private double _totalHours;
@@ -91,6 +96,7 @@ public partial class StatsViewModel : ViewModelBase
         BuildReviewSummary();
         BuildSparkline(byDate);
         BuildMonth(byDate);
+        BuildRetro();
         BuildFocusByCourse();
         BuildJournal();
     }
@@ -109,6 +115,15 @@ public partial class StatsViewModel : ViewModelBase
         RetentionOverall = ret.Overall.Percent;
         RetentionYoung = ret.Young.Percent;
         RetentionMature = ret.Mature.Percent;
+    }
+
+    /// <summary>The weekly retrospective, written by the service and joined
+    /// into the release-notes "›" list style.</summary>
+    private void BuildRetro()
+    {
+        var lines = WeeklyRetrospective.Lines(_state, DateOnly.FromDateTime(DateTime.Now));
+        WeeklyRetro = string.Join("\n", lines.Select(l => $"›  {l}"));
+        HasWeeklyRetro = lines.Count > 0;
     }
 
     /// <summary>Raised when the palette asks to surface a specific journal

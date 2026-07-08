@@ -51,6 +51,14 @@ public class AppState
     /// <summary>Show the gentle "rest soon" line on the timer after midnight.</summary>
     public bool SleepReminderEnabled { get; set; } = true;
 
+    /// <summary>Ask GitHub for the latest release tag once per launch. Off
+    /// keeps the app fully offline; failures read as "no update".</summary>
+    public bool UpdateCheckEnabled { get; set; } = true;
+
+    /// <summary>The release tag the user was last notified about, so a new
+    /// version announces itself once, not on every launch.</summary>
+    public string UpdateNotifiedFor { get; set; } = string.Empty;
+
     /// <summary>Target minutes of focus per day, shown as a progress bar on the
     /// dashboard. 0 hides it. Defaults to two hours.</summary>
     public int FocusGoalMinutes { get; set; } = 120;
@@ -68,6 +76,14 @@ public class AppState
     /// step pays out only once.</summary>
     public List<string> OnboardingRewarded { get; set; } = new();
 
+    /// <summary>Set the first time the command palette opens — feeds the
+    /// first-run checklist step that teaches the shortcut.</summary>
+    public bool PaletteOpenedOnce { get; set; }
+
+    /// <summary>Palette frecency: "kind:title" → how often / how recently
+    /// that row was run. Capped small; see <c>PaletteFrecency</c>.</summary>
+    public Dictionary<string, PaletteUse> PaletteUsage { get; set; } = new();
+
     /// <summary>Keys of reminders already fired (item + threshold + date), so
     /// a deadline never notifies twice. Swept as dates pass.</summary>
     public List<string> NotifiedReminders { get; set; } = new();
@@ -78,10 +94,19 @@ public class AppState
     public bool CloseToTray { get; set; } = true;
     public bool LightTheme { get; set; }
 
+    /// <summary>The system-wide start/pause chord (ctrl+alt+P / ⌃⌥P), on
+    /// platforms that support one. Off releases the chord to other apps.</summary>
+    public bool GlobalHotkeyEnabled { get; set; } = true;
+
     // Currency + cosmetics
     public int Embers { get; set; }
     public string ActiveThemeId { get; set; } = string.Empty;
     public System.Collections.Generic.List<string> OwnedThemeIds { get; set; } = new();
+
+    /// <summary>HMAC over the wallet (embers + themes), stamped on every save
+    /// and checked on load — a hand-edited balance resets instead of being
+    /// believed. See <c>EmberSeal</c>.</summary>
+    public string EmberSeal { get; set; } = string.Empty;
     public Destination ActiveDestination { get; set; } = Destination.Dashboard;
 
     // Window placement (0 width = never saved, use the XAML defaults)

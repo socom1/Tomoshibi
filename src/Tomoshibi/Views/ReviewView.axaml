@@ -40,7 +40,7 @@
         <ScrollViewer IsVisible="{Binding !IsDeckOpen}" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="14" Margin="28,4,28,28" MaxWidth="760">
 
-                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,4">
                     <StackPanel Spacing="3">
                         <TextBlock Classes="path" Text="~/tomoshibi/review" />
                         <StackPanel Orientation="Horizontal" Spacing="10">
@@ -49,11 +49,16 @@
                         </StackPanel>
                         <TextBlock Text="{Binding SummaryLabel}" Classes="caption" Margin="0,2,0,0"
                                    TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding ImportSummary}" Classes="caption" Margin="0,2,0,0"
+                                   TextWrapping="Wrap"
+                                   IsVisible="{Binding ImportSummary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                VerticalAlignment="Top">
+                    <StackPanel Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal"
+                                Spacing="8" VerticalAlignment="Top" HorizontalAlignment="Right">
+                        <Button Classes="seg" Content="import text" Click="OnImportDeckClick"
+                                ToolTip.Tip="bring in an Anki text export — the first two columns become front and back" />
                         <Button Classes="seg" Content="import .apkg" Click="OnImportApkg"
-                                ToolTip.Tip="import an Anki deck" />
+                                ToolTip.Tip="import an Anki .apkg deck" />
                         <Button Classes="seg" Content="browse"
                                 Command="{Binding OpenBrowserCommand}"
                                 IsVisible="{Binding HasDecks}" />
@@ -148,14 +153,19 @@
         <ScrollViewer IsVisible="{Binding IsDeckOpen}" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="16" Margin="28,4,28,28" MaxWidth="760">
 
-                <Grid ColumnDefinitions="Auto,*,Auto">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                     <Button Grid.Column="0" Classes="icon" Content="←" FontSize="18"
                             VerticalAlignment="Top" Margin="0,2,8,0"
                             Command="{Binding CloseDeckCommand}"
                             ToolTip.Tip="back to decks · esc" />
                     <TextBlock Grid.Column="1" Text="// デッキ · deck" Classes="jp"
                                VerticalAlignment="Center" />
-                    <Button Grid.Column="2" Classes="accent" Content="review"
+                    <Button Grid.Column="2" Classes="seg" Content="export"
+                            VerticalAlignment="Top" Margin="0,0,8,0"
+                            Click="OnExportDeckClick"
+                            IsVisible="{Binding SelectedDeck.HasNotes}"
+                            ToolTip.Tip="save this deck as Anki-importable text" />
+                    <Button Grid.Column="3" Classes="accent" Content="review"
                             VerticalAlignment="Top"
                             Command="{Binding ReviewDeckCommand}"
                             CommandParameter="{Binding SelectedDeck}"

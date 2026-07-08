@@ -144,33 +144,51 @@ tags and milestones line up again.)
 
 - [x] Windows toast notifications (a Windows-flavoured build + the app
       identity registration toasts require)
-- [ ] Flashcard deck import/export — TSV, compatible with Anki's text format
+- [x] Flashcard deck import/export — TSV, compatible with Anki's text format
 - [x] Timetable-aware focus: suggest the class happening now as the course
-- [ ] Weekly retrospective — an auto-written look-back over the week's
+- [x] Weekly retrospective — an auto-written look-back over the week's
       focus, courses and journal
-- [ ] Global start/pause hotkey (Windows first, behind an interface)
-- [ ] Bump ReleaseNotes to 1.9.0 and tag v1.9.0
+- [x] Global start/pause hotkey — ctrl+alt+P / ⌃⌥P behind an interface
+      (Win32 RegisterHotKey + macOS Carbon; Linux ships the null service)
+- [x] Backup restore — read a backup file back over the live state and
+      relaunch into it (pulled forward from Later)
+- [x] Bump ReleaseNotes to 1.9.0 and tag v1.9.0
 
 ## v2.0 — the public release
 
 Dress the repo for visitors and publish the first real builds.
 
-- [ ] Screenshots (+ a short GIF) in the README
-- [ ] Repo description + topics on GitHub
-- [ ] Bump ReleaseNotes to 2.0.0
+- [x] Source-available license (MIT stays in force for ≤ v1.9.0)
+- [x] Seal the ember wallet against casual JSON edits
+- [x] Screenshots in the README (docs/screenshots, taken over demo data)
+- [x] First-run tour — a four-page primer behind "take the quick tour" on
+      the welcome, reopenable from settings and the palette; two new
+      checklist steps (tasks-as-code, the palette) — and ⌘K now works on
+      mac even while typing
+- [x] Palette polish — fuzzy, typo-tolerant matching (pulled forward from
+      Later); frecency, so familiar picks float up; arrows always drive the
+      selection; theme switching, music and mark-intention-kept join the
+      actions. The build journal is retired
+- [ ] A short demo GIF for the README
+- [x] Repo description + topics on GitHub
+- [x] Launch-time update check pointing at the releases page
+- [x] Download & install section in the README (Gatekeeper / SmartScreen
+      notes for the unsigned builds)
+- [x] Bump ReleaseNotes to 2.0.0
 - [ ] Tag v2.0.0 and publish a GitHub Release with the platform builds
+      (mac + windows first — the linux script is still unproven, so linux
+      stays build-from-source for now)
 
 ## Later
 
 - **Ambient soundscapes** — rain / café / waves / night (needs real audio
   assets; synthesis won't cut it). The local-folder music player is the
   nearest thing today.
-- **Smarter palette** — fuzzy matching and content beyond titles (description,
-  course) so a typo or a partial still finds the row.
+- **Palette content beyond titles** — search descriptions and course codes
+  too, so "MATH201" finds every row that touches the course. (The fuzzy,
+  typo-tolerant matching itself shipped in v2.0.)
 - **Group-project awareness** — an optional owner on todo subtasks, so a shared
   project's split shows in the backlog without any sync or accounts.
-- **Backup / restore** — export the whole state to a chosen file and read it
-  back, on top of the automatic `.bak`.
 - **Bundle a coding font** — pixel-identical look across OSes.
 - **Code signing** — signed/notarized builds, so SmartScreen and Gatekeeper
   trust the download without a click-through.

@@ -90,6 +90,9 @@ public partial class ReviewViewModel : ViewModelBase
     [ObservableProperty] private string _newDeckName = string.Empty;
     [ObservableProperty] private string _newDeckCourse = string.Empty;
 
+    /// <summary>What the last deck import did — shown under the page header.</summary>
+    [ObservableProperty] private string _importSummary = string.Empty;
+
     // ---- Review session ----
     private readonly List<ScheduledCard> _queue = new();
     private readonly HashSet<Guid> _paid = new();
@@ -306,6 +309,36 @@ public partial class ReviewViewModel : ViewModelBase
     [RelayCommand]
     private void CloseDeckOptions() => DeckOptionsEditor = null;
 
+    // ---- Deck import / export (text/CSV, as a new deck) ----
+
+    /// <summary>Bring a CSV/TSV export in as a brand-new deck named after the
+    /// file (Anki front/back text works too). Every card arrives due.</summary>
+    public void ImportDeck(string name, string text)
+    {
+        var notes = CsvCards.Import(text);
+        if (notes.Count == 0)
+        {
+            ImportSummary = "no cards found in that file";
+            return;
+        }
+
+        var deck = new Deck
+        {
+            Name = string.IsNullOrWhiteSpace(name) ? "imported deck" : name.Trim()
+        };
+        deck.Notes.AddRange(notes);
+
+        _state.Decks.Add(deck);
+        Decks.Add(new DeckViewModel(deck, OnDeckChanged, _media, OpenOcclusion));
+
+        ImportSummary = $"imported {notes.Count} cards into “{deck.Name}”";
+        Refresh();
+        _save();
+    }
+
+    /// <summary>The open deck as CSV for the export picker.</summary>
+    public string BuildDeckTsv(DeckViewModel deck) => CsvCards.Export(deck.Model.Notes);
+
     // ---- Review session ----
 
     [RelayCommand]
@@ -484,6 +517,7 @@ public partial class ReviewViewModel : ViewModelBase
         {
             _wallet.Add(EmberPerCard);
             _embersEarned += EmberPerCard;
+            _state.Today.ReviewedCards++;
         }
 
         // Just became a leech and got suspended — mention it once.

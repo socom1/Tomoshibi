@@ -12,6 +12,8 @@ everything stays on your machine.
 > *tomoshibi* (灯火) — a small light or lamp; the bit of light you keep on while
 > you work into the night.
 
+![the dashboard — a morning glance over today's focus, what's due and where the grades stand](docs/screenshots/dashboard.png)
+
 ## Features
 
 - **Dashboard** — a morning landing page that pulls a glance together: today's
@@ -19,7 +21,8 @@ everything stays on your machine.
   due, your grade standing, the subjects that need work, and quick links.
 - **Pomodoro timer** — focus/break cycles with a longer break after every Nth
   round, a soft chime and a native notification on phase change, auto-continue,
-  and a progress bar. The active task can override the phase lengths.
+  and a progress bar. The active task can override the phase lengths, and a
+  global hotkey (`ctrl+alt+P` / `⌃⌥P`) starts or pauses from any app.
 - **Zen mode** — full-screen, just the clock, your intention and the controls.
 - **Daily intention & journal** — one line to set the day's focus, an
   end-of-day reflection on how it went; both bank into a journal look-back at
@@ -38,9 +41,11 @@ everything stays on your machine.
   (US GPA, letter bands or your own custom boundaries), weight years, set an
   overall goal and see what each remaining piece needs to hit it.
 - **Flashcards** — spaced-repetition decks with a review queue that schedules
-  cards by how well you recall them.
+  cards by how well you recall them; decks import from and export to
+  Anki-compatible text files.
 - **Focus stats & streak** — a month calendar tinted by focus, current and best
-  streak, a 14-day sparkline, focus-by-course, and the journal look-back.
+  streak, a 14-day sparkline, focus-by-course, an auto-written weekly
+  retrospective, and the journal look-back.
 - **Command palette** — `Cmd/Ctrl+K` to jump to any page, run a quick action,
   or search straight to a subject, todo ticket, deck or past reflection.
 - **Deadline reminders** — desktop notifications as exams and due dates
@@ -48,16 +53,26 @@ everything stays on your machine.
 - **Themes & embers** — earn embers as you focus and spend them in a small shop
   on extra colour themes; a music player can loop a local folder while you work.
 - **Local-first** — all data in a single JSON file on your computer, written
-  atomically with a `.bak` fallback; no account, no network.
+  atomically with a `.bak` fallback; no account, no telemetry. One-click backup
+  to a file of your choosing, and restore reads it straight back. The one
+  optional network touch is a launch-time update check — a single version ask
+  of GitHub you can switch off.
 
 Roadmap and longer-term ideas live in [docs/ROADMAP.md](docs/ROADMAP.md).
+
+## Screenshots
+
+| | |
+|---|---|
+| ![the weekly class schedule on the timetable grid, with deadlines beneath](docs/screenshots/timetable.png) | ![subjects with weighted assessments, targets and a GPA goal planner](docs/screenshots/subjects.png) |
+| ![focus stats — streak calendar, sparkline and the auto-written weekly retrospective](docs/screenshots/stats.png) | ![spaced-repetition decks with due-counts on the review page](docs/screenshots/review.png) |
+| ![the todo backlog as numbered tickets with statuses and due dates](docs/screenshots/todo.png) | |
 
 ## Tech
 
 Avalonia + .NET 8, MVVM with CommunityToolkit.Mvvm. One codebase, published
 self-contained for Windows, macOS and Linux. Architecture notes are in
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); the full build story is in
-[docs/BUILD_JOURNAL.md](docs/BUILD_JOURNAL.md).
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Project layout
 
@@ -68,8 +83,10 @@ src/Tomoshibi/
                  Deck, DayNote, …)
   Services/      side effects behind interfaces (storage, sound, music,
                  notifications + reminders) plus the pure logic: the
-                 task-template parser, the .ics importer, grade scales, the
-                 review scheduler, the daily reset and the state migrations
+                 task-template parser, the .ics importer, the Anki-style
+                 deck reader/writer, grade scales, the review scheduler,
+                 the weekly retrospective writer, the daily reset and the
+                 state migrations
   ViewModels/    UI state + behaviour, one per destination + the shell
   Views/         .axaml UI (MainWindow shell + one view per destination:
                  Dashboard, Today, Timetable, Todo, Subjects, Stats,
@@ -78,13 +95,32 @@ src/Tomoshibi/
   Assets/        icon (png/ico/icns) + chime
 tests/Tomoshibi.Tests/   xUnit tests for the pure logic (grade engine,
                  task-template parser, storage round-trip + crash recovery,
-                 daily reset, state migrations, .ics importer)
+                 daily reset, state migrations, .ics importer, deck files,
+                 weekly retrospective)
 scripts/         packaging scripts per platform
-docs/            roadmap, architecture, build journal
+docs/            roadmap, architecture, screenshots
 .github/workflows/ci.yml   build + test on every push/PR, across win/mac/linux
 ```
 
-## Getting started
+## Download & install
+
+Grab the build for your OS from the
+[releases page](https://github.com/socom1/Tomoshibi/releases/latest), unzip,
+and run. The builds are self-contained — no .NET install needed.
+
+The builds aren't code-signed (yet), so on first launch your OS will be
+suspicious on your behalf:
+
+- **macOS** — Gatekeeper says the app "cannot be opened because it is from an
+  unidentified developer". Right-click the app → **Open** → **Open** once;
+  after that it launches normally.
+- **Windows** — SmartScreen shows "Windows protected your PC". Click
+  **More info** → **Run anyway** once.
+
+The app tells you in settings when a newer release is out (you can turn that
+check off). On Linux, build from source below — the packaged build is coming.
+
+## Building from source
 
 You'll need the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
 
@@ -128,8 +164,14 @@ A single `tomoshibi.json` file in your OS application-data folder:
 - macOS — `~/Library/Application Support/Tomoshibi/`
 - Linux — `~/.config/Tomoshibi/`
 
-Delete it to reset the app to a clean state.
+Delete it to reset the app to a clean state. If the app ever crashes, a
+`crash-*.log` lands in the same folder (settings → open folder takes you
+there) — attach it when you
+[open an issue](https://github.com/socom1/Tomoshibi/issues) and the bug
+gets much easier to catch.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Source-available — you're welcome to download, build and run tomoshibi
+for yourself, but not to redistribute copies or reuse the code elsewhere.
+See [LICENSE](LICENSE). Releases up to v1.9.0 remain MIT.

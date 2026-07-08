@@ -16,4 +16,8 @@ public class DailyStats
     /// the day — populated when the active task carries a course. Lets the
     /// app answer "how long have I studied MATH101?".</summary>
     public Dictionary<string, double> FocusByCourse { get; set; } = new();
+
+    /// <summary>Flashcards cleared in review sessions this day — "again"
+    /// repeats don't count twice. Feeds the weekly retrospective.</summary>
+    public int ReviewedCards { get; set; }
 }

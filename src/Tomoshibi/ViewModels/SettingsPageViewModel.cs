@@ -6,6 +6,7 @@ using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Tomoshibi.Models;
+using Tomoshibi.Services;
 
 namespace Tomoshibi.ViewModels;
 
@@ -48,6 +49,26 @@ public partial class SettingsPageViewModel : ViewModelBase
     /// <summary>Review: hide the prompt when the answer is revealed.</summary>
     [ObservableProperty]
     private bool _hideFrontOnReveal;
+
+    // ---- Global hotkey (wired late by the shell — see InitHotkey) ----
+
+    [ObservableProperty] private bool _globalHotkeyEnabled;
+    [ObservableProperty] private bool _hotkeySupported;
+    [ObservableProperty] private string _hotkeyHint = string.Empty;
+
+    /// <summary>Why the chord isn't live — empty when all is well.</summary>
+    [ObservableProperty] private string _hotkeyStatus = string.Empty;
+
+    private Action<bool>? _applyHotkey;
+
+    // ---- Update check ----
+
+    [ObservableProperty] private bool _updateCheckEnabled;
+
+    /// <summary>"v2.1.0 is out …" once the launch check finds one. Empty
+    /// means up to date — or the check is off, or the machine is offline;
+    /// the app deliberately can't tell those apart.</summary>
+    [ObservableProperty] private string _updateAvailable = string.Empty;
 
     /// <summary>Which section the sidebar has selected. Drives the detail pane;
     /// the Is*Section helpers light the matching nav item and show its card.</summary>
@@ -99,6 +120,33 @@ public partial class SettingsPageViewModel : ViewModelBase
         _remindersEnabled = state.RemindersEnabled;
         _sleepReminderEnabled = state.SleepReminderEnabled;
         _hideFrontOnReveal = state.ReviewHideFrontOnReveal;
+        _globalHotkeyEnabled = state.GlobalHotkeyEnabled;
+        _updateCheckEnabled = state.UpdateCheckEnabled;
+    }
+
+    partial void OnUpdateCheckEnabledChanged(bool value)
+    {
+        _state.UpdateCheckEnabled = value;
+        _save();
+    }
+
+    /// <summary>Late wiring from the shell, once the platform hotkey service
+    /// exists — the checkbox is seeded from state in the constructor, this
+    /// fills in what only the service knows and arms the toggle.</summary>
+    public void InitHotkey(IGlobalHotkeyService hotkey, Action<bool> apply)
+    {
+        HotkeySupported = hotkey.IsSupported;
+        HotkeyHint = hotkey.IsSupported
+            ? $"# {hotkey.ChordLabel} starts/pauses the timer from any app — even from the tray"
+            : "# not available on this platform yet";
+        _applyHotkey = apply;
+    }
+
+    partial void OnGlobalHotkeyEnabledChanged(bool value)
+    {
+        _state.GlobalHotkeyEnabled = value;
+        _save();
+        _applyHotkey?.Invoke(value);
     }
 
     partial void OnShowWelcomeChanged(bool value)
@@ -129,6 +177,39 @@ public partial class SettingsPageViewModel : ViewModelBase
     {
         _state.ReviewHideFrontOnReveal = value;
         _save();
+    }
+
+    // ===================== Restore =====================
+
+    /// <summary>Why a restore didn't happen — empty when nothing to report.
+    /// A successful restore restarts the app, so success needs no line.</summary>
+    [ObservableProperty] private string _restoreStatus = string.Empty;
+
+    /// <summary>Wired by the shell: takes the parsed state, writes it to disk
+    /// and relaunches. Lives up there because the swap touches the storage
+    /// and the application lifetime — things this page doesn't hold.</summary>
+    public Action<AppState>? RestoreHandler { get; set; }
+
+    /// <summary>Wired by the shell: opens the four-page tour overlay.</summary>
+    public Action? TourHandler { get; set; }
+
+    [RelayCommand]
+    private void ShowTour() => TourHandler?.Invoke();
+
+    /// <summary>Read a backup file back over the live state. Anything that
+    /// doesn't parse as a tomoshibi backup is refused whole — no half
+    /// restores. On success the handler restarts the app into the new file.</summary>
+    public void TryRestoreBackup(string json)
+    {
+        var restored = BackupRestore.Parse(json);
+        if (restored is null)
+        {
+            RestoreStatus = "that file didn't read as a tomoshibi backup — nothing was changed";
+            return;
+        }
+
+        RestoreStatus = string.Empty;
+        RestoreHandler?.Invoke(restored);
     }
 
     // ===================== Export / backup =====================

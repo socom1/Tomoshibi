@@ -59,8 +59,9 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleIdentifier</key>      <string>dev.tomoshibi</string>
     <key>CFBundleExecutable</key>      <string>Tomoshibi</string>
     <key>CFBundleIconFile</key>        <string>icon</string>
-    <key>CFBundleVersion</key>         <string>1.0.0</string>
-    <key>CFBundleShortVersionString</key><string>1.0.0</string>
+    <!-- Keep in step with ReleaseNotes.Version -->
+    <key>CFBundleVersion</key>         <string>2.0.0</string>
+    <key>CFBundleShortVersionString</key><string>2.0.0</string>
     <key>CFBundlePackageType</key>     <string>APPL</string>
     <key>LSMinimumSystemVersion</key>  <string>11.0</string>
     <key>NSHighResolutionCapable</key> <true/>
