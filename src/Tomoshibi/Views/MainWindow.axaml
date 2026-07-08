@@ -51,7 +51,8 @@
                 ClipToBounds="True"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0"
                 Background="{DynamicResource InkBrush}">
-            <DockPanel Margin="0,28,0,20" Width="219" HorizontalAlignment="Left">
+            <DockPanel Margin="0,28,0,20" Width="219" HorizontalAlignment="Left"
+                       Grid.IsSharedSizeScope="True">
 
                 <!-- Brand -->
                 <TextBlock DockPanel.Dock="Top" Text="灯火 · tomoshibi" Classes="jp"
@@ -65,18 +66,30 @@
                             Background="{DynamicResource BorderBrush}" />
                     <Button Classes="nav" Classes.active="{Binding IsSettingsActive}"
                             Command="{Binding NavigateToSettingsCommand}">
-                        <TextBlock Classes="cjk">
-                            <Run Text="設定　　　" />
-                            <Run Text=" settings" Foreground="{DynamicResource MutedTextBrush}" />
-                        </TextBlock>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="84" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Classes="cjk" Text="設定" />
+                            <TextBlock Grid.Column="1" Text="settings" Margin="0"
+                                       Foreground="{DynamicResource MutedTextBrush}" />
+                        </Grid>
                     </Button>
                     <Button Classes="nav" Classes.active="{Binding IsShopActive}"
                             Command="{Binding NavigateToShopCommand}">
-                        <TextBlock Classes="cjk">
-                            <Run Text="火種" Foreground="{DynamicResource AmberBrush}" />
-                            <Run Text="{Binding Wallet.Balance}" Foreground="{DynamicResource AmberBrush}" />
-                            <Run Text="  · shop" Foreground="{DynamicResource MutedTextBrush}" />
-                        </TextBlock>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="84" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Classes="cjk">
+                                <Run Text="火種" Foreground="{DynamicResource AmberBrush}" />
+                                <Run Text="{Binding Wallet.Balance}" Foreground="{DynamicResource AmberBrush}" />
+                            </TextBlock>
+                            <TextBlock Grid.Column="1" Text="shop" Margin="0"
+                                       Foreground="{DynamicResource MutedTextBrush}" />
+                        </Grid>
                     </Button>
                 </StackPanel>
 
@@ -84,56 +97,91 @@
                 <StackPanel Spacing="2">
                     <Button Classes="nav" Classes.active="{Binding IsDashboardActive}"
                             Command="{Binding NavigateToDashboardCommand}">
-                        <TextBlock>
-                            <Run Text="ダッシュ　" />
-                            <Run Text=" dashboard" Foreground="{DynamicResource MutedTextBrush}" />
-                        </TextBlock>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="84" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Classes="cjk" Text="ダッシュ" />
+                            <TextBlock Grid.Column="1" Text="dashboard" Margin="0"
+                                       Foreground="{DynamicResource MutedTextBrush}" />
+                        </Grid>
                     </Button>
                     <Button Classes="nav" Classes.active="{Binding IsTodayActive}"
                             Command="{Binding NavigateToTodayCommand}">
-                        <TextBlock>
-                            <Run Text="ポモドーロ" />
-                            <Run Text=" pomodoro" Foreground="{DynamicResource MutedTextBrush}" />
-                        </TextBlock>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="84" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Classes="cjk" Text="ポモドーロ" />
+                            <TextBlock Grid.Column="1" Text="pomodoro" Margin="0"
+                                       Foreground="{DynamicResource MutedTextBrush}" />
+                        </Grid>
                     </Button>
 
                     <TextBlock Text="計画 · plan" Classes="navsection" />
                     <Button Classes="nav" Classes.active="{Binding IsTimetableActive}"
                             Command="{Binding NavigateToTimetableCommand}">
-                        <TextBlock>
-                            <Run Text="時間割　　" />
-                            <Run Text=" timetable" Foreground="{DynamicResource MutedTextBrush}" />
-                        </TextBlock>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="84" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Classes="cjk" Text="時間割" />
+                            <TextBlock Grid.Column="1" Text="timetable" Margin="0"
+                                       Foreground="{DynamicResource MutedTextBrush}" />
+                        </Grid>
                     </Button>
                     <Button Classes="nav" Classes.active="{Binding IsTodoActive}"
                             Command="{Binding NavigateToTodoCommand}">
-                        <TextBlock>
-                            <Run Text="やること　" />
-                            <Run Text=" todo" Foreground="{DynamicResource MutedTextBrush}" />
-                        </TextBlock>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="84" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Classes="cjk" Text="やること" />
+                            <TextBlock Grid.Column="1" Text="todo" Margin="0"
+                                       Foreground="{DynamicResource MutedTextBrush}" />
+                        </Grid>
                     </Button>
                     <Button Classes="nav" Classes.active="{Binding IsSubjectsActive}"
                             Command="{Binding NavigateToSubjectsCommand}">
-                        <TextBlock>
-                            <Run Text="科目　　　" />
-                            <Run Text=" subjects" Foreground="{DynamicResource MutedTextBrush}" />
-                        </TextBlock>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="84" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Classes="cjk" Text="科目" />
+                            <TextBlock Grid.Column="1" Text="subjects" Margin="0"
+                                       Foreground="{DynamicResource MutedTextBrush}" />
+                        </Grid>
                     </Button>
 
                     <TextBlock Text="道具 · tools" Classes="navsection" />
                     <Button Classes="nav" Classes.active="{Binding IsStatsActive}"
                             Command="{Binding NavigateToStatsCommand}">
-                        <TextBlock>
-                            <Run Text="記録　　　" />
-                            <Run Text=" stats" Foreground="{DynamicResource MutedTextBrush}" />
-                        </TextBlock>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="84" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Classes="cjk" Text="記録" />
+                            <TextBlock Grid.Column="1" Text="stats" Margin="0"
+                                       Foreground="{DynamicResource MutedTextBrush}" />
+                        </Grid>
                     </Button>
                     <Button Classes="nav" Classes.active="{Binding IsReviewActive}"
                             Command="{Binding NavigateToReviewCommand}">
-                        <TextBlock>
-                            <Run Text="復習　　　" />
-                            <Run Text=" review" Foreground="{DynamicResource MutedTextBrush}" />
-                        </TextBlock>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="84" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Classes="cjk" Text="復習" />
+                            <TextBlock Grid.Column="1" Text="review" Margin="0"
+                                       Foreground="{DynamicResource MutedTextBrush}" />
+                        </Grid>
                     </Button>
                 </StackPanel>
             </DockPanel>

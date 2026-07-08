@@ -10,19 +10,23 @@ namespace Tomoshibi;
 /// </summary>
 public static class ReleaseNotes
 {
-    public const string Version = "1.8.0";
+    public const string Version = "2.1.0";
 
     public static string VersionTag => $"v{Version}";
+
+    /// <summary>Shown beside the version — this build was checked and signed off
+    /// by the creator.</summary>
+    public const string VerifiedBy = "verified by the creator";
 
     public const string Title = "what's new";
 
     private static readonly string[] Lines =
     {
-        "ticking a task done now hits exactly the one you clicked, even twins",
-        "saves swap in atomically — the backup rotates in the same breath",
-        "the Windows build is now verified end to end",
-        "a much larger test net under the daily reset, migrations and imports",
-        "the road to v2.0 is mapped out in the roadmap",
+        "flashcards rebuilt to Anki level — FSRS scheduling, four grades and learning steps",
+        "images, audio and video on cards, cloze deletions, and image occlusion",
+        "a searchable card browser with bulk actions, per-deck options, suspend and bury",
+        "review heatmap and true-retention stats, plus .apkg import of your Anki decks",
+        "every deck gets its own Material icon and accent colour",
     };
 
     /// <summary>The notes as one bulleted block for the modal.</summary>

@@ -1,16 +1,40 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Tomoshibi.ViewModels"
+             xmlns:mdl="using:Tomoshibi.Models"
+             xmlns:sys="using:System"
+             xmlns:mi="using:Material.Icons"
+             xmlns:materialIcons="using:Material.Icons.Avalonia"
+             xmlns:views="using:Tomoshibi.Views"
+             xmlns:ctl="using:Tomoshibi.Controls"
+             xmlns:svc="using:Tomoshibi.Services"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              x:Class="Tomoshibi.Views.ReviewView"
              x:DataType="vm:ReviewViewModel">
 
+    <UserControl.Styles>
+        <!-- The answer eases in as it's revealed — an opacity fade (built-in
+             double animator, so it's safe and smooth). -->
+        <Style Selector="StackPanel.answerReveal">
+            <Style.Animations>
+                <Animation Duration="0:0:0.22" Easing="CubicEaseOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="1" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+    </UserControl.Styles>
+
     <Grid>
 
     <!-- ================= Decks (master + detail) ================= -->
-    <Grid IsVisible="{Binding !IsReviewing}">
+    <Grid IsVisible="{Binding ShowDeckArea}">
 
         <!-- Master: deck list -->
         <ScrollViewer IsVisible="{Binding !IsDeckOpen}" VerticalScrollBarVisibility="Auto">
@@ -26,22 +50,31 @@
                         <TextBlock Text="{Binding SummaryLabel}" Classes="caption" Margin="0,2,0,0"
                                    TextWrapping="Wrap" />
                     </StackPanel>
-                    <Button Grid.Column="1" Classes="accent" Content="review all due"
-                            VerticalAlignment="Top"
-                            Command="{Binding ReviewAllCommand}"
-                            IsVisible="{Binding HasDue}" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                                VerticalAlignment="Top">
+                        <Button Classes="seg" Content="import .apkg" Click="OnImportApkg"
+                                ToolTip.Tip="import an Anki deck" />
+                        <Button Classes="seg" Content="browse"
+                                Command="{Binding OpenBrowserCommand}"
+                                IsVisible="{Binding HasDecks}" />
+                        <Button Classes="accent" Content="review all due"
+                                Command="{Binding ReviewAllCommand}"
+                                IsVisible="{Binding HasDue}" />
+                    </StackPanel>
                 </Grid>
 
                 <ItemsControl ItemsSource="{Binding Decks}" IsVisible="{Binding HasDecks}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:DeckViewModel">
                             <Border Classes="card" Margin="0,0,0,10" Padding="18,14">
-                                <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
                                     <StackPanel Grid.Column="0" Spacing="6" VerticalAlignment="Center">
                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="▸" VerticalAlignment="Center"
-                                                       Foreground="{DynamicResource MatchaBrush}" />
+                                            <materialIcons:MaterialIcon Kind="{Binding IconKind}"
+                                                       Width="18" Height="18" VerticalAlignment="Center"
+                                                       Foreground="{Binding ColorBrush}" />
                                             <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                       Foreground="{Binding ColorBrush}"
                                                        VerticalAlignment="Center" />
                                             <Border Classes="tag" VerticalAlignment="Center"
                                                     IsVisible="{Binding HasCourse}">
@@ -52,7 +85,8 @@
                                         <StackPanel Orientation="Horizontal" Spacing="10">
                                             <TextBlock Text="{Binding DueBar}" FontSize="12"
                                                        FontFamily="{DynamicResource MonoFont}"
-                                                       Classes="duebar" Classes.caughtup="{Binding !HasDue}"
+                                                       Foreground="{Binding ColorBrush}"
+                                                       Opacity="{Binding DueBarOpacity}"
                                                        VerticalAlignment="Center" />
                                             <TextBlock Text="{Binding CountsLabel}" Classes="caption"
                                                        VerticalAlignment="Center" />
@@ -65,10 +99,18 @@
                                     <Button Grid.Column="2" Classes="seg" Content="edit"
                                             Command="{Binding $parent[ItemsControl].((vm:ReviewViewModel)DataContext).OpenDeckCommand}"
                                             CommandParameter="{Binding}" />
-                                    <Button Grid.Column="3" Classes="icon" Content="✕"
+                                    <Button Grid.Column="3" Classes="icon"
+                                            ToolTip.Tip="deck options"
+                                            Command="{Binding $parent[ItemsControl].((vm:ReviewViewModel)DataContext).OpenDeckOptionsCommand}"
+                                            CommandParameter="{Binding}">
+                                        <materialIcons:MaterialIcon Kind="Cog" Width="16" Height="16" />
+                                    </Button>
+                                    <Button Grid.Column="4" Classes="icon"
                                             ToolTip.Tip="delete deck"
                                             Command="{Binding $parent[ItemsControl].((vm:ReviewViewModel)DataContext).DeleteDeckCommand}"
-                                            CommandParameter="{Binding}" />
+                                            CommandParameter="{Binding}">
+                                        <materialIcons:MaterialIcon Kind="TrashCanOutline" Width="16" Height="16" />
+                                    </Button>
                                 </Grid>
                             </Border>
                         </DataTemplate>
@@ -120,60 +162,126 @@
                             IsVisible="{Binding SelectedDeck.HasDue}" />
                 </Grid>
 
-                <StackPanel Spacing="16" DataContext="{Binding SelectedDeck}"
+                <StackPanel Spacing="16" x:Name="DeckDetailRoot" DataContext="{Binding SelectedDeck}"
                             x:DataType="vm:DeckViewModel">
 
                     <Border Classes="card">
                         <StackPanel Spacing="10">
-                            <TextBox Text="{Binding Name}" Watermark="deck name" FontSize="16" />
+                            <Grid ColumnDefinitions="Auto,*">
+                                <materialIcons:MaterialIcon Grid.Column="0" Kind="{Binding IconKind}"
+                                           Width="26" Height="26" VerticalAlignment="Center" Margin="0,0,10,0"
+                                           Foreground="{Binding ColorBrush}" />
+                                <TextBox Grid.Column="1" Text="{Binding Name}" Watermark="deck name" FontSize="16" />
+                            </Grid>
                             <Grid ColumnDefinitions="*,160">
                                 <TextBlock Text="{Binding CountsLabel}" Classes="caption"
                                            VerticalAlignment="Center" />
                                 <TextBox Grid.Column="1" Text="{Binding Course}"
                                          Watermark="course code" FontSize="13" Padding="10,6" />
                             </Grid>
-                        </StackPanel>
-                    </Border>
 
-                    <Border Classes="card">
-                        <StackPanel Spacing="10">
-                            <TextBlock Text="// カード · cards" Classes="jp" />
-
-                            <ItemsControl ItemsSource="{Binding Cards}" IsVisible="{Binding HasCards}">
+                            <!-- icon picker -->
+                            <TextBlock Text="icon" Classes="caption" />
+                            <ItemsControl ItemsSource="{Binding IconChoices}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:FlashcardViewModel">
-                                        <Grid ColumnDefinitions="*,*,Auto" Margin="0,3,0,0">
-                                            <TextBox Grid.Column="0" Text="{Binding Front}"
-                                                     Watermark="front" FontSize="13" Padding="10,6"
-                                                     AcceptsReturn="True" TextWrapping="Wrap" />
-                                            <TextBox Grid.Column="1" Text="{Binding Back}"
-                                                     Watermark="back" Margin="6,0,0,0"
-                                                     FontSize="13" Padding="10,6"
-                                                     AcceptsReturn="True" TextWrapping="Wrap" />
-                                            <Button Grid.Column="2" Content="✕" Classes="icon"
-                                                    FontSize="11" Padding="4,2" Margin="4,0,0,0"
-                                                    Command="{Binding $parent[ItemsControl].((vm:DeckViewModel)DataContext).RemoveCardCommand}"
-                                                    CommandParameter="{Binding}" />
-                                        </Grid>
+                                    <DataTemplate x:DataType="mi:MaterialIconKind">
+                                        <Button Classes="icon" Width="34" Height="30" Padding="0"
+                                                Margin="0,0,4,4"
+                                                Command="{Binding $parent[ItemsControl].((vm:DeckViewModel)DataContext).SetIconCommand}"
+                                                CommandParameter="{Binding}">
+                                            <materialIcons:MaterialIcon Kind="{Binding}" Width="18" Height="18" />
+                                        </Button>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
 
-                            <TextBlock Text="add a few cards — the front prompts you, the back is the answer"
-                                       Classes="caption" IsVisible="{Binding !HasCards}" />
+                            <!-- colour picker -->
+                            <TextBlock Text="colour" Classes="caption" />
+                            <ItemsControl ItemsSource="{Binding ColorChoices}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:DeckColorSwatch">
+                                        <Button Width="26" Height="26" Margin="0,0,6,0" Padding="0"
+                                                Background="{Binding Brush}" CornerRadius="13"
+                                                Command="{Binding $parent[ItemsControl].((vm:DeckViewModel)DataContext).SetColorCommand}"
+                                                CommandParameter="{Binding Hex}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
 
-                            <Grid ColumnDefinitions="*,*,Auto">
-                                <TextBox Grid.Column="0" Text="{Binding NewCardFront}"
-                                         Watermark="front" FontSize="13" Padding="10,6" />
-                                <TextBox Grid.Column="1" Text="{Binding NewCardBack}"
-                                         Watermark="back" Margin="6,0,0,0" FontSize="13" Padding="10,6">
-                                    <TextBox.KeyBindings>
-                                        <KeyBinding Gesture="Enter" Command="{Binding AddCardCommand}" />
-                                    </TextBox.KeyBindings>
-                                </TextBox>
-                                <Button Grid.Column="2" Content="+" Classes="icon" Margin="4,0,0,0"
-                                        Command="{Binding AddCardCommand}" />
+                    <!-- Note list -->
+                    <Border Classes="card" IsVisible="{Binding !IsEditingNote}">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                                <TextBlock Text="// ノート · notes" Classes="jp" VerticalAlignment="Center" />
+                                <Button Grid.Column="1" Classes="seg" Content="import"
+                                        Click="OnImportCsv" ToolTip.Tip="import cards from CSV / TSV" />
+                                <Button Grid.Column="2" Classes="seg" Content="export"
+                                        Click="OnExportCsv" ToolTip.Tip="export this deck to CSV"
+                                        Margin="6,0,6,0" />
+                                <Button Grid.Column="3" Classes="seg" Content="+ occ"
+                                        Command="{Binding NewOcclusionCommand}"
+                                        ToolTip.Tip="new image-occlusion note" Margin="0,0,6,0" />
+                                <Button Grid.Column="4" Classes="seg" Content="+ note"
+                                        Command="{Binding NewNoteCommand}" />
                             </Grid>
+
+                            <ItemsControl ItemsSource="{Binding Notes}" IsVisible="{Binding HasNotes}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:NoteRowViewModel">
+                                        <Border Background="{DynamicResource InkBrush}"
+                                                CornerRadius="8" Padding="12,9" Margin="0,3,0,0">
+                                            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                                <Border Classes="tag" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding TypeLabel}"
+                                                               Foreground="{DynamicResource BlueBrush}" />
+                                                </Border>
+                                                <StackPanel Grid.Column="1" Spacing="2" Margin="10,0,0,0"
+                                                            VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Preview}" TextTrimming="CharacterEllipsis" />
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding CardsLabel}" Classes="caption" />
+                                                        <TextBlock Text="{Binding TagsLabel}" Classes="caption"
+                                                                   Foreground="{DynamicResource MatchaBrush}"
+                                                                   IsVisible="{Binding HasTags}" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <Button Grid.Column="2" Classes="seg" Content="edit"
+                                                        Command="{Binding $parent[ItemsControl].((vm:DeckViewModel)DataContext).EditNoteCommand}"
+                                                        CommandParameter="{Binding}" />
+                                                <Button Grid.Column="3" Classes="icon" Content="✕"
+                                                        FontSize="11" Padding="4,2" Margin="4,0,0,0"
+                                                        ToolTip.Tip="delete note"
+                                                        Command="{Binding $parent[ItemsControl].((vm:DeckViewModel)DataContext).DeleteNoteCommand}"
+                                                        CommandParameter="{Binding}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="add a note — basic, reversed, or cloze; embed images, tag it, and it makes the cards"
+                                       Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !HasNotes}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Note editor -->
+                    <Border Classes="card"
+                            IsVisible="{Binding #DeckDetailRoot.((vm:DeckViewModel)DataContext).IsEditingNote}">
+                        <StackPanel Spacing="12">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="// ノート編集 · edit note" Classes="jp" VerticalAlignment="Center" />
+                                <Button Grid.Column="1" Classes="accent" Content="done"
+                                        Command="{Binding #DeckDetailRoot.((vm:DeckViewModel)DataContext).CloseEditorCommand}" />
+                            </Grid>
+                            <views:NoteEditorView DataContext="{Binding Editor}" />
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -184,33 +292,70 @@
     <!-- ================= Review session ================= -->
     <Grid IsVisible="{Binding IsReviewing}" RowDefinitions="Auto,*,Auto" Margin="28">
 
-        <!-- Top bar: scope + ascii progress meter + end -->
+        <!-- Top bar: scope + ascii progress meter + card actions + end -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" IsVisible="{Binding !IsSessionDone}">
             <StackPanel Spacing="6" VerticalAlignment="Center">
                 <TextBlock Text="{Binding ProgressLabel}" Classes="jp" />
                 <TextBlock Text="{Binding ProgressBar}" FontSize="13"
                            FontFamily="{DynamicResource MonoFont}"
-                           Foreground="{DynamicResource MatchaBrush}" />
+                           Foreground="{Binding SessionAccent}" />
+                <TextBlock Text="{Binding AutoRevealLabel}" Classes="caption"
+                           Foreground="{DynamicResource AmberBrush}"
+                           IsVisible="{Binding HasAutoReveal}" />
             </StackPanel>
-            <Button Grid.Column="1" Classes="seg" Content="end" VerticalAlignment="Top"
-                    Command="{Binding EndReviewCommand}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Top">
+                <Button Classes="seg" Content="suspend" Command="{Binding SuspendCurrentCommand}"
+                        ToolTip.Tip="suspend this card · S" />
+                <Button Classes="seg" Content="bury" Command="{Binding BuryCurrentCommand}"
+                        ToolTip.Tip="bury until tomorrow · B" />
+                <Button Classes="seg" Content="end" Command="{Binding EndReviewCommand}" />
+            </StackPanel>
         </Grid>
 
-        <!-- The card: terminal Q/A, left-aligned with // markers -->
-        <Border Grid.Row="1" Classes="card" Margin="0,16,0,16" Padding="28"
-                VerticalAlignment="Center" MaxWidth="620"
-                IsVisible="{Binding !IsSessionDone}">
-            <StackPanel Spacing="14">
-                <TextBlock Text="// 問 · prompt" Classes="jp" />
-                <TextBlock Text="{Binding CardFront}" FontSize="20" TextWrapping="Wrap" />
-                <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,4"
-                        IsVisible="{Binding IsFlipped}" />
-                <TextBlock Text="// 答 · answer" Classes="jp" IsVisible="{Binding IsFlipped}" />
-                <TextBlock Text="{Binding CardBack}" FontSize="17" TextWrapping="Wrap"
-                           Foreground="{DynamicResource MatchaBrush}"
-                           IsVisible="{Binding IsFlipped}" />
-            </StackPanel>
-        </Border>
+        <!-- The card: terminal Q/A, left-aligned with // markers. Scrolls when
+             tall (e.g. an image on both faces) so it can't overflow the row. -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      IsVisible="{Binding !IsSessionDone}">
+            <Border Classes="card" Margin="0,16,0,16" Padding="40,36"
+                    VerticalAlignment="Center" HorizontalAlignment="Center"
+                    MinWidth="520" MinHeight="340" MaxWidth="680">
+                <StackPanel Spacing="16" VerticalAlignment="Center">
+
+                    <!-- Image-occlusion card: image + masks (flips face on reveal) -->
+                    <StackPanel Spacing="12" IsVisible="{Binding IsOcclusionCard}">
+                        <ctl:CardContentRenderer Source="{Binding CardFrontSource}"
+                                                 Side="Front" ContentFontSize="18" />
+                        <ctl:OcclusionView Note="{Binding CurrentNote}"
+                                           Ord="{Binding CardClozeOrd}"
+                                           Side="{Binding CurrentSide}" />
+                        <StackPanel Spacing="10" IsVisible="{Binding IsFlipped}"
+                                    Classes.answerReveal="{Binding IsFlipped}">
+                            <ctl:CardContentRenderer Source="{Binding CardBackSource}"
+                                                     Side="Back" ContentFontSize="16" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Text / cloze / media card -->
+                    <StackPanel Spacing="14" IsVisible="{Binding !IsOcclusionCard}">
+                        <TextBlock Text="// 問 · prompt" Classes="jp" IsVisible="{Binding ShowFront}" />
+                        <ctl:CardContentRenderer Source="{Binding CardFrontSource}"
+                                                 ClozeOrd="{Binding CardClozeOrd}"
+                                                 Side="Front" ContentFontSize="20"
+                                                 IsVisible="{Binding ShowFront}" />
+                        <StackPanel Spacing="14" IsVisible="{Binding IsFlipped}"
+                                    Classes.answerReveal="{Binding IsFlipped}">
+                            <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,4"
+                                    IsVisible="{Binding ShowDivider}" />
+                            <TextBlock Text="// 答 · answer" Classes="jp" />
+                            <ctl:CardContentRenderer Source="{Binding CardBackSource}"
+                                                     ClozeOrd="{Binding CardClozeOrd}"
+                                                     Side="Back" ContentFontSize="17" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </ScrollViewer>
 
         <!-- Done state -->
         <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
@@ -222,9 +367,12 @@
                     Command="{Binding EndReviewCommand}" />
         </StackPanel>
 
-        <!-- Controls: keyboard-driven — space reveals, 1/2/3 grade -->
-        <StackPanel Grid.Row="2" HorizontalAlignment="Center"
+        <!-- Controls: keyboard-driven — space reveals, 1/2/3/4 grade -->
+        <StackPanel Grid.Row="2" HorizontalAlignment="Center" Spacing="10"
                     IsVisible="{Binding !IsSessionDone}">
+            <TextBlock Text="{Binding LeechNotice}" Classes="caption" HorizontalAlignment="Center"
+                       Foreground="{DynamicResource AmberBrush}"
+                       IsVisible="{Binding HasLeechNotice}" />
             <Button Classes="accent" HorizontalAlignment="Center"
                     Command="{Binding FlipCommand}" IsVisible="{Binding !IsFlipped}">
                 <StackPanel Orientation="Horizontal" Spacing="8">
@@ -235,29 +383,265 @@
             <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center"
                         IsVisible="{Binding IsFlipped}">
                 <Button Command="{Binding GradeAgainCommand}"
-                        ToolTip.Tip="missed it — see it again soon">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Border Classes="kbd"><TextBlock Text="1" /></Border>
-                        <TextBlock Text="again" VerticalAlignment="Center" />
+                        ToolTip.Tip="missed it — relearn it now">
+                    <StackPanel Spacing="3">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                            <Border Classes="kbd"><TextBlock Text="1" /></Border>
+                            <TextBlock Text="again" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding AgainLabel}" Classes="caption" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding GradeHardCommand}"
+                        ToolTip.Tip="recalled it, but with effort">
+                    <StackPanel Spacing="3">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                            <Border Classes="kbd"><TextBlock Text="2" /></Border>
+                            <TextBlock Text="hard" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding HardLabel}" Classes="caption" HorizontalAlignment="Center" />
                     </StackPanel>
                 </Button>
                 <Button Classes="accent" Command="{Binding GradeGoodCommand}"
                         ToolTip.Tip="recalled it">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Border Classes="kbd"><TextBlock Text="2" /></Border>
-                        <TextBlock Text="good" VerticalAlignment="Center" />
+                    <StackPanel Spacing="3">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                            <Border Classes="kbd"><TextBlock Text="3" /></Border>
+                            <TextBlock Text="good" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding GoodLabel}" Classes="caption" HorizontalAlignment="Center" />
                     </StackPanel>
                 </Button>
                 <Button Command="{Binding GradeEasyCommand}"
                         ToolTip.Tip="too easy — push it further out">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Border Classes="kbd"><TextBlock Text="3" /></Border>
-                        <TextBlock Text="easy" VerticalAlignment="Center" />
+                    <StackPanel Spacing="3">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                            <Border Classes="kbd"><TextBlock Text="4" /></Border>
+                            <TextBlock Text="easy" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding EasyLabel}" Classes="caption" HorizontalAlignment="Center" />
                     </StackPanel>
                 </Button>
             </StackPanel>
         </StackPanel>
     </Grid>
+
+    <!-- ================= Card browser ================= -->
+    <Grid x:Name="BrowserRoot" IsVisible="{Binding IsBrowserOpen}">
+        <Grid DataContext="{Binding Browser}" x:DataType="vm:CardBrowserViewModel"
+              Margin="28,4,28,28" RowDefinitions="Auto,Auto,Auto,*">
+
+            <!-- header + search + bulk bar (hidden while editing a note) -->
+            <StackPanel Grid.Row="0" Spacing="10" IsVisible="{Binding !IsEditing}">
+                <Grid ColumnDefinitions="Auto,*">
+                    <Button Classes="icon" Content="←" FontSize="18" VerticalAlignment="Top"
+                            Command="{Binding #BrowserRoot.((vm:ReviewViewModel)DataContext).CloseBrowserCommand}"
+                            ToolTip.Tip="back to decks · esc" />
+                    <StackPanel Grid.Column="1" Spacing="2" Margin="8,0,0,0">
+                        <TextBlock Text="// カード · browse" Classes="jp" />
+                        <TextBlock Text="{Binding ResultLabel}" Classes="caption" />
+                    </StackPanel>
+                </Grid>
+
+                <TextBox Text="{Binding SearchText}" FontSize="13" Padding="10,6"
+                         Watermark="search — tag:x  deck:y  is:due  is:suspended  note:cloze  -term" />
+
+                <!-- bulk actions -->
+                <StackPanel Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Button Classes="seg" Content="all" Command="{Binding SelectAllCommand}" />
+                        <Button Classes="seg" Content="none" Command="{Binding SelectNoneCommand}" />
+                        <Border Width="1" Background="{DynamicResource BorderBrush}" Margin="4,2" />
+                        <Button Classes="seg" Content="suspend" Command="{Binding SuspendSelectedCommand}" />
+                        <Button Classes="seg" Content="unsuspend" Command="{Binding UnsuspendSelectedCommand}" />
+                        <Button Classes="seg" Content="bury" Command="{Binding BurySelectedCommand}" />
+                        <Button Classes="seg" Content="delete" Command="{Binding DeleteSelectedCommand}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ComboBox ItemsSource="{Binding Decks}" SelectedItem="{Binding MoveTargetDeck}"
+                                  PlaceholderText="move to…" MinWidth="150" FontSize="13" Padding="10,4">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="mdl:Deck">
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <Button Classes="seg" Content="move" Command="{Binding MoveSelectedCommand}" />
+                        <Border Width="1" Background="{DynamicResource BorderBrush}" Margin="4,2" />
+                        <TextBox Text="{Binding BulkTagText}" Watermark="tag" Width="120"
+                                 FontSize="13" Padding="10,4" />
+                        <Button Classes="seg" Content="+tag" Command="{Binding AddTagCommand}" />
+                        <Button Classes="seg" Content="−tag" Command="{Binding RemoveTagCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- the rows -->
+            <ListBox Grid.Row="3" Margin="0,12,0,0" ItemsSource="{Binding Rows}"
+                     Background="Transparent" BorderThickness="0"
+                     IsVisible="{Binding !IsEditing}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:BrowserRowViewModel">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" Margin="0,1">
+                            <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Spacing="2" Margin="6,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Preview}" TextTrimming="CharacterEllipsis" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding DeckName}" Classes="caption" />
+                                    <TextBlock Text="{Binding TagsLabel}" Classes="caption"
+                                               Foreground="{DynamicResource MatchaBrush}"
+                                               IsVisible="{Binding HasTags}" />
+                                </StackPanel>
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" Text="{Binding TypeLabel}" Classes="caption"
+                                       VerticalAlignment="Center" Margin="8,0" />
+                            <TextBlock Grid.Column="3" Text="{Binding StateLabel}" Classes="caption"
+                                       VerticalAlignment="Center" Margin="8,0" Width="72" />
+                            <TextBlock Grid.Column="4" Text="{Binding DueLabel}" Classes="caption"
+                                       VerticalAlignment="Center" Margin="8,0" Width="56" />
+                            <Button Grid.Column="5" Classes="seg" Content="edit"
+                                    Command="{Binding $parent[ListBox].((vm:CardBrowserViewModel)DataContext).EditRowCommand}"
+                                    CommandParameter="{Binding}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- note editor overlay -->
+            <ScrollViewer Grid.Row="0" Grid.RowSpan="4" VerticalScrollBarVisibility="Auto"
+                          IsVisible="{Binding IsEditing}">
+                <StackPanel Spacing="12" MaxWidth="620">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="// ノート編集 · edit note" Classes="jp" VerticalAlignment="Center" />
+                        <Button Grid.Column="1" Classes="accent" Content="done"
+                                Command="{Binding CloseEditorCommand}" />
+                    </Grid>
+                    <views:NoteEditorView DataContext="{Binding Editor}" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+
+    <!-- ================= Deck options modal ================= -->
+    <Border IsVisible="{Binding IsDeckOptionsOpen}"
+            Background="#99000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Border Classes="card" MinWidth="560" MaxWidth="640" Margin="24"
+                VerticalAlignment="Center" HorizontalAlignment="Center"
+                DataContext="{Binding DeckOptionsEditor}" x:DataType="vm:DeckOptionsViewModel">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="560">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="// デッキ設定 · deck options" Classes="jp" />
+                            <TextBlock Text="{Binding DeckName}" Classes="caption" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Classes="icon" Content="✕"
+                                Command="{Binding #BrowserRoot.((vm:ReviewViewModel)DataContext).CloseDeckOptionsCommand}" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,110">
+                        <TextBlock Text="new / day" Classes="key" VerticalAlignment="Center" />
+                        <NumericUpDown Grid.Column="1" Value="{Binding NewPerDay}"
+                                       Minimum="0" Maximum="999" Increment="5" FormatString="0" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,110">
+                        <TextBlock Text="reviews / day" Classes="key" VerticalAlignment="Center" />
+                        <NumericUpDown Grid.Column="1" Value="{Binding ReviewsPerDay}"
+                                       Minimum="0" Maximum="9999" Increment="10" FormatString="0" />
+                    </Grid>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{Binding RetentionLabel}" Classes="key" />
+                        <Slider Value="{Binding RetentionPercent}" Minimum="70" Maximum="97"
+                                TickFrequency="1" IsSnapToTickEnabled="True" />
+                        <TextBlock Text="# higher = shorter intervals, more reviews" Classes="comment" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="learning steps (minutes)" Classes="key" />
+                        <TextBox Text="{Binding LearningStepsText}" Watermark="1 10"
+                                 FontSize="13" Padding="10,5" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="relearning steps (minutes)" Classes="key" />
+                        <TextBox Text="{Binding RelearningStepsText}" Watermark="10"
+                                 FontSize="13" Padding="10,5" />
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,110">
+                        <TextBlock Text="leech threshold (lapses)" Classes="key" VerticalAlignment="Center" />
+                        <NumericUpDown Grid.Column="1" Value="{Binding LeechThreshold}"
+                                       Minimum="1" Maximum="99" Increment="1" FormatString="0" />
+                    </Grid>
+                    <CheckBox IsChecked="{Binding SuspendLeeches}" Content="suspend leeches automatically" />
+
+                    <Grid ColumnDefinitions="*,110">
+                        <TextBlock Text="auto-reveal after (seconds, 0 = off)" Classes="key"
+                                   VerticalAlignment="Center" TextWrapping="Wrap" />
+                        <NumericUpDown Grid.Column="1" Value="{Binding AutoRevealSeconds}"
+                                       Minimum="0" Maximum="120" Increment="1" FormatString="0" />
+                    </Grid>
+                    <CheckBox IsChecked="{Binding BurySiblings}" Content="bury sibling cards until tomorrow" />
+
+                    <Button Classes="accent" Content="done" HorizontalAlignment="Right"
+                            Command="{Binding #BrowserRoot.((vm:ReviewViewModel)DataContext).CloseDeckOptionsCommand}" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Border>
+
+    <!-- ================= Image occlusion editor modal ================= -->
+    <Border IsVisible="{Binding IsOcclusionEditorOpen}"
+            Background="#99000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Border Classes="card" MaxWidth="720" Margin="24"
+                VerticalAlignment="Center" HorizontalAlignment="Center">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="640">
+                <StackPanel Spacing="12" DataContext="{Binding OcclusionEditor}"
+                            x:DataType="vm:OcclusionEditorViewModel">
+                    <views:OcclusionEditorView />
+                    <Button Classes="accent" Content="done" HorizontalAlignment="Right"
+                            Command="{Binding #BrowserRoot.((vm:ReviewViewModel)DataContext).CloseOcclusionEditorCommand}" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Border>
+
+    <!-- ================= .apkg import modal ================= -->
+    <Border IsVisible="{Binding IsApkgImportOpen}"
+            Background="#99000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Border Classes="card" MinWidth="520" MaxWidth="620" Margin="24"
+                VerticalAlignment="Center" HorizontalAlignment="Center"
+                DataContext="{Binding ApkgImport}" x:DataType="vm:ApkgImportViewModel">
+            <StackPanel Spacing="14">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="// アンキ · import anki deck" Classes="jp" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Classes="icon"
+                            Command="{Binding #BrowserRoot.((vm:ReviewViewModel)DataContext).CloseApkgImportCommand}">
+                        <materialIcons:MaterialIcon Kind="Close" Width="16" Height="16" />
+                    </Button>
+                </Grid>
+
+                <Border Background="{DynamicResource InkBrush}" CornerRadius="8" Padding="12,10">
+                    <TextBlock Text="{Binding FileName}" FontFamily="{DynamicResource MonoFont}"
+                               TextTrimming="CharacterEllipsis" />
+                </Border>
+
+                <CheckBox IsChecked="{Binding KeepSchedule}" IsEnabled="{Binding CanImport}"
+                          Content="keep the existing schedule (off = import every card as new)" />
+
+                <TextBlock Text="{Binding Status}" Classes="caption" TextWrapping="Wrap"
+                           Foreground="{DynamicResource MatchaBrush}" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                    <Button Classes="accent" Content="import" Command="{Binding ImportCommand}"
+                            IsVisible="{Binding CanImport}" />
+                    <Button Classes="seg" Content="done"
+                            Command="{Binding #BrowserRoot.((vm:ReviewViewModel)DataContext).CloseApkgImportCommand}"
+                            IsVisible="{Binding IsDone}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Border>
 
     </Grid>
 </UserControl>
