@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tomoshibi.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="Tomoshibi.Views.OcclusionEditorView"
+             x:DataType="vm:OcclusionEditorViewModel">
+
+    <StackPanel Spacing="12">
+        <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="// 画像 · image occlusion" Classes="jp" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Classes="seg" Content="choose image" Click="OnChooseImage" />
+        </Grid>
+
+        <!-- The drawing surface is built in code-behind (image + mask canvas). -->
+        <Border x:Name="CanvasHost" Background="{DynamicResource InkBrush}"
+                CornerRadius="8" Padding="6" MinHeight="80" />
+
+        <TextBlock Text="{Binding Hint}" Classes="caption" TextWrapping="Wrap" />
+
+        <StackPanel Orientation="Horizontal" Spacing="6">
+            <Button Classes="seg" Content="remove last" Command="{Binding RemoveLastCommand}" />
+            <Button Classes="seg" Content="clear" Command="{Binding ClearMasksCommand}" />
+        </StackPanel>
+
+        <CheckBox IsChecked="{Binding HideAll}"
+                  Content="hide all, guess one  (off: hide one, guess one)" />
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="header (optional)" Classes="caption" />
+            <TextBox Text="{Binding Header}" FontSize="13" Padding="10,6" />
+        </StackPanel>
+        <StackPanel Spacing="4">
+            <TextBlock Text="back extra (optional)" Classes="caption" />
+            <TextBox Text="{Binding BackExtra}" AcceptsReturn="True" TextWrapping="Wrap"
+                     FontSize="13" Padding="10,6" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

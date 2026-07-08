@@ -18,6 +18,9 @@ namespace Tomoshibi.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly IStorageService _storage;
+    private readonly ReviewLogService _reviewLog;
+    private readonly MediaStore _media;
+    private readonly VlcMediaService _mediaPlayback;
     private readonly AppState _state;
     private readonly DispatcherTimer _dayWatcher;
     private readonly ReminderService _reminders = new(new NotificationService());
@@ -84,6 +87,9 @@ public partial class MainWindowViewModel : ViewModelBase
         || Todo.IsModalOpen
         || Subjects.IsModalOpen
         || Timetable.IsSlotModalOpen
+        || Review.IsDeckOptionsOpen
+        || Review.IsOcclusionEditorOpen
+        || Review.IsApkgImportOpen
         || (Subjects.SelectedSubject?.IsAssessmentModalOpen ?? false);
 
     public string WelcomeDateLabel =>
@@ -173,9 +179,15 @@ public partial class MainWindowViewModel : ViewModelBase
         Timetable = new TimetableViewModel(_state, Save);
         Todo = new TodoViewModel(_state, Save, SendTodoToToday);
         Subjects = new SubjectsViewModel(_state, Save, OpenUrl);
-        Stats = new StatsViewModel(_state);
-        Review = new ReviewViewModel(_state, Save, Wallet);
-        Music = new MusicPlayerViewModel(_state, Save, new MusicService());
+        var appDataDir = System.IO.Path.GetDirectoryName(storage.Location) ?? ".";
+        _reviewLog = new ReviewLogService(appDataDir);
+        Stats = new StatsViewModel(_state, _reviewLog);
+        _media = new MediaStore(appDataDir);
+        _mediaPlayback = new VlcMediaService();
+        Controls.CardContentRenderer.Media = _media;
+        Controls.CardContentRenderer.Player = _mediaPlayback;
+        Review = new ReviewViewModel(_state, Save, Wallet, _reviewLog, _media);
+        Music = new MusicPlayerViewModel(_state, Save, new MusicService(_mediaPlayback));
         SettingsPage = new SettingsPageViewModel(_state, Save, settings, Music, Subjects,
                                                  storage.Location);
         Dashboard = new DashboardViewModel(_state, Save, Today, Todo, Subjects, Review,
@@ -353,6 +365,11 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             ActiveDestination = Destination.Review;
             Review.ReviewAllCommand.Execute(null);
+        });
+        Action("browse cards", () =>
+        {
+            ActiveDestination = Destination.Review;
+            Review.OpenBrowserCommand.Execute(null);
         });
 
         foreach (var subject in Subjects.Items)
