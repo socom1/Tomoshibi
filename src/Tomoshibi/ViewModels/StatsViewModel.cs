@@ -18,11 +18,27 @@ namespace Tomoshibi.ViewModels;
 public partial class StatsViewModel : ViewModelBase
 {
     private readonly AppState _state;
+    private readonly IReviewLogService _log;
 
     /// <summary>First day of the month the calendar is showing.</summary>
     private DateOnly _month;
 
+    /// <summary>Reviews-per-day off the log, cached for the calendar tiles.</summary>
+    private Dictionary<DateOnly, DayReviewStat> _reviewByDay = new();
+
     public ObservableCollection<CalendarDayViewModel> Days { get; } = new();
+
+    /// <summary>Review-activity heatmap for the shown month (mirrors
+    /// <see cref="Days"/> but tinted by reviews rather than focus).</summary>
+    public ObservableCollection<CalendarDayViewModel> ReviewDays { get; } = new();
+
+    [ObservableProperty] private bool _hasReviewData;
+    [ObservableProperty] private int _totalReviews;
+    [ObservableProperty] private int _reviewsToday;
+    [ObservableProperty] private string _retentionOverall = "—";
+    [ObservableProperty] private string _retentionYoung = "—";
+    [ObservableProperty] private string _retentionMature = "—";
+    [ObservableProperty] private string _reviewMonthSummary = string.Empty;
 
     /// <summary>Focus time by course over the last 7 days, busiest first.</summary>
     public ObservableCollection<CourseFocusViewModel> FocusByCourse { get; } = new();
@@ -55,9 +71,10 @@ public partial class StatsViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(NextMonthCommand))]
     private bool _canGoForward;
 
-    public StatsViewModel(AppState state)
+    public StatsViewModel(AppState state, IReviewLogService log)
     {
         _state = state;
+        _log = log;
         var today = DateOnly.FromDateTime(DateTime.Now);
         _month = new DateOnly(today.Year, today.Month, 1);
         Refresh();
@@ -68,12 +85,30 @@ public partial class StatsViewModel : ViewModelBase
     public void Refresh()
     {
         var byDate = DaysWithActivity();
+        _reviewByDay = ReviewStatsBuilder.ByDay(_log.All());
 
         BuildSummary(byDate);
+        BuildReviewSummary();
         BuildSparkline(byDate);
         BuildMonth(byDate);
         BuildFocusByCourse();
         BuildJournal();
+    }
+
+    /// <summary>All-time review totals + true retention off the log.</summary>
+    private void BuildReviewSummary()
+    {
+        var all = _log.All();
+        var today = DateOnly.FromDateTime(DateTime.Now);
+
+        TotalReviews = all.Count;
+        ReviewsToday = ReviewStatsBuilder.CountOn(all, today);
+        HasReviewData = TotalReviews > 0;
+
+        var ret = ReviewStatsBuilder.Retention(all, DateTime.Now, null);
+        RetentionOverall = ret.Overall.Percent;
+        RetentionYoung = ret.Young.Percent;
+        RetentionMature = ret.Mature.Percent;
     }
 
     /// <summary>Raised when the palette asks to surface a specific journal
@@ -266,12 +301,17 @@ public partial class StatsViewModel : ViewModelBase
             : $"{inMonth.Count} active days · {Math.Round(inMonth.Sum(kv => kv.Value.Minutes) / 60.0, 1)}h this month";
 
         Days.Clear();
+        ReviewDays.Clear();
 
         // Pad so day 1 lands on its weekday column (Monday-first).
         var lead = ((int)_month.DayOfWeek + 6) % 7;
         for (var i = 0; i < lead; i++)
+        {
             Days.Add(new CalendarDayViewModel { IsPlaceholder = true });
+            ReviewDays.Add(new CalendarDayViewModel { IsPlaceholder = true });
+        }
 
+        var monthReviews = 0;
         var daysInMonth = DateTime.DaysInMonth(_month.Year, _month.Month);
         for (var day = 1; day <= daysInMonth; day++)
         {
@@ -291,6 +331,25 @@ public partial class StatsViewModel : ViewModelBase
                     ? $"{date:MMM d} · {activity.Sessions} sessions · {hours}h".ToLowerInvariant()
                     : $"{date:MMM d} · no focus".ToLowerInvariant()
             });
+
+            _reviewByDay.TryGetValue(date, out var reviews);
+            monthReviews += reviews.Count;
+            ReviewDays.Add(new CalendarDayViewModel
+            {
+                Label = day.ToString(),
+                IsToday = date == today,
+                IsFuture = date > today,
+                IsTier1 = reviews.Count is >= 1 and < 20,
+                IsTier2 = reviews.Count is >= 20 and < 60,
+                IsTier3 = reviews.Count >= 60,
+                Tooltip = reviews.Count > 0
+                    ? $"{date:MMM d} · {reviews.Count} reviews · {reviews.PassRate * 100:0}% pass".ToLowerInvariant()
+                    : $"{date:MMM d} · no reviews".ToLowerInvariant()
+            });
         }
+
+        ReviewMonthSummary = monthReviews == 0
+            ? "no reviews this month"
+            : $"{monthReviews} reviews this month";
     }
 }

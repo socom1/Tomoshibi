@@ -45,12 +45,17 @@ public partial class SettingsPageViewModel : ViewModelBase
     [ObservableProperty]
     private bool _sleepReminderEnabled;
 
+    /// <summary>Review: hide the prompt when the answer is revealed.</summary>
+    [ObservableProperty]
+    private bool _hideFrontOnReveal;
+
     /// <summary>Which section the sidebar has selected. Drives the detail pane;
     /// the Is*Section helpers light the matching nav item and show its card.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsTimerSection))]
     [NotifyPropertyChangedFor(nameof(IsStartupSection))]
     [NotifyPropertyChangedFor(nameof(IsRemindersSection))]
+    [NotifyPropertyChangedFor(nameof(IsReviewSection))]
     [NotifyPropertyChangedFor(nameof(IsGradingSection))]
     [NotifyPropertyChangedFor(nameof(IsMusicSection))]
     [NotifyPropertyChangedFor(nameof(IsDataSection))]
@@ -59,6 +64,7 @@ public partial class SettingsPageViewModel : ViewModelBase
     public bool IsTimerSection => Section == "timer";
     public bool IsStartupSection => Section == "startup";
     public bool IsRemindersSection => Section == "reminders";
+    public bool IsReviewSection => Section == "review";
     public bool IsGradingSection => Section == "grading";
     public bool IsMusicSection => Section == "music";
     public bool IsDataSection => Section == "data";
@@ -71,6 +77,9 @@ public partial class SettingsPageViewModel : ViewModelBase
     }
 
     public string VersionLabel => $"灯火 · tomoshibi · {ReleaseNotes.VersionTag}";
+
+    /// <summary>"✓ verified by the creator" — shown under the version.</summary>
+    public string VerifiedLabel => $"✓ {ReleaseNotes.VerifiedBy}";
 
     public SettingsPageViewModel(AppState state, Action save,
                                  SettingsViewModel timer,
@@ -89,6 +98,7 @@ public partial class SettingsPageViewModel : ViewModelBase
         _closeToTray = state.CloseToTray;
         _remindersEnabled = state.RemindersEnabled;
         _sleepReminderEnabled = state.SleepReminderEnabled;
+        _hideFrontOnReveal = state.ReviewHideFrontOnReveal;
     }
 
     partial void OnShowWelcomeChanged(bool value)
@@ -112,6 +122,12 @@ public partial class SettingsPageViewModel : ViewModelBase
     partial void OnSleepReminderEnabledChanged(bool value)
     {
         _state.SleepReminderEnabled = value;
+        _save();
+    }
+
+    partial void OnHideFrontOnRevealChanged(bool value)
+    {
+        _state.ReviewHideFrontOnReveal = value;
         _save();
     }
 

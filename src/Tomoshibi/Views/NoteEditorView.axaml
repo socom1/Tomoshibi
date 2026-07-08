@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tomoshibi.ViewModels"
+             xmlns:ctl="using:Tomoshibi.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="Tomoshibi.Views.NoteEditorView"
+             x:DataType="vm:NoteEditorViewModel">
+
+    <StackPanel Spacing="12">
+        <!-- type picker -->
+        <StackPanel Orientation="Horizontal" Spacing="6">
+            <Button Classes="seg" Content="basic" Command="{Binding SelectTypeCommand}"
+                    CommandParameter="basic" Classes.active="{Binding IsBasic}" />
+            <Button Classes="seg" Content="reversed" Command="{Binding SelectTypeCommand}"
+                    CommandParameter="reversed" Classes.active="{Binding IsReversed}" />
+            <Button Classes="seg" Content="cloze" Command="{Binding SelectTypeCommand}"
+                    CommandParameter="cloze" Classes.active="{Binding IsCloze}" />
+        </StackPanel>
+
+        <!-- fields -->
+        <StackPanel Spacing="4">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding Field0Label}" Classes="caption" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="icon" Width="30" Height="26" Padding="0"
+                        Tag="0" Click="OnInsertImage" ToolTip.Tip="insert image">
+                    <PathIcon Width="15" Height="15"
+                              Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+                </Button>
+            </Grid>
+            <TextBox Text="{Binding Field0}" AcceptsReturn="True" TextWrapping="Wrap"
+                     MinHeight="54" FontSize="14" Padding="10,6" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding Field1Label}" Classes="caption" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="icon" Width="30" Height="26" Padding="0"
+                        Tag="1" Click="OnInsertImage" ToolTip.Tip="insert image">
+                    <PathIcon Width="15" Height="15"
+                              Data="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+                </Button>
+            </Grid>
+            <TextBox Text="{Binding Field1}" AcceptsReturn="True" TextWrapping="Wrap"
+                     MinHeight="40" FontSize="14" Padding="10,6" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="tags (space separated)" Classes="caption" />
+            <TextBox Text="{Binding TagsText}" Watermark="e.g. midterm chapter3"
+                     FontSize="13" Padding="10,6" />
+        </StackPanel>
+
+        <!-- live preview -->
+        <Border Background="{DynamicResource InkBrush}" CornerRadius="8" Padding="14">
+            <StackPanel Spacing="8">
+                <TextBlock Text="// preview" Classes="jp" />
+                <ctl:CardContentRenderer Source="{Binding PreviewFrontSource}"
+                                         ClozeOrd="{Binding PreviewClozeOrd}"
+                                         Side="Front" ContentFontSize="16" />
+                <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,2" />
+                <ctl:CardContentRenderer Source="{Binding PreviewBackSource}"
+                                         ClozeOrd="{Binding PreviewClozeOrd}"
+                                         Side="Back" ContentFontSize="15" />
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

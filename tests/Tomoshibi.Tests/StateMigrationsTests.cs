@@ -132,4 +132,66 @@ public class StateMigrationsTests
         Assert.Equal(templateAfterFirst, state.TaskTemplate);
         Assert.Equal(ownedAfterFirst, state.OwnedThemeIds.Count);
     }
+
+    // ---- legacy flashcards → notes + FSRS cards ----
+
+    [Fact]
+    public void A_legacy_flashcard_becomes_a_basic_note_with_one_card()
+    {
+        var state = new AppState();
+        var deck = new Deck { Name = "kanji" };
+        deck.Cards.Add(new Flashcard { Front = "火", Back = "fire" });
+        state.Decks.Add(deck);
+
+        StateMigrations.Apply(state);
+
+        Assert.Empty(deck.Cards);
+        var note = Assert.Single(deck.Notes);
+        Assert.Equal(NoteType.Basic, note.Type);
+        Assert.Equal("火", note.Fields[0]);
+        Assert.Equal("fire", note.Fields[1]);
+        var card = Assert.Single(note.Cards);
+        Assert.Equal(CardState.New, card.State);
+    }
+
+    [Fact]
+    public void A_reviewed_legacy_card_maps_its_interval_and_ease_onto_fsrs()
+    {
+        var state = new AppState();
+        var deck = new Deck();
+        deck.Cards.Add(new Flashcard
+        {
+            Front = "q", Back = "a",
+            Interval = 12, Ease = 2.5, Reps = 4,
+            Due = new DateOnly(2026, 7, 20),
+            LastReviewed = new DateOnly(2026, 7, 8)
+        });
+        state.Decks.Add(deck);
+
+        StateMigrations.Apply(state);
+
+        var card = deck.Notes.Single().Cards.Single();
+        Assert.Equal(CardState.Review, card.State);
+        Assert.Equal(12, card.Stability); // interval → stability at r=0.9
+        Assert.Equal(5.0, card.Difficulty, 6); // ease 2.5 → mid difficulty
+        Assert.Equal(4, card.Reps);
+        Assert.Equal(new DateTime(2026, 7, 20), card.Due);
+    }
+
+    [Fact]
+    public void Flashcard_migration_is_idempotent()
+    {
+        var state = new AppState();
+        var deck = new Deck();
+        deck.Cards.Add(new Flashcard { Front = "q", Back = "a", Interval = 3, Reps = 1 });
+        state.Decks.Add(deck);
+
+        StateMigrations.Apply(state);
+        var notesAfterFirst = deck.Notes.Count;
+
+        StateMigrations.Apply(state);
+
+        Assert.Equal(notesAfterFirst, deck.Notes.Count);
+        Assert.Empty(deck.Cards);
+    }
 }

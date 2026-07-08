@@ -3,9 +3,10 @@ using System;
 namespace Tomoshibi.Models;
 
 /// <summary>
-/// One flashcard with SM-2-lite spaced-repetition scheduling. The card is
-/// "due" once <see cref="Due"/> is today or earlier; reviewing it pushes the
-/// date forward by a growing interval.
+/// Legacy flashcard from the pre-note schema (front/back text with SM-2-lite
+/// scheduling). Retained only so old state files still deserialise;
+/// <see cref="Services.StateMigrations"/> converts each into a Basic
+/// <see cref="Note"/> + <see cref="Card"/> on load. Not created by new code.
 /// </summary>
 public class Flashcard
 {

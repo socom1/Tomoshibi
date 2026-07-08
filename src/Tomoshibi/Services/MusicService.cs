@@ -1,28 +1,51 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
+using LibVLCSharp.Shared;
 
 namespace Tomoshibi.Services;
 
 /// <summary>
-/// Local-file playback by shelling out: afplay on macOS, mpv/ffplay on
-/// Linux when present. Pause/resume is SIGSTOP/SIGCONT on the player
-/// process — crude, dependency-free, and good enough for a lofi folder.
-/// Windows has no equivalent signal trick, so it reports unsupported
-/// until a real audio backend earns its place.
+/// Local-file playback. On macOS (afplay) and Linux with mpv/ffplay it shells
+/// out, pausing via SIGSTOP/SIGCONT — crude, dependency-free, good enough for a
+/// lofi folder. Everywhere else (notably Windows, and Linux without those
+/// players) it uses the shared libvlc backend, which finally gives Windows a
+/// working player.
 /// </summary>
 public class MusicService : IMusicService
 {
+    private readonly VlcMediaService? _vlc;
+
     private Process? _player;
     private bool _stopRequested;
 
+    // libvlc path
+    private MediaPlayer? _vlcPlayer;
+    private Media? _vlcMedia;
+
+    public MusicService(VlcMediaService? vlc = null) => _vlc = vlc;
+
     public event Action? TrackEnded;
 
-    public bool IsSupported => OperatingSystem.IsMacOS() ||
-                               (OperatingSystem.IsLinux() && FindLinuxPlayer() is not null);
+    /// <summary>Use libvlc when there's no native shell-out player for this OS
+    /// (Windows always; Linux without mpv/ffplay) and libvlc is available.</summary>
+    private bool UseVlc => !OperatingSystem.IsMacOS()
+                           && FindLinuxPlayer() is null
+                           && _vlc is { IsSupported: true };
+
+    public bool IsSupported => OperatingSystem.IsMacOS()
+                               || FindLinuxPlayer() is not null
+                               || _vlc is { IsSupported: true };
 
     public void Play(string path, double volume)
     {
+        if (UseVlc)
+        {
+            PlayVlc(path, volume);
+            return;
+        }
+
         Stop();
 
         if (!File.Exists(path))
@@ -84,11 +107,22 @@ public class MusicService : IMusicService
         }
     }
 
-    public void Pause() => Signal("-STOP");
-    public void Resume() => Signal("-CONT");
+    public void Pause()
+    {
+        if (UseVlc) { try { _vlcPlayer?.SetPause(true); } catch { } return; }
+        Signal("-STOP");
+    }
+
+    public void Resume()
+    {
+        if (UseVlc) { try { _vlcPlayer?.SetPause(false); } catch { } return; }
+        Signal("-CONT");
+    }
 
     public void Stop()
     {
+        if (UseVlc) { StopVlc(); return; }
+
         if (_player is null)
             return;
 
@@ -105,6 +139,48 @@ public class MusicService : IMusicService
             // Already gone is fine.
         }
         _player = null;
+    }
+
+    // ---- libvlc backend ----
+
+    private void PlayVlc(string path, double volume)
+    {
+        StopVlc();
+        if (!File.Exists(path)) return;
+
+        try
+        {
+            _vlcPlayer ??= _vlc!.CreatePlayer();
+            if (_vlcPlayer is null) return;
+
+            _vlcPlayer.EndReached -= OnVlcEndReached;
+            _vlcPlayer.EndReached += OnVlcEndReached;
+            _vlcPlayer.Volume = (int)Math.Clamp(volume, 0, 100);
+
+            _vlcMedia?.Dispose();
+            _vlcMedia = _vlc!.CreateMedia(path);
+            if (_vlcMedia is null) return;
+
+            _stopRequested = false;
+            _vlcPlayer.Play(_vlcMedia);
+        }
+        catch { /* best effort */ }
+    }
+
+    private void StopVlc()
+    {
+        _stopRequested = true;
+        try { _vlcPlayer?.Stop(); } catch { }
+        try { _vlcMedia?.Dispose(); } catch { }
+        _vlcMedia = null;
+    }
+
+    /// <summary>Fires on a libvlc thread — hop off it before advancing (calling
+    /// back into the player from its own callback can deadlock).</summary>
+    private void OnVlcEndReached(object? sender, EventArgs e)
+    {
+        if (_stopRequested) return;
+        Task.Run(() => TrackEnded?.Invoke());
     }
 
     private void Signal(string signal)
