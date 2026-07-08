@@ -50,16 +50,51 @@ public partial class MainWindow : Window
     }
 
     /// <summary>Tunnelling key handling: runs before the focused control, so an
-    /// inner control (a focused button, or the ScrollViewer the review card sits
-    /// in) can't eat the keys. Handles the keyboard-driven review session and
-    /// Space-to-toggle. Held back while typing or with a modal up.</summary>
+    /// inner control (a focused button, or the review card's ScrollViewer) can't
+    /// eat the keys. Drives the command palette, the ⌘ chords (also so a focused
+    /// TextBox can't swallow them on macOS) and the keyboard review session;
+    /// Space is held back while typing, with a modal up, or mid-review (where it
+    /// flips the card).</summary>
     private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
     {
         if (_vm is null || e.Handled)
             return;
 
+        // While the palette is up it owns the keyboard: arrows move the
+        // selection and Enter runs it no matter which control holds focus.
+        if (_vm.IsCommandPaletteOpen)
+        {
+            switch (e.Key)
+            {
+                case Key.Down:
+                    _vm.CommandPalette.Move(1); e.Handled = true; return;
+                case Key.Up:
+                    _vm.CommandPalette.Move(-1); e.Handled = true; return;
+                case Key.Enter:
+                    _vm.CommandPalette.RunSelected(); e.Handled = true; return;
+                case Key.Escape:
+                    _vm.CloseCommandPaletteCommand.Execute(null); e.Handled = true; return;
+            }
+        }
+
         var cmd = e.KeyModifiers.HasFlag(KeyModifiers.Meta) ||
                   e.KeyModifiers.HasFlag(KeyModifiers.Control);
+
+        // Cmd/Ctrl + K opens the command palette, from anywhere.
+        if (cmd && e.Key == Key.K)
+        {
+            _vm.OpenCommandPalette();
+            e.Handled = true;
+            return;
+        }
+
+        // Cmd/Ctrl + 1…8 jumps between destinations (Meta is Cmd on macOS).
+        if (cmd && e.Key is >= Key.D1 and <= Key.D8)
+        {
+            _vm.NavigateByIndex(e.Key - Key.D1 + 1);
+            e.Handled = true;
+            return;
+        }
 
         // Review sessions are keyboard-driven — claim the keys here so the
         // ScrollViewer/buttons around the card never intercept them first.
@@ -154,24 +189,11 @@ public partial class MainWindow : Window
         if (e.Handled || _vm is null)
             return;
 
+        // The palette and nav chords are claimed in the tunnel handler above;
+        // this only needs to know whether a modifier is down so review-session
+        // keys don't fire while chording.
         var cmd = e.KeyModifiers.HasFlag(KeyModifiers.Meta) ||
                   e.KeyModifiers.HasFlag(KeyModifiers.Control);
-
-        // Cmd/Ctrl + K opens the command palette.
-        if (cmd && e.Key == Key.K)
-        {
-            _vm.OpenCommandPalette();
-            e.Handled = true;
-            return;
-        }
-
-        // Cmd/Ctrl + 1…8 jumps between destinations (Meta is Cmd on macOS).
-        if (cmd && e.Key is >= Key.D1 and <= Key.D8)
-        {
-            _vm.NavigateByIndex(e.Key - Key.D1 + 1);
-            e.Handled = true;
-            return;
-        }
 
         // Esc backs out of the card browser / deck-options / deck detail.
         if (!cmd && e.Key == Key.Escape && _vm.ActiveDestination == Destination.Review
@@ -273,8 +295,11 @@ public partial class MainWindow : Window
         else if (e.PropertyName == nameof(MainWindowViewModel.IsCommandPaletteOpen)
                  && _vm?.IsCommandPaletteOpen == true)
         {
-            // Drop the cursor straight into the palette's search box.
-            this.FindControl<TextBox>("PaletteBox")?.Focus();
+            // Drop the cursor straight into the palette's search box — posted
+            // so it runs after the overlay has actually become visible, or
+            // the focus call silently loses the race and goes nowhere.
+            Dispatcher.UIThread.Post(() =>
+                this.FindControl<TextBox>("PaletteBox")?.Focus());
         }
     }
 

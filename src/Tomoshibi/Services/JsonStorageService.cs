@@ -67,6 +67,10 @@ public class JsonStorageService : IStorageService
 
     public void Save(AppState state)
     {
+        // The wallet travels with its seal — stamp whatever this write is
+        // about to persist, so a load can tell an app save from a hand edit.
+        EmberSeal.Apply(state);
+
         var json = JsonSerializer.Serialize(state, Options);
 
         // Never write over the live file in place: serialise to a temp file,

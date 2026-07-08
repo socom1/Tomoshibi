@@ -10,9 +10,11 @@ namespace Tomoshibi.Services;
 /// <summary>
 /// Desktop notifications, per platform: native toasts on Windows (via the
 /// notifications toolkit, which registers the app identity an unpackaged
-/// EXE otherwise lacks), and shelling out to what the other OSes provide —
-/// osascript on macOS, notify-send on Linux. The Windows path only exists
-/// in the Windows-flavoured build; see the csproj.
+/// EXE otherwise lacks), native UNUserNotificationCenter banners on macOS
+/// when running as a .app bundle (so they carry the app's own icon), and
+/// shelling out otherwise — osascript for unbundled macOS dev runs (those
+/// wear Script Editor's icon, the sender), notify-send on Linux. The
+/// Windows path only exists in the Windows-flavoured build; see the csproj.
 /// </summary>
 public class NotificationService : INotificationService
 {
@@ -28,8 +30,11 @@ public class NotificationService : INotificationService
 #else
             if (OperatingSystem.IsMacOS())
             {
-                var script = $"display notification \"{Escape(body)}\" with title \"{Escape(title)}\"";
-                Run("osascript", "-e", script);
+                if (!MacNotifications.TryNotify(title, body))
+                {
+                    var script = $"display notification \"{Escape(body)}\" with title \"{Escape(title)}\"";
+                    Run("osascript", "-e", script);
+                }
             }
             else if (OperatingSystem.IsLinux())
             {

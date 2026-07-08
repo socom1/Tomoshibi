@@ -672,6 +672,10 @@
                             Command="{Binding WelcomeStartFocusCommand}" />
                 </Grid>
 
+                <Button Classes="seg" Content="✦ new here? take the quick tour"
+                        HorizontalAlignment="Center"
+                        Command="{Binding OpenTourCommand}" />
+
                 <CheckBox IsChecked="{Binding ShowWelcomeOnLaunch}"
                           Content="greet me on launch" FontSize="12" />
             </StackPanel>
@@ -701,6 +705,95 @@
                            Foreground="{DynamicResource MutedTextBrush}" />
                 <Button Classes="accent" Content="got it" HorizontalAlignment="Right"
                         Command="{Binding CloseWhatsNewCommand}" />
+            </StackPanel>
+        </Border>
+    </Border>
+
+    <!-- The tour: a four-page primer over the whole shell. Static content;
+         the pages teach the things nobody discovers alone (tasks-as-code,
+         the palette, the keyboard). Reachable from welcome, settings and
+         the palette itself. -->
+    <Border Classes="modal-backdrop"
+            IsVisible="{Binding IsTourOpen}"
+            Classes.open="{Binding IsTourOpen}"
+            Background="#A0000000">
+        <Border Classes="card modal-card" Width="560" Padding="30"
+                HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Spacing="16">
+
+                <!-- Page 1 · the rooms -->
+                <StackPanel Spacing="12" IsVisible="{Binding IsTourPage0}" MinHeight="240">
+                    <TextBlock Text="灯火 · a quick tour" Classes="jp" />
+                    <TextBlock Text="案内 · the rooms" Classes="h1 cjk" />
+                    <StackPanel Spacing="8" Margin="0,6,0,0">
+                        <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22"
+                                   Foreground="{DynamicResource MutedTextBrush}"
+                                   Text="›  dashboard — the morning glance: intention, momentum, what's due&#x0a;›  today — the pomodoro timer and the day's plan, side by side&#x0a;›  timetable · todo · subjects — classes, coursework tickets and grades&#x0a;›  stats · review — the record: streaks, the journal, flashcards" />
+                        <TextBlock Text="everything stays on your machine, in one json file"
+                                   Classes="caption" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Page 2 · tasks as code -->
+                <StackPanel Spacing="12" IsVisible="{Binding IsTourPage1}" MinHeight="240">
+                    <TextBlock Text="灯火 · a quick tour" Classes="jp" />
+                    <TextBlock Text="コード · tasks as code" Classes="h1 cjk" />
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22"
+                               Foreground="{DynamicResource MutedTextBrush}"
+                               Text="today's plan is a tiny program. click a task and it drives the timer." />
+                    <Border Background="{DynamicResource InkBrush}" CornerRadius="6" Padding="14,10">
+                        <TextBlock FontFamily="{DynamicResource MonoFont}" FontSize="13" LineHeight="22"
+                                   Text="// linear algebra — problem set 5&#x0a;study: 25&#x0a;course: MATH201" />
+                    </Border>
+                    <TextBlock TextWrapping="Wrap" Classes="caption"
+                               Text="// titles a task · study: sets the minutes · done ticks it off — or skip the code and use the form, same thing" />
+                </StackPanel>
+
+                <!-- Page 3 · the keyboard -->
+                <StackPanel Spacing="12" IsVisible="{Binding IsTourPage2}" MinHeight="240">
+                    <TextBlock Text="灯火 · a quick tour" Classes="jp" />
+                    <TextBlock Text="鍵盤 · the keyboard" Classes="h1 cjk" />
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="24"
+                               Foreground="{DynamicResource MutedTextBrush}">
+                        <Run Text="›  " /><Run Text="{Binding PaletteChordLabel, Mode=OneWay}" Foreground="{DynamicResource MatchaBrush}" /><Run Text=" — the command palette: jump anywhere, run anything" />
+                        <LineBreak />
+                        <Run Text="›  space — start / pause the timer  ·  z — zen mode" />
+                        <LineBreak />
+                        <Run Text="›  1 · 2 · 3 — grade cards during a review session" />
+                        <LineBreak />
+                        <Run Text="›  " /><Run Text="{Binding GlobalChordLabel, Mode=OneWay}" Foreground="{DynamicResource MatchaBrush}" /><Run Text=" — start / pause from any app, even from the tray" />
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- Page 4 · embers & the streak -->
+                <StackPanel Spacing="12" IsVisible="{Binding IsTourPage3}" MinHeight="240">
+                    <TextBlock Text="灯火 · a quick tour" Classes="jp" />
+                    <TextBlock Text="火種 · embers &amp; the streak" Classes="h1 cjk" />
+                    <TextBlock TextWrapping="Wrap" FontSize="13" LineHeight="22"
+                               Foreground="{DynamicResource MutedTextBrush}"
+                               Text="›  focusing earns 火種 embers — spend them on colour themes in the shop&#x0a;›  set an intention each morning, mark it kept, reflect in the evening&#x0a;›  the streak counts the days you showed up — the calendar keeps score&#x0a;›  the getting-started checklist on the dashboard pays a few embers to start" />
+                    <TextBlock Text="that's the whole idea. keep a small light on."
+                               Classes="caption" />
+                </StackPanel>
+
+                <!-- Footer: back · dots · next/done -->
+                <Grid ColumnDefinitions="80,*,80" Margin="0,4,0,0">
+                    <Button Grid.Column="0" Classes="seg" Content="← back"
+                            HorizontalAlignment="Left"
+                            IsVisible="{Binding !IsTourPage0}"
+                            Command="{Binding PrevTourPageCommand}" />
+                    <TextBlock Grid.Column="1" Text="{Binding TourDots}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Classes="caption" />
+                    <Button Grid.Column="2" Classes="accent" Content="next →"
+                            HorizontalAlignment="Right"
+                            IsVisible="{Binding !IsTourLastPage}"
+                            Command="{Binding NextTourPageCommand}" />
+                    <Button Grid.Column="2" Classes="accent" Content="start"
+                            HorizontalAlignment="Right"
+                            IsVisible="{Binding IsTourLastPage}"
+                            Command="{Binding NextTourPageCommand}" />
+                </Grid>
             </StackPanel>
         </Border>
     </Border>

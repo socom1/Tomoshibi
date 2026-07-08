@@ -94,6 +94,16 @@
                 <TextBlock Text="{Binding VerifiedLabel}" Classes="comment"
                            Foreground="{DynamicResource MatchaBrush}"
                            Margin="14,2,0,0" />
+
+                <!-- Only appears when the launch check found a newer release -->
+                <StackPanel Margin="14,8,0,0" Spacing="6"
+                            IsVisible="{Binding UpdateAvailable, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="{Binding UpdateAvailable}" Classes="comment"
+                               Foreground="{DynamicResource MatchaBrush}"
+                               TextWrapping="Wrap" />
+                    <Button Classes="seg" Content="open releases"
+                            Click="OnOpenReleases" HorizontalAlignment="Left" />
+                </StackPanel>
             </StackPanel>
 
             <!-- ===================== Detail pane ===================== -->
@@ -151,6 +161,21 @@
                                       Content="keep running in the tray when the window closes" />
                             <TextBlock Text="# with this off, closing the window quits the app (and the timer)"
                                        Classes="comment" />
+                            <CheckBox IsChecked="{Binding GlobalHotkeyEnabled}"
+                                      IsEnabled="{Binding HotkeySupported}"
+                                      Content="global start/pause hotkey" />
+                            <TextBlock Text="{Binding HotkeyHint}" Classes="comment" />
+                            <TextBlock Text="{Binding HotkeyStatus}" Classes="comment"
+                                       Foreground="{DynamicResource AmberBrush}"
+                                       IsVisible="{Binding HotkeyStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            <CheckBox IsChecked="{Binding UpdateCheckEnabled}"
+                                      Content="check for updates on launch" />
+                            <TextBlock Text="# one quiet ask of github for the latest version number — nothing about you rides along · off keeps tomoshibi fully offline"
+                                       Classes="comment" />
+                            <Button Classes="seg" Content="show the tour"
+                                    HorizontalAlignment="Left" Margin="0,4,0,0"
+                                    Command="{Binding ShowTourCommand}"
+                                    ToolTip.Tip="the four-page primer from first launch" />
                             <TextBlock Text="# themes live in the shop now"
                                        Classes="comment" />
                         </StackPanel>
@@ -298,7 +323,24 @@
                                 <Button Classes="seg" Content="backup (.json)"
                                         Click="OnBackup"
                                         ToolTip.Tip="save a full copy of your data — loads straight back" />
+                                <Button Classes="seg" Content="restore…"
+                                        ToolTip.Tip="read a backup file back in — replaces everything">
+                                    <Button.Flyout>
+                                        <Flyout Placement="Bottom">
+                                            <StackPanel Spacing="10" MaxWidth="280">
+                                                <TextBlock Text="restore replaces everything with the backup file, then restarts the app. your current data is overwritten."
+                                                           Classes="caption" TextWrapping="Wrap" />
+                                                <Button Classes="accent" Content="choose backup file…"
+                                                        HorizontalAlignment="Left"
+                                                        Click="OnRestoreBackup" />
+                                            </StackPanel>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                </Button>
                             </StackPanel>
+                            <TextBlock Text="{Binding RestoreStatus}" Classes="comment"
+                                       Foreground="{DynamicResource AmberBrush}"
+                                       IsVisible="{Binding RestoreStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                             <TextBlock Text="# saved atomically on every change, with a .bak of the last good state — corrupt files recover automatically"
                                        Classes="comment" />
 

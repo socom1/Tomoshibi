@@ -79,10 +79,71 @@ public partial class MainWindowViewModel : ViewModelBase
     public string WhatsNewBody => ReleaseNotes.Body;
     public string AppVersionTag => ReleaseNotes.VersionTag;
 
+    // ---- The tour: a four-page primer, reachable from the welcome modal,
+    // ---- settings and the palette. Static content, shell-level overlay.
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CloseTourCommand))]
+    private bool _isTourOpen;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsTourPage0))]
+    [NotifyPropertyChangedFor(nameof(IsTourPage1))]
+    [NotifyPropertyChangedFor(nameof(IsTourPage2))]
+    [NotifyPropertyChangedFor(nameof(IsTourPage3))]
+    [NotifyPropertyChangedFor(nameof(IsTourLastPage))]
+    [NotifyPropertyChangedFor(nameof(TourDots))]
+    private int _tourPage;
+
+    private const int TourPageCount = 4;
+
+    public bool IsTourPage0 => TourPage == 0;
+    public bool IsTourPage1 => TourPage == 1;
+    public bool IsTourPage2 => TourPage == 2;
+    public bool IsTourPage3 => TourPage == 3;
+    public bool IsTourLastPage => TourPage == TourPageCount - 1;
+
+    public string TourDots => string.Join("  ",
+        Enumerable.Range(0, TourPageCount).Select(i => i == TourPage ? "●" : "○"));
+
+    /// <summary>The palette chord as this OS writes it — ⌘K on a mac.</summary>
+    public string PaletteChordLabel => OperatingSystem.IsMacOS() ? "⌘K" : "ctrl+K";
+
+    /// <summary>The global start/pause chord, same idea.</summary>
+    public string GlobalChordLabel => OperatingSystem.IsMacOS() ? "⌃⌥P" : "ctrl+alt+P";
+
+    [RelayCommand]
+    private void OpenTour()
+    {
+        IsWelcomeOpen = false; // the tour takes the stage from the greeting
+        TourPage = 0;
+        IsTourOpen = true;
+    }
+
+    [RelayCommand(CanExecute = nameof(IsTourOpen))]
+    private void CloseTour() => IsTourOpen = false;
+
+    /// <summary>Advance a page; the last page's button closes instead.</summary>
+    [RelayCommand]
+    private void NextTourPage()
+    {
+        if (IsTourLastPage)
+            IsTourOpen = false;
+        else
+            TourPage++;
+    }
+
+    [RelayCommand]
+    private void PrevTourPage()
+    {
+        if (TourPage > 0)
+            TourPage--;
+    }
+
     /// <summary>True while any modal overlay is up — global key shortcuts (like
     /// space-to-toggle) stand down so a dialog keeps the stage.</summary>
     public bool AnyModalOpen =>
-        IsCommandPaletteOpen || IsWelcomeOpen || IsWhatsNewOpen
+        IsCommandPaletteOpen || IsWelcomeOpen || IsWhatsNewOpen || IsTourOpen
         || Today.Tasks.IsAddTaskModalOpen
         || Todo.IsModalOpen
         || Subjects.IsModalOpen
@@ -190,15 +251,24 @@ public partial class MainWindowViewModel : ViewModelBase
         Music = new MusicPlayerViewModel(_state, Save, new MusicService(_mediaPlayback));
         SettingsPage = new SettingsPageViewModel(_state, Save, settings, Music, Subjects,
                                                  storage.Location);
+        SettingsPage.RestoreHandler = RestoreAndRestart;
+        SettingsPage.TourHandler = OpenTour;
         Dashboard = new DashboardViewModel(_state, Save, Today, Todo, Subjects, Review,
             openSubject: s => { Subjects.OpenDetail(s); ActiveDestination = Destination.Subjects; },
             goToday: () => ActiveDestination = Destination.Today,
             goReview: () => { ActiveDestination = Destination.Review; Review.ReviewAllCommand.Execute(null); },
             openUrl: OpenUrl,
             navigate: d => ActiveDestination = d,
-            wallet: Wallet);
+            wallet: Wallet,
+            openPalette: OpenCommandPalette);
 
-        CommandPalette = new CommandPaletteViewModel(() => IsCommandPaletteOpen = false);
+        CommandPalette = new CommandPaletteViewModel(
+            () => IsCommandPaletteOpen = false,
+            recordUse: item =>
+            {
+                PaletteFrecency.Record(_state.PaletteUsage, item.UsageKey, DateTimeOffset.Now);
+                Save();
+            });
 
         _showWelcomeOnLaunch = _state.ShowWelcome;
         _isWelcomeOpen = _state.ShowWelcome;
@@ -221,6 +291,69 @@ public partial class MainWindowViewModel : ViewModelBase
 
         CheckReminders();
         Save();
+
+        if (_state.UpdateCheckEnabled)
+            _ = AnnounceUpdateAsync();
+    }
+
+    /// <summary>The launch-time update check: ask GitHub for the latest tag
+    /// and, if it's newer than this build, surface it on the settings page —
+    /// plus one notification per version, so an update never nags twice.</summary>
+    private async System.Threading.Tasks.Task AnnounceUpdateAsync()
+    {
+        var tag = await UpdateCheck.FetchLatestTagAsync();
+        if (tag is null || !UpdateCheck.IsNewer(ReleaseNotes.Version, tag))
+            return;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            SettingsPage.UpdateAvailable = $"{tag} is out — the releases page has it";
+
+            if (_state.UpdateNotifiedFor != tag)
+            {
+                _state.UpdateNotifiedFor = tag;
+                new NotificationService().Notify("update available",
+                    $"tomoshibi {tag} is out — grab it from the releases page");
+                Save();
+            }
+        });
+    }
+
+    // ---- Global hotkey ----
+
+    private IGlobalHotkeyService? _hotkey;
+
+    /// <summary>Hand the shell the platform hotkey service once the window
+    /// exists (the Windows one needs its handle). Claims the chord straight
+    /// away when the setting is on.</summary>
+    public void AttachHotkey(IGlobalHotkeyService hotkey)
+    {
+        _hotkey = hotkey;
+        SettingsPage.InitHotkey(hotkey, ApplyHotkey);
+
+        if (_state.GlobalHotkeyEnabled && hotkey.IsSupported)
+            ApplyHotkey(true);
+    }
+
+    /// <summary>Claim or release the chord as the settings toggle flips. A
+    /// failed claim (another app holds it) surfaces on the settings page
+    /// rather than erroring — the app works fine without it.</summary>
+    private void ApplyHotkey(bool enabled)
+    {
+        if (_hotkey is null || !_hotkey.IsSupported)
+            return;
+
+        if (!enabled)
+        {
+            _hotkey.Unregister();
+            SettingsPage.HotkeyStatus = string.Empty;
+            return;
+        }
+
+        var claimed = _hotkey.Register(() => Today.Pomodoro.ToggleRunCommand.Execute(null));
+        SettingsPage.HotkeyStatus = claimed
+            ? string.Empty
+            : "couldn't claim the chord — another app may be holding it";
     }
 
     /// <summary>Fire any due deadline/exam reminders and persist the fired-keys
@@ -301,13 +434,27 @@ public partial class MainWindowViewModel : ViewModelBase
         ActiveDestination = NavOrder[oneBased - 1];
     }
 
-    /// <summary>Open the command palette with a fresh candidate list.</summary>
+    /// <summary>Open the command palette with a fresh candidate list, each
+    /// row stamped with its frecency warmth for the ranking.</summary>
     public void OpenCommandPalette()
     {
         if (IsZenMode)
             return;
-        CommandPalette.Load(BuildCommands());
+
+        var commands = BuildCommands();
+        var now = DateTimeOffset.Now;
+        foreach (var item in commands)
+            item.SortHint = PaletteFrecency.Score(_state.PaletteUsage, item.UsageKey, now);
+
+        CommandPalette.Load(commands);
         IsCommandPaletteOpen = true;
+
+        // The first open completes a first-run checklist step.
+        if (!_state.PaletteOpenedOnce)
+        {
+            _state.PaletteOpenedOnce = true;
+            Save();
+        }
     }
 
     [RelayCommand(CanExecute = nameof(CanCloseCommandPalette))]
@@ -346,6 +493,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         Action("start / pause timer", () => Today.Pomodoro.ToggleRunCommand.Execute(null));
         Action("zen mode", () => IsZenMode = true);
+        Action("take the tour", OpenTour);
         Action("new task", () =>
         {
             ActiveDestination = Destination.Today;
@@ -371,6 +519,26 @@ public partial class MainWindowViewModel : ViewModelBase
             ActiveDestination = Destination.Review;
             Review.OpenBrowserCommand.Execute(null);
         });
+        Action("play / pause music", () => Music.PlayPauseCommand.Execute(null));
+
+        // Only while there's an intention to keep — the list is rebuilt on
+        // every open, so this appears and disappears with the day.
+        if (Today.CanKeepIntention)
+            Action("mark today's intention kept", () => Today.KeepIntentionCommand.Execute(null));
+
+        // Owned themes switch directly; the rest still live in the shop.
+        foreach (var theme in Shop.Themes)
+        {
+            if (!theme.IsOwned || theme.IsActive)
+                continue;
+            var captured = theme;
+            items.Add(new PaletteItemViewModel
+            {
+                Title = $"theme · {theme.En}",
+                Kind = "theme",
+                Run = () => Shop.ActivateCommand.Execute(captured)
+            });
+        }
 
         foreach (var subject in Subjects.Items)
         {
@@ -612,8 +780,34 @@ public partial class MainWindowViewModel : ViewModelBase
     // nothing is lost.
     private DispatcherTimer? _saveTimer;
 
+    /// <summary>Set once a restore has written the new state to disk — from
+    /// then on the in-memory state is the old world and must not be saved
+    /// over it, including by the exit flush.</summary>
+    private bool _suppressSaves;
+
+    /// <summary>Swap the whole state for a restored backup: write it to disk,
+    /// stop the old world from saving over it, and relaunch so every view
+    /// model rebuilds from the restored file — the same path as any launch.</summary>
+    private void RestoreAndRestart(AppState restored)
+    {
+        _suppressSaves = true;
+        _saveTimer?.Stop();
+        _storage.Save(restored);
+
+        if (Environment.ProcessPath is { } exe)
+            System.Diagnostics.Process.Start(
+                new System.Diagnostics.ProcessStartInfo(exe) { UseShellExecute = true });
+
+        if (Avalonia.Application.Current?.ApplicationLifetime
+            is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            desktop.Shutdown();
+    }
+
     private void Save()
     {
+        if (_suppressSaves)
+            return;
+
         _saveTimer ??= CreateSaveTimer();
         _saveTimer.Stop();
         _saveTimer.Start();
@@ -634,6 +828,9 @@ public partial class MainWindowViewModel : ViewModelBase
     /// and app exit so a debounced edit never dies with the process.</summary>
     public void FlushSave()
     {
+        if (_suppressSaves)
+            return;
+
         if (_saveTimer?.IsEnabled == true)
             _saveTimer.Stop();
         _storage.Save(_state);

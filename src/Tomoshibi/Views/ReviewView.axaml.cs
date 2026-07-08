@@ -15,6 +15,8 @@ public partial class ReviewView : UserControl
         InitializeComponent();
     }
 
+    private ReviewViewModel? Vm => DataContext as ReviewViewModel;
+
     /// <summary>Export the current deck's notes to a CSV file.</summary>
     private async void OnExportCsv(object? sender, RoutedEventArgs e)
     {
@@ -86,5 +88,77 @@ public partial class ReviewView : UserControl
         var path = files.FirstOrDefault()?.TryGetLocalPath();
         if (!string.IsNullOrEmpty(path))
             review.OpenApkgImport(path);
+    }
+
+    /// <summary>Import an Anki text/TSV export as a brand-new deck.</summary>
+    private async void OnImportDeckClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is not { } vm)
+            return;
+
+        var top = TopLevel.GetTopLevel(this);
+        if (top is null)
+            return;
+
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "import a deck (Anki text export)",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("text deck") { Patterns = new[] { "*.txt", "*.tsv" } }
+            }
+        });
+
+        if (files.Count == 0)
+            return;
+
+        await using var stream = await files[0].OpenReadAsync();
+
+        // Same guard as the .ics import: a deck export is small; refuse
+        // anything absurd rather than reading an unbounded file into memory.
+        const long maxBytes = 5 * 1024 * 1024;
+        if (stream.CanSeek && stream.Length > maxBytes)
+        {
+            vm.ImportSummary = "that file is too large to import";
+            return;
+        }
+
+        using var reader = new StreamReader(stream);
+        var text = await reader.ReadToEndAsync();
+
+        vm.ImportDeck(Path.GetFileNameWithoutExtension(files[0].Name), text);
+    }
+
+    /// <summary>Export the open deck as Anki-importable text.</summary>
+    private async void OnExportDeckClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is not { SelectedDeck: { } deck } vm)
+            return;
+
+        var top = TopLevel.GetTopLevel(this);
+        if (top is null)
+            return;
+
+        var safeName = string.Join("_", deck.Name.Split(Path.GetInvalidFileNameChars()));
+        if (string.IsNullOrWhiteSpace(safeName))
+            safeName = "deck";
+
+        var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "export deck",
+            SuggestedFileName = $"{safeName}.txt",
+            FileTypeChoices = new[]
+            {
+                new FilePickerFileType("text deck") { Patterns = new[] { "*.txt" } }
+            }
+        });
+
+        if (file is null)
+            return;
+
+        await using var stream = await file.OpenWriteAsync();
+        await using var writer = new StreamWriter(stream);
+        await writer.WriteAsync(vm.BuildDeckTsv(deck));
     }
 }

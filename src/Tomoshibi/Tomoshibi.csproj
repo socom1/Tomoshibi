@@ -9,6 +9,8 @@
     <TargetFramework Condition="!$([MSBuild]::IsOSPlatform('Windows'))">net8.0</TargetFramework>
     <TargetFramework Condition="$([MSBuild]::IsOSPlatform('Windows'))">net8.0-windows10.0.17763.0</TargetFramework>
     <SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</SupportedOSPlatformVersion>
+    <!-- Keep in step with ReleaseNotes.Version — stamps the EXE metadata. -->
+    <Version>2.0.0</Version>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
