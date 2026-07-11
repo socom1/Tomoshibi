@@ -103,10 +103,13 @@ public partial class SubjectViewModel : ViewModelBase
 
     // ---- Progressive disclosure: the planning tools collapse by default ----
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PlanningToggleLabel))]
+    [NotifyPropertyChangedFor(nameof(PlanningChevron))]
     private bool _showPlanning;
 
-    public string PlanningToggleLabel => (ShowPlanning ? "▾  " : "▸  ") + "計画 · planning · what-if & outlook";
+    /// <summary>The toggle's fold glyph. Kept out of the label string: the
+    /// label renders in the CJK family (for the kanji/Latin baseline) which
+    /// lacks ▸/▾, so the glyph gets its own default-font TextBlock.</summary>
+    public string PlanningChevron => ShowPlanning ? "▾" : "▸";
 
     [RelayCommand]
     private void TogglePlanning() => ShowPlanning = !ShowPlanning;

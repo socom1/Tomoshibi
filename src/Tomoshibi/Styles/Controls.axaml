@@ -695,8 +695,45 @@
     <Style Selector="Button.seg:pointerover">
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
     </Style>
+    <!-- A seg label carried by an explicit .jp TextBlock (the mixed-script
+         disclosure toggles) pins its own muted foreground — brighten it on
+         hover like the plain-string labels. -->
+    <Style Selector="Button.seg:pointerover TextBlock.jp,
+                     Button.seg:pointerover TextBlock.chev">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    </Style>
+
+    <!-- Fold chevron (▸/▾) beside a .jp label. Its own TextBlock on the
+         default mono stack — the CJK family lacks the glyph and its fallback
+         rides high off the baseline — centered on the row geometrically so
+         the font's baseline no longer matters. -->
+    <Style Selector="TextBlock.chev">
+        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
     <Style Selector="Button.seg.active">
         <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    </Style>
+
+    <!-- Term-group header on the subjects list: a flat full-width fold
+         (chevron · header ── rule ── average). Hover just brightens the
+         label — no fill, so it reads as a heading, not a row. -->
+    <Style Selector="Button.termhead">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="2,6" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.termhead:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.termhead:pointerover TextBlock.jp,
+                     Button.termhead:pointerover TextBlock.chev">
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
     </Style>
 

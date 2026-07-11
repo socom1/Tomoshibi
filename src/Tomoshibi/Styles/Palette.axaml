@@ -56,4 +56,12 @@
     <CornerRadius x:Key="CardRadius">14</CornerRadius>
     <Thickness x:Key="CardPadding">22</Thickness>
 
+    <!-- Every destination's content column caps at this one width. 960 at the
+         13px mono ≈ 120 character columns — a wide terminal window, which is
+         the look the app is going for. One token so the pages can't drift
+         apart again (they'd crept to 640/760/820/860). The review card's
+         reading surface deliberately stays narrower — comfortable reading
+         width is a feature there. -->
+    <x:Double x:Key="PageMaxWidth">960</x:Double>
+
 </ResourceDictionary>

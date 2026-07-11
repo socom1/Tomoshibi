@@ -16,7 +16,7 @@
     <Grid>
 
     <!-- ================= Master: subjects by term ================= -->
-    <Grid RowDefinitions="Auto,*" Margin="28,4,28,28" MaxWidth="760"
+    <Grid RowDefinitions="Auto,*" Margin="28,4,28,28" MaxWidth="{StaticResource PageMaxWidth}"
           IsVisible="{Binding !IsDetailOpen}">
 
         <!-- Page header -->
@@ -31,16 +31,22 @@
                            IsVisible="{Binding GpaCaption, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             </StackPanel>
 
+            <!-- One shared height and a common centre line, so the picker,
+                 the text button and the accent pill read as one row. -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
                         VerticalAlignment="Top">
                 <ComboBox ItemsSource="{Binding ScaleOptions}"
                           SelectedItem="{Binding SelectedScale}"
-                          MinWidth="130" Padding="10,6"
+                          MinWidth="130" Height="34" Padding="10,6"
+                          VerticalAlignment="Center" VerticalContentAlignment="Center"
                           ToolTip.Tip="grading scale — grades are always entered as percentages" />
                 <Button Classes="seg" Content="export"
+                        VerticalAlignment="Center"
                         Click="OnExportClick"
                         ToolTip.Tip="save a markdown transcript" />
                 <Button Classes="accent" Content="+ new"
+                        Height="34" Padding="18,0"
+                        VerticalAlignment="Center" VerticalContentAlignment="Center"
                         Command="{Binding OpenAddCommand}" />
             </StackPanel>
         </Grid>
@@ -48,75 +54,87 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="4">
 
-                <!-- Overall grade goal — one compact line up top -->
+                <!-- Overview: the goal line up top; insights and the degree
+                     projection fold behind a disclosure so the subjects stay
+                     above the fold — they're the page. -->
                 <Border Classes="card" Margin="0,0,0,12" Padding="18,12"
                         IsVisible="{Binding HasGoalPlan}">
-                    <Grid ColumnDefinitions="Auto,Auto,Auto,*">
-                        <TextBlock Grid.Column="0" Text="// 目標 · goal" Classes="jp"
-                                   VerticalAlignment="Center" />
-                        <NumericUpDown Grid.Column="1" Value="{Binding OverallGoal}"
-                                       Minimum="0" Maximum="100" Increment="1" FormatString="0.#"
-                                       Width="84" Margin="14,0,0,0" FontSize="13" Padding="8,4"
-                                       HorizontalContentAlignment="Center"
-                                       VerticalContentAlignment="Center" />
-                        <Border Grid.Column="2" Classes="tag" Margin="8,0,0,0" VerticalAlignment="Center"
-                                IsVisible="{Binding GoalLetter, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                            <TextBlock Text="{Binding GoalLetter}" />
-                        </Border>
-                        <TextBlock Grid.Column="3" Text="{Binding GoalResult}"
-                                   VerticalAlignment="Center" Margin="16,0,0,0"
-                                   TextWrapping="Wrap" FontSize="13"
-                                   Classes="grade"
-                                   Classes.ggood="{Binding IsGoalGood}"
-                                   Classes.gwarn="{Binding IsGoalWarn}"
-                                   Classes.gbad="{Binding IsGoalBad}" />
-                    </Grid>
-                </Border>
+                    <StackPanel Spacing="12">
+                        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+                            <TextBlock Grid.Column="0" Text="// 目標 · goal" Classes="jp"
+                                       VerticalAlignment="Center" />
+                            <NumericUpDown Grid.Column="1" Value="{Binding OverallGoal}"
+                                           Minimum="0" Maximum="100" Increment="1" FormatString="0.#"
+                                           Width="84" Margin="14,0,0,0" FontSize="13" Padding="8,4"
+                                           HorizontalContentAlignment="Center"
+                                           VerticalContentAlignment="Center" />
+                            <Border Grid.Column="2" Classes="tag" Margin="8,0,0,0" VerticalAlignment="Center"
+                                    IsVisible="{Binding GoalLetter, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                <TextBlock Text="{Binding GoalLetter}" />
+                            </Border>
+                            <TextBlock Grid.Column="3" Text="{Binding GoalResult}"
+                                       VerticalAlignment="Center" Margin="16,0"
+                                       TextWrapping="Wrap" FontSize="13"
+                                       Classes="grade"
+                                       Classes.ggood="{Binding IsGoalGood}"
+                                       Classes.gwarn="{Binding IsGoalWarn}"
+                                       Classes.gbad="{Binding IsGoalBad}" />
+                            <!-- The label mixes kanji and Latin — an explicit .jp
+                                 TextBlock keeps both on one baseline (the mono
+                                 stack splits them across fonts). The chevron gets
+                                 its own .chev block: the CJK family lacks it. -->
+                            <Button Grid.Column="4" Classes="seg" VerticalAlignment="Center"
+                                    Command="{Binding ToggleAnalyticsCommand}"
+                                    IsVisible="{Binding HasAnalytics}">
+                                <StackPanel Orientation="Horizontal" Spacing="7">
+                                    <TextBlock Classes="chev" Text="{Binding AnalyticsChevron}" />
+                                    <TextBlock Classes="jp" Text="見立て · insights &amp; degree" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
 
-                <!-- Insights -->
-                <Border Classes="card" Margin="0,0,0,12"
-                        IsVisible="{Binding HasInsights}">
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="// 見立て · insights" Classes="jp" />
-                        <ItemsControl ItemsSource="{Binding Insights}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:GradeInsightViewModel">
-                                    <TextBlock Text="{Binding Text}" FontSize="13"
-                                               Margin="0,2,0,0" TextWrapping="Wrap"
-                                               Classes="grade"
-                                               Classes.ggood="{Binding IsGood}"
-                                               Classes.gwarn="{Binding IsWarn}"
-                                               Classes.gbad="{Binding IsBad}" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
+                        <StackPanel Spacing="14" IsVisible="{Binding ShowAnalytics}">
+                            <!-- Insights -->
+                            <StackPanel Spacing="6" IsVisible="{Binding HasInsights}">
+                                <TextBlock Text="// 見立て · insights" Classes="jp" />
+                                <ItemsControl ItemsSource="{Binding Insights}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:GradeInsightViewModel">
+                                            <TextBlock Text="{Binding Text}" FontSize="13"
+                                                       Margin="0,2,0,0" TextWrapping="Wrap"
+                                                       Classes="grade"
+                                                       Classes.ggood="{Binding IsGood}"
+                                                       Classes.gwarn="{Binding IsWarn}"
+                                                       Classes.gbad="{Binding IsBad}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
 
-                <!-- Degree projection -->
-                <Border Classes="card" Margin="0,0,0,12"
-                        IsVisible="{Binding HasDegreeProjection}">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="// 学位 · degree" Classes="jp" />
-                        <TextBlock Text="{Binding DegreeLabel}" FontSize="18" FontWeight="SemiBold" />
-                        <TextBlock Text="{Binding DegreeCaption}" Classes="caption" />
-                        <ItemsControl ItemsSource="{Binding YearWeights}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:YearWeightViewModel">
-                                    <Grid ColumnDefinitions="80,80,*,110" Margin="0,4,0,0">
-                                        <TextBlock Grid.Column="0" Text="{Binding YearLabel}"
-                                                   Classes="caption" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1" Text="{Binding AverageLabel}"
-                                                   VerticalAlignment="Center" FontSize="13" />
-                                        <NumericUpDown Grid.Column="3" Value="{Binding Weight}"
-                                                       Watermark="weight %"
-                                                       Minimum="0" Maximum="100" FormatString="0.#"
-                                                       FontSize="13" Padding="10,5"
-                                                       ToolTip.Tip="how much this year counts toward the degree" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                            <!-- Degree projection -->
+                            <StackPanel Spacing="8" IsVisible="{Binding HasDegreeProjection}">
+                                <TextBlock Text="// 学位 · degree" Classes="jp" />
+                                <TextBlock Text="{Binding DegreeLabel}" FontSize="18" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding DegreeCaption}" Classes="caption" />
+                                <ItemsControl ItemsSource="{Binding YearWeights}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:YearWeightViewModel">
+                                            <Grid ColumnDefinitions="80,80,*,110" Margin="0,4,0,0">
+                                                <TextBlock Grid.Column="0" Text="{Binding YearLabel}"
+                                                           Classes="caption" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="1" Text="{Binding AverageLabel}"
+                                                           VerticalAlignment="Center" FontSize="13" />
+                                                <NumericUpDown Grid.Column="3" Value="{Binding Weight}"
+                                                               Watermark="weight %"
+                                                               Minimum="0" Maximum="100" FormatString="0.#"
+                                                               FontSize="13" Padding="10,5"
+                                                               ToolTip.Tip="how much this year counts toward the degree" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 
@@ -126,14 +144,25 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:TermGroupViewModel">
                             <StackPanel>
-                                <Grid ColumnDefinitions="*,Auto" Margin="2,8,2,8"
-                                      IsVisible="{Binding Header, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                                    <TextBlock Text="{Binding Header}" Classes="jp" />
-                                    <TextBlock Grid.Column="1" Text="{Binding AverageLabel}"
-                                               Classes="caption" IsVisible="{Binding HasAverage}" />
-                                </Grid>
+                                <!-- The term header is the fold: click to open or
+                                     tuck a whole semester away. -->
+                                <Button Classes="termhead" Margin="0,4,0,8"
+                                        Command="{Binding ToggleCommand}"
+                                        IsVisible="{Binding Header, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="{Binding Chevron}" Classes="chev" />
+                                            <TextBlock Text="{Binding Header}" Classes="jp" />
+                                        </StackPanel>
+                                        <Border Grid.Column="1" Classes="rule" />
+                                        <TextBlock Grid.Column="2" Text="{Binding SummaryLabel}"
+                                                   Classes="caption" Margin="12,0,0,0"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
 
-                                <ItemsControl ItemsSource="{Binding Items}">
+                                <ItemsControl ItemsSource="{Binding Items}"
+                                              IsVisible="{Binding IsExpanded}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="vm:SubjectViewModel">
                                             <!-- One scan line per subject: name + muted metadata on the
@@ -223,7 +252,7 @@
 
     <!-- ================= Detail: one subject ================= -->
     <ScrollViewer IsVisible="{Binding IsDetailOpen}" VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="16" Margin="28,4,28,28" MaxWidth="760">
+        <StackPanel Spacing="16" Margin="28,4,28,28" MaxWidth="{StaticResource PageMaxWidth}">
             <StackPanel Spacing="16" DataContext="{Binding SelectedSubject}"
                         x:DataType="vm:SubjectViewModel">
 
@@ -341,11 +370,16 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Planning tools collapse by default to keep the page calm -->
+                <!-- Planning tools collapse by default to keep the page calm.
+                     Same mixed-script treatment as the insights toggle. -->
                 <Button Classes="seg" HorizontalAlignment="Left"
                         IsVisible="{Binding HasCalc}"
-                        Content="{Binding PlanningToggleLabel}"
-                        Command="{Binding TogglePlanningCommand}" />
+                        Command="{Binding TogglePlanningCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="7">
+                        <TextBlock Classes="chev" Text="{Binding PlanningChevron}" />
+                        <TextBlock Classes="jp" Text="計画 · planning · what-if &amp; outlook" />
+                    </StackPanel>
+                </Button>
 
                 <StackPanel Spacing="16" IsVisible="{Binding ShowPlanning}">
 
