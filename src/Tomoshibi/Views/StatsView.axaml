@@ -7,7 +7,7 @@
              x:Class="Tomoshibi.Views.StatsView"
              x:DataType="vm:StatsViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="28,4,28,28" MaxWidth="640">
+    <Grid RowDefinitions="Auto,Auto,*" Margin="28,4,28,28" MaxWidth="{StaticResource PageMaxWidth}">
 
         <!-- Page header -->
         <StackPanel Grid.Row="0" Spacing="3" Margin="0,0,0,16">

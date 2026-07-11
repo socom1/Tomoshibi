@@ -10,7 +10,7 @@ namespace Tomoshibi;
 /// </summary>
 public static class ReleaseNotes
 {
-    public const string Version = "2.1.0";
+    public const string Version = "2.1.1";
 
     public static string VersionTag => $"v{Version}";
 
@@ -22,11 +22,11 @@ public static class ReleaseNotes
 
     private static readonly string[] Lines =
     {
-        "a full spaced-repetition system — FSRS scheduling, four grades and learning steps",
-        "images, audio and video on cards, cloze deletions, and image occlusion",
-        "a searchable card browser with bulk actions, per-deck options, suspend and bury",
-        "review heatmap and true-retention stats, plus .apkg import of your Anki decks",
-        "every deck gets its own Material icon and accent colour",
+        "subjects, redesigned — calm two-line cards with a standing-tinted edge and grades that line up",
+        "edit and delete appear only while you hover a card; chips no longer vanish under the pointer",
+        "insights and the degree projection fold under the goal line — subjects stay above the fold",
+        "past semesters fold to their header; click a term to open its archive",
+        "every page shares one wider column now, so the app breathes on big screens",
     };
 
     /// <summary>The notes as one bulleted block for the modal.</summary>
