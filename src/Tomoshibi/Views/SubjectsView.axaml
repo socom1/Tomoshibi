@@ -136,59 +136,68 @@
                                 <ItemsControl ItemsSource="{Binding Items}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="vm:SubjectViewModel">
-                                            <Border Classes="card subjcard" Margin="0,0,0,12" Padding="18,14"
+                                            <!-- One scan line per subject: name + muted metadata on the
+                                                 left, the standing flush right so grades line up down the
+                                                 page. Status lives in the tinted left edge; edit/✕ appear
+                                                 on hover only. -->
+                                            <Border Classes="card subjcard" Margin="0,0,0,10" Padding="0"
+                                                    Classes.ggood="{Binding IsStandingGood}"
+                                                    Classes.gwarn="{Binding IsStandingWarn}"
+                                                    Classes.gbad="{Binding IsStandingBad}"
                                                     PointerPressed="OnCardPressed">
-                                                <StackPanel Spacing="10">
-                                                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
-                                                    <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
-                                                                   TextWrapping="Wrap" />
-                                                        <TextBlock Text="{Binding StandingCaption}" Classes="caption"
-                                                                   IsVisible="{Binding StandingCaption, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                                                    </StackPanel>
-                                                    <Border Grid.Column="1" Classes="tag" Margin="8,0,0,0"
-                                                            IsVisible="{Binding HasCode}">
-                                                        <TextBlock Text="{Binding Code}" Foreground="{Binding Code, Converter={StaticResource CourseColor}}" />
-                                                    </Border>
-                                                    <Border Grid.Column="2" Classes="tag prio" Margin="6,0,0,0"
-                                                            Classes.high="{Binding IsTargetAtRisk}"
-                                                            IsVisible="{Binding HasTarget}">
-                                                        <TextBlock Text="{Binding TargetChip}" />
-                                                    </Border>
-                                                    <TextBlock Grid.Column="3" Text="{Binding CreditsLabel}"
-                                                               Classes="caption" Margin="8,0,0,0"
-                                                               VerticalAlignment="Center" />
-                                                    <TextBlock Grid.Column="4" Text="{Binding GradeLabel}"
-                                                               Margin="14,0,0,0" VerticalAlignment="Center"
-                                                               Classes="grade"
-                                                               Classes.ggood="{Binding IsStandingGood}"
-                                                               Classes.gwarn="{Binding IsStandingWarn}"
-                                                               Classes.gbad="{Binding IsStandingBad}"
-                                                               FontWeight="SemiBold" FontSize="16" />
-                                                    <Border Grid.Column="5" Classes="tag" Margin="6,0,0,0"
-                                                            IsVisible="{Binding HasGrade}">
-                                                        <TextBlock Text="{Binding LetterLabel}" />
-                                                    </Border>
-                                                    <Button Grid.Column="6" Content="✎" Classes="icon" Margin="8,0,0,0"
-                                                            ToolTip.Tip="edit subject"
-                                                            Click="OnEditClick" />
-                                                    <Button Grid.Column="7" Content="✕" Classes="icon"
-                                                            ToolTip.Tip="delete subject"
-                                                            Command="{Binding $parent[UserControl].((vm:SubjectsViewModel)DataContext).RemoveCommand}"
-                                                            CommandParameter="{Binding}" />
-                                                </Grid>
+                                                <Grid RowDefinitions="*,Auto">
+                                                    <Grid Grid.Row="0" Margin="18,13" ColumnDefinitions="*,Auto,Auto">
+                                                        <StackPanel Grid.Column="0" Spacing="3" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                                       TextWrapping="Wrap" />
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Classes="caption" Text="{Binding Code}"
+                                                                           Foreground="{Binding Code, Converter={StaticResource CourseColor}}"
+                                                                           IsVisible="{Binding HasCode}" />
+                                                                <TextBlock Classes="caption" Text=" · "
+                                                                           IsVisible="{Binding HasCode}" />
+                                                                <TextBlock Classes="caption" Text="{Binding CreditsLabel}" />
+                                                                <TextBlock Classes="caption" Text=" · "
+                                                                           IsVisible="{Binding HasTarget}" />
+                                                                <TextBlock Classes="caption" Text="{Binding TargetChip}"
+                                                                           Classes.overest="{Binding IsTargetAtRisk}"
+                                                                           IsVisible="{Binding HasTarget}" />
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="1" Classes="cardactions"
+                                                                    Orientation="Horizontal" Spacing="2"
+                                                                    VerticalAlignment="Center" Margin="8,0">
+                                                            <Button Classes="icon" Content="✎"
+                                                                    ToolTip.Tip="edit subject"
+                                                                    Click="OnEditClick" />
+                                                            <Button Classes="icon" Content="✕"
+                                                                    ToolTip.Tip="delete subject"
+                                                                    Command="{Binding $parent[UserControl].((vm:SubjectsViewModel)DataContext).RemoveCommand}"
+                                                                    CommandParameter="{Binding}" />
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" MinWidth="68">
+                                                            <TextBlock Text="{Binding GradeLabel}" TextAlignment="Right"
+                                                                       FontWeight="SemiBold" FontSize="17"
+                                                                       Classes="grade"
+                                                                       Classes.ggood="{Binding IsStandingGood}"
+                                                                       Classes.gwarn="{Binding IsStandingWarn}"
+                                                                       Classes.gbad="{Binding IsStandingBad}" />
+                                                            <TextBlock Text="{Binding LetterLabel}" TextAlignment="Right"
+                                                                       Classes="caption"
+                                                                       IsVisible="{Binding HasGrade}" />
+                                                        </StackPanel>
+                                                    </Grid>
 
-                                                <!-- How much of the module has results -->
-                                                <Grid ColumnDefinitions="*,Auto"
-                                                      IsVisible="{Binding HasAssessments}">
-                                                    <ProgressBar Value="{Binding GradedShare}" Minimum="0" Maximum="1"
-                                                                 Height="3" MinHeight="0"
-                                                                 Foreground="{DynamicResource BlueBrush}"
-                                                                 Background="{DynamicResource SurfaceHoverBrush}" />
-                                                    <TextBlock Grid.Column="1" Text="{Binding GradedShareCaption}"
-                                                               Classes="caption" Margin="10,0,0,0" FontSize="10" />
+                                                    <!-- How much of the module has results — the card's
+                                                         bottom edge; the words live in its tooltip. -->
+                                                    <ProgressBar Grid.Row="1" Value="{Binding GradedShare}"
+                                                                 Minimum="0" Maximum="1"
+                                                                 Height="2" MinHeight="0"
+                                                                 Foreground="{DynamicResource MutedTextBrush}"
+                                                                 Background="{DynamicResource InkBrush}"
+                                                                 ToolTip.Tip="{Binding GradedShareCaption}"
+                                                                 IsVisible="{Binding HasAssessments}" />
                                                 </Grid>
-                                                </StackPanel>
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>

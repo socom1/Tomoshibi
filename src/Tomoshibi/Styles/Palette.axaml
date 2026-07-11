@@ -8,6 +8,10 @@
     <Color x:Key="SurfaceColor">#1F2335</Color>
     <Color x:Key="SurfaceHoverColor">#2A2E42</Color>
     <Color x:Key="BorderColor">#2A2E42</Color>
+    <!-- Chip fill sits a step above the hover surface so tags keep their
+         shape on a hovered card — with the old SurfaceHover fill they melted
+         into the row the moment the pointer arrived. -->
+    <Color x:Key="ChipColor">#3B4261</Color>
     <Color x:Key="MatchaColor">#9ECE6A</Color>
     <Color x:Key="MatchaDeepColor">#8DBD59</Color>
     <Color x:Key="SakuraColor">#F7768E</Color>
@@ -25,6 +29,7 @@
     <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
     <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{StaticResource SurfaceHoverColor}" />
     <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="ChipBrush" Color="{StaticResource ChipColor}" />
     <SolidColorBrush x:Key="MatchaBrush" Color="{StaticResource MatchaColor}" />
     <SolidColorBrush x:Key="MatchaDeepBrush" Color="{StaticResource MatchaDeepColor}" />
     <SolidColorBrush x:Key="SakuraBrush" Color="{StaticResource SakuraColor}" />
