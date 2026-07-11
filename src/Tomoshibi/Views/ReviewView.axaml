@@ -38,7 +38,7 @@
 
         <!-- Master: deck list -->
         <ScrollViewer IsVisible="{Binding !IsDeckOpen}" VerticalScrollBarVisibility="Auto">
-            <StackPanel Spacing="14" Margin="28,4,28,28" MaxWidth="760">
+            <StackPanel Spacing="14" Margin="28,4,28,28" MaxWidth="{StaticResource PageMaxWidth}">
 
                 <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,4">
                     <StackPanel Spacing="3">
@@ -151,7 +151,7 @@
 
         <!-- Detail: deck editor -->
         <ScrollViewer IsVisible="{Binding IsDeckOpen}" VerticalScrollBarVisibility="Auto">
-            <StackPanel Spacing="16" Margin="28,4,28,28" MaxWidth="760">
+            <StackPanel Spacing="16" Margin="28,4,28,28" MaxWidth="{StaticResource PageMaxWidth}">
 
                 <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                     <Button Grid.Column="0" Classes="icon" Content="←" FontSize="18"

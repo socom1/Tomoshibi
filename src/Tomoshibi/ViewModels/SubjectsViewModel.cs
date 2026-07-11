@@ -66,6 +66,26 @@ public partial class SubjectsViewModel : ViewModelBase
     [ObservableProperty] private string _gpaLabel = "no grades yet";
     [ObservableProperty] private string _gpaCaption = string.Empty;
 
+    // ---- Overview disclosure: insights + degree fold under the goal line ----
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AnalyticsChevron))]
+    private bool _showAnalytics;
+
+    /// <summary>True when there's anything behind the disclosure — the
+    /// insights read and/or the degree projection.</summary>
+    [ObservableProperty] private bool _hasAnalytics;
+
+    /// <summary>The toggle's fold glyph — its own TextBlock, same reasoning
+    /// as <see cref="SubjectViewModel.PlanningChevron"/>.</summary>
+    public string AnalyticsChevron => ShowAnalytics ? "▾" : "▸";
+
+    [RelayCommand]
+    private void ToggleAnalytics() => ShowAnalytics = !ShowAnalytics;
+
+    /// <summary>Which terms the user has open, by (year, semester) — groups
+    /// are rebuilt from scratch on every change, so the folds live here.</summary>
+    private readonly Dictionary<(int Year, int Semester), bool> _termExpanded = new();
+
     // ---- Overall grade-goal planner ----
     [ObservableProperty] private decimal? _overallGoal;
     [ObservableProperty] private bool _hasGoalPlan;
@@ -495,6 +515,7 @@ public partial class SubjectsViewModel : ViewModelBase
         RecomputeDegree();
         RebuildInsights();
         RecomputeGoalPlan();
+        HasAnalytics = HasInsights || HasDegreeProjection;
     }
 
     partial void OnOverallGoalChanged(decimal? value)
@@ -539,12 +560,15 @@ public partial class SubjectsViewModel : ViewModelBase
 
         void Tone(bool good, bool warn) { IsGoalGood = good; IsGoalWarn = warn; IsGoalBad = !good && !warn; }
 
+        // One clause, no echo of the goal (it's in the input box beside this
+        // line) and no focus-on-X hint — the insights' "watch" line already
+        // names the subject to lean on.
         if (remaining <= 0.01)
         {
             var hit = current >= target;
             GoalResult = hit
-                ? $"done — everything's graded and you finished at {current:0.#}%, at or above {target:0.#}%"
-                : $"everything's graded at {current:0.#}% — {target:0.#}% isn't reachable now";
+                ? $"done — everything's graded and you finished at {current:0.#}%"
+                : $"everything's graded at {current:0.#}% — the goal isn't reachable now";
             Tone(hit, false);
             return;
         }
@@ -552,59 +576,20 @@ public partial class SubjectsViewModel : ViewModelBase
         var need = (target * total - gradedPoints) / remaining;
         if (need <= 0)
         {
-            GoalResult = $"on track — you're at {current:0.#}%, already at or above {target:0.#}%";
+            GoalResult = $"on track — you're at {current:0.#}%";
             Tone(true, false);
         }
         else if (need > 100)
         {
             var best = (gradedPoints + remaining * 100) / total;
             GoalResult = $"out of reach — the best you can finish is {best:0.#}%";
-            if (FocusHint() is { } hint)
-                GoalResult += $" · {hint}";
             Tone(false, false);
         }
         else
         {
-            GoalResult = $"you're at {current:0.#}% — need avg {need:0.#}% across the rest to reach {target:0.#}%";
-            if (FocusHint() is { } hint)
-                GoalResult += $" · {hint}";
+            GoalResult = $"you're at {current:0.#}% — need avg {need:0.#}% on the rest";
             Tone(need <= 70, need <= 88);
         }
-    }
-
-    /// <summary>Which subject to lean on to close the gap to the overall goal:
-    /// one that still has ungraded weight to play for, weakest first (furthest
-    /// below its own target, else the lowest standing, else most left to win).
-    /// Null when nothing's left to push on.</summary>
-    private string? FocusHint()
-    {
-        var improvable = Items
-            .Where(s => s.TotalWeightPct - s.GradedWeightPct > 0.01)
-            .ToList();
-        if (improvable.Count == 0)
-            return null;
-
-        var below = improvable
-            .Where(s => s.Model.TargetPercent is { } t && s.CurrentPercent is { } c && c < t)
-            .OrderByDescending(s => s.Model.TargetPercent!.Value - s.CurrentPercent!.Value)
-            .FirstOrDefault();
-        if (below is not null)
-        {
-            var gap = below.Model.TargetPercent!.Value - below.CurrentPercent!.Value;
-            return $"focus on {below.Name} — {gap:0.#}% below its target";
-        }
-
-        var lowest = improvable
-            .Where(s => s.CurrentPercent is not null)
-            .OrderBy(s => s.CurrentPercent)
-            .FirstOrDefault();
-        if (lowest is not null)
-            return $"focus on {lowest.Name} — your lowest at {lowest.CurrentPercent:0.#}%";
-
-        var lever = improvable
-            .OrderByDescending(s => s.TotalWeightPct - s.GradedWeightPct)
-            .First();
-        return $"focus on {lever.Name} — most still to play for";
     }
 
     /// <summary>The "how's the term going" read: strongest subject, the one
@@ -684,11 +669,17 @@ public partial class SubjectsViewModel : ViewModelBase
                 ? string.Empty
                 : $"year {term.Key.Year} · semester {term.Key.Semester}";
 
-            var group = new TermGroupViewModel
+            // Only the newest term starts open — older semesters are archive
+            // and fold to their header row until the user asks for them.
+            var key = term.Key;
+            var group = new TermGroupViewModel(open => _termExpanded[key] = open)
             {
                 Header = header,
                 AverageLabel = avgLabel,
-                HasAverage = avgLabel.Length > 0
+                HasAverage = avgLabel.Length > 0,
+                IsExpanded = _termExpanded.TryGetValue(key, out var open)
+                    ? open
+                    : key == byTerm[^1].Key
             };
             foreach (var row in term)
                 group.Items.Add(row);

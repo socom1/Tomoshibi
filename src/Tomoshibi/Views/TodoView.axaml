@@ -10,7 +10,7 @@
 
     <Grid>
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="28,4,28,28" MaxWidth="860">
+    <Grid RowDefinitions="Auto,Auto,*" Margin="28,4,28,28" MaxWidth="{StaticResource PageMaxWidth}">
 
         <!-- Page header -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
