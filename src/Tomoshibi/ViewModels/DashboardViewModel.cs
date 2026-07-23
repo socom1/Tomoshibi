@@ -22,7 +22,6 @@ public partial class DashboardViewModel : ViewModelBase
     private readonly Action<SubjectViewModel> _openSubject;
     private readonly Action _goToday;
     private readonly Action _goReview;
-    private readonly Action<string> _openUrl;
     private readonly Action<Destination> _navigate;
     private readonly Action _openPalette;
     private readonly WalletViewModel _wallet;
@@ -35,7 +34,6 @@ public partial class DashboardViewModel : ViewModelBase
     public ReviewViewModel Review { get; }
 
     public ObservableCollection<WeakSpotViewModel> WeakSpots { get; } = new();
-    public ObservableCollection<StudyLinkViewModel> Links { get; } = new();
     public ObservableCollection<AgendaDayViewModel> Agenda { get; } = new();
 
     [ObservableProperty] private string _dateLabel = string.Empty;
@@ -44,7 +42,6 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty] private bool _hasWeakSpots;
     [ObservableProperty] private string _weakSpotsCaption = string.Empty;
     [ObservableProperty] private bool _hasAgenda;
-    [ObservableProperty] private bool _hasLinks;
 
     // ---- Daily focus goal ----
     /// <summary>The editable target in minutes; writes through to state and
@@ -61,15 +58,11 @@ public partial class DashboardViewModel : ViewModelBase
     /// <summary>Shown until the checklist is complete or skipped.</summary>
     [ObservableProperty] private bool _showGettingStarted;
 
-    // ---- New-link form ----
-    [ObservableProperty] private string _newLinkTitle = string.Empty;
-    [ObservableProperty] private string _newLinkUrl = string.Empty;
-
     public DashboardViewModel(AppState state, Action save,
                               TodayViewModel today, TodoViewModel todo, SubjectsViewModel subjects,
                               ReviewViewModel review,
                               Action<SubjectViewModel> openSubject, Action goToday,
-                              Action goReview, Action<string> openUrl,
+                              Action goReview,
                               Action<Destination> navigate, WalletViewModel wallet,
                               Action openPalette)
     {
@@ -82,14 +75,9 @@ public partial class DashboardViewModel : ViewModelBase
         _openSubject = openSubject;
         _goToday = goToday;
         _goReview = goReview;
-        _openUrl = openUrl;
         _navigate = navigate;
         _wallet = wallet;
         _openPalette = openPalette;
-
-        foreach (var link in _state.StudyLinks)
-            Links.Add(WrapLink(link));
-        HasLinks = Links.Count > 0;
 
         _focusGoalMinutes = _state.FocusGoalMinutes;
 
@@ -377,35 +365,4 @@ public partial class DashboardViewModel : ViewModelBase
         _goToday();
     }
 
-    [RelayCommand]
-    private void AddLink()
-    {
-        var url = NewLinkUrl?.Trim();
-        if (string.IsNullOrWhiteSpace(url))
-            return;
-
-        // Be forgiving — a bare youtube.com/… still opens fine once schemed.
-        if (!url.Contains("://"))
-            url = "https://" + url;
-
-        var link = new StudyLink { Title = NewLinkTitle?.Trim() ?? string.Empty, Url = url };
-        _state.StudyLinks.Add(link);
-        Links.Add(WrapLink(link));
-        HasLinks = true;
-
-        NewLinkTitle = string.Empty;
-        NewLinkUrl = string.Empty;
-        _save();
-    }
-
-    private StudyLinkViewModel WrapLink(StudyLink link) =>
-        new(link, l => _openUrl(l.Url), RemoveLink);
-
-    private void RemoveLink(StudyLinkViewModel row)
-    {
-        _state.StudyLinks.Remove(row.Model);
-        Links.Remove(row);
-        HasLinks = Links.Count > 0;
-        _save();
-    }
 }
