@@ -10,7 +10,7 @@ namespace Tomoshibi;
 /// </summary>
 public static class ReleaseNotes
 {
-    public const string Version = "2.1.1";
+    public const string Version = "2.1.2";
 
     public static string VersionTag => $"v{Version}";
 
@@ -22,11 +22,11 @@ public static class ReleaseNotes
 
     private static readonly string[] Lines =
     {
-        "subjects, redesigned — calm two-line cards with a standing-tinted edge and grades that line up",
-        "edit and delete appear only while you hover a card; chips no longer vanish under the pointer",
-        "insights and the degree projection fold under the goal line — subjects stay above the fold",
-        "past semesters fold to their header; click a term to open its archive",
-        "every page shares one wider column now, so the app breathes on big screens",
+        "the review card frames its prompt at the top and answer at the bottom instead of floating them",
+        "opening a deck, a card or a subject now eases in and out instead of snapping",
+        "the dashboard fills a wide screen in two columns; the timetable grid stretches to match",
+        "tag chips follow the theme — no more dark chips in the light palette",
+        "the pomodoro header icons line up, and the little study-videos list is gone",
     };
 
     /// <summary>The notes as one bulleted block for the modal.</summary>
