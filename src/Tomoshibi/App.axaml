@@ -17,6 +17,7 @@
             </ResourceDictionary.MergedDictionaries>
             <conv:CourseColorConverter x:Key="CourseColor" />
             <conv:LowercaseConverter x:Key="Lower" />
+            <conv:ZoneWidthConverter x:Key="ZoneWidth" />
         </ResourceDictionary>
     </Application.Resources>
 

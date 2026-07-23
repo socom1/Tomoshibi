@@ -16,8 +16,11 @@
     <Grid>
 
     <!-- ================= Master: subjects by term ================= -->
+    <!-- Master and detail ease in the same way the review pages do, so opening
+         and closing a subject animates both ways. -->
     <Grid RowDefinitions="Auto,*" Margin="28,4,28,28" MaxWidth="{StaticResource PageMaxWidth}"
-          IsVisible="{Binding !IsDetailOpen}">
+          IsVisible="{Binding !IsDetailOpen}"
+          Classes.editorReveal="{Binding !IsDetailOpen}">
 
         <!-- Page header -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
@@ -251,7 +254,8 @@
     </Grid>
 
     <!-- ================= Detail: one subject ================= -->
-    <ScrollViewer IsVisible="{Binding IsDetailOpen}" VerticalScrollBarVisibility="Auto">
+    <ScrollViewer IsVisible="{Binding IsDetailOpen}" VerticalScrollBarVisibility="Auto"
+                  Classes.editorReveal="{Binding IsDetailOpen}">
         <StackPanel Spacing="16" Margin="28,4,28,28" MaxWidth="{StaticResource PageMaxWidth}">
             <StackPanel Spacing="16" DataContext="{Binding SelectedSubject}"
                         x:DataType="vm:SubjectViewModel">

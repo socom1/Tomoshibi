@@ -29,6 +29,9 @@
                 </Animation>
             </Style.Animations>
         </Style>
+
+        <!-- The note-editor / deck-open / return eases use the shared
+             editorReveal animation from Controls.axaml. -->
     </UserControl.Styles>
 
     <Grid>
@@ -37,7 +40,10 @@
     <Grid IsVisible="{Binding ShowDeckArea}">
 
         <!-- Master: deck list -->
-        <ScrollViewer IsVisible="{Binding !IsDeckOpen}" VerticalScrollBarVisibility="Auto">
+        <!-- Landing back on the deck list eases in too, so leaving a deck
+             reads as a transition rather than a hard cut. -->
+        <ScrollViewer IsVisible="{Binding !IsDeckOpen}" VerticalScrollBarVisibility="Auto"
+                      Classes.editorReveal="{Binding !IsDeckOpen}">
             <StackPanel Spacing="14" Margin="28,4,28,28" MaxWidth="{StaticResource PageMaxWidth}">
 
                 <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,4">
@@ -149,8 +155,9 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Detail: deck editor -->
-        <ScrollViewer IsVisible="{Binding IsDeckOpen}" VerticalScrollBarVisibility="Auto">
+        <!-- Detail: deck editor — eases in the same way the note editor does. -->
+        <ScrollViewer IsVisible="{Binding IsDeckOpen}" VerticalScrollBarVisibility="Auto"
+                      Classes.editorReveal="{Binding IsDeckOpen}">
             <StackPanel Spacing="16" Margin="28,4,28,28" MaxWidth="{StaticResource PageMaxWidth}">
 
                 <Grid ColumnDefinitions="Auto,*,Auto,Auto">
@@ -226,8 +233,9 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Note list -->
-                    <Border Classes="card" IsVisible="{Binding !IsEditingNote}">
+                    <!-- Note list — eases back in when you finish editing. -->
+                    <Border Classes="card" IsVisible="{Binding !IsEditingNote}"
+                            Classes.editorReveal="{Binding !IsEditingNote}">
                         <StackPanel Spacing="10">
                             <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
                                 <TextBlock Text="// ノート · notes" Classes="jp" VerticalAlignment="Center" />
@@ -284,6 +292,7 @@
 
                     <!-- Note editor -->
                     <Border Classes="card"
+                            Classes.editorReveal="{Binding #DeckDetailRoot.((vm:DeckViewModel)DataContext).IsEditingNote}"
                             IsVisible="{Binding #DeckDetailRoot.((vm:DeckViewModel)DataContext).IsEditingNote}">
                         <StackPanel Spacing="12">
                             <Grid ColumnDefinitions="*,Auto">
@@ -322,18 +331,23 @@
             </StackPanel>
         </Grid>
 
-        <!-- The card: terminal Q/A, left-aligned with // markers. Scrolls when
-             tall (e.g. an image on both faces) so it can't overflow the row. -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled"
-                      IsVisible="{Binding !IsSessionDone}">
-            <Border Classes="card" Margin="0,16,0,16" Padding="40,36"
-                    VerticalAlignment="Center" HorizontalAlignment="Center"
-                    MinWidth="520" MinHeight="340" MaxWidth="680">
-                <StackPanel Spacing="16" VerticalAlignment="Center">
-
-                    <!-- Image-occlusion card: image + masks (flips face on reveal) -->
-                    <StackPanel Spacing="12" IsVisible="{Binding IsOcclusionCard}">
+        <!-- The card: a bounded panel, centered. The text face pins the prompt
+             to the top and the answer to the bottom with the rule between them,
+             so the card's height frames the Q/A instead of leaving them adrift
+             in the middle. Sat directly in the row (not a ScrollViewer) so the
+             * middle row has a real height to expand into — a surrounding
+             scroll viewer measures with infinite height and collapses it. -->
+        <Border Grid.Row="1" Classes="card" Margin="0,16" Padding="44,36"
+                VerticalAlignment="Center" HorizontalAlignment="Center"
+                MinWidth="560" MaxWidth="860" MinHeight="380" MaxHeight="620"
+                IsVisible="{Binding !IsSessionDone}">
+            <Grid>
+                <!-- Image-occlusion card: image + masks (flips face on reveal).
+                     Centered, with its own scroll for a tall image. -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              IsVisible="{Binding IsOcclusionCard}">
+                    <StackPanel Spacing="12" VerticalAlignment="Center">
                         <ctl:CardContentRenderer Source="{Binding CardFrontSource}"
                                                  Side="Front" ContentFontSize="18" />
                         <ctl:OcclusionView Note="{Binding CurrentNote}"
@@ -345,27 +359,35 @@
                                                      Side="Back" ContentFontSize="16" />
                         </StackPanel>
                     </StackPanel>
+                </ScrollViewer>
 
-                    <!-- Text / cloze / media card -->
-                    <StackPanel Spacing="14" IsVisible="{Binding !IsOcclusionCard}">
+                <!-- Text / cloze / media card: prompt top, answer bottom -->
+                <Grid RowDefinitions="Auto,*,Auto" IsVisible="{Binding !IsOcclusionCard}">
+                    <StackPanel Grid.Row="0" Spacing="14" VerticalAlignment="Top">
                         <TextBlock Text="// 問 · prompt" Classes="jp" IsVisible="{Binding ShowFront}" />
                         <ctl:CardContentRenderer Source="{Binding CardFrontSource}"
                                                  ClozeOrd="{Binding CardClozeOrd}"
                                                  Side="Front" ContentFontSize="20"
                                                  IsVisible="{Binding ShowFront}" />
-                        <StackPanel Spacing="14" IsVisible="{Binding IsFlipped}"
-                                    Classes.answerReveal="{Binding IsFlipped}">
-                            <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,4"
-                                    IsVisible="{Binding ShowDivider}" />
-                            <TextBlock Text="// 答 · answer" Classes="jp" />
-                            <ctl:CardContentRenderer Source="{Binding CardBackSource}"
-                                                     ClozeOrd="{Binding CardClozeOrd}"
-                                                     Side="Back" ContentFontSize="17" />
-                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
-            </Border>
-        </ScrollViewer>
+
+                    <!-- The rule that divides prompt from answer, floating in the
+                         gap between them. -->
+                    <Border Grid.Row="1" Height="1" VerticalAlignment="Center"
+                            Background="{DynamicResource BorderBrush}" Margin="0,20"
+                            IsVisible="{Binding ShowDivider}" />
+
+                    <StackPanel Grid.Row="2" Spacing="14" VerticalAlignment="Bottom"
+                                IsVisible="{Binding IsFlipped}"
+                                Classes.answerReveal="{Binding IsFlipped}">
+                        <TextBlock Text="// 答 · answer" Classes="jp" />
+                        <ctl:CardContentRenderer Source="{Binding CardBackSource}"
+                                                 ClozeOrd="{Binding CardClozeOrd}"
+                                                 Side="Back" ContentFontSize="17" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
 
         <!-- Done state -->
         <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
@@ -519,6 +541,7 @@
 
             <!-- note editor overlay -->
             <ScrollViewer Grid.Row="0" Grid.RowSpan="4" VerticalScrollBarVisibility="Auto"
+                          Classes.editorReveal="{Binding IsEditing}"
                           IsVisible="{Binding IsEditing}">
                 <StackPanel Spacing="12" MaxWidth="620">
                     <Grid ColumnDefinitions="*,Auto">

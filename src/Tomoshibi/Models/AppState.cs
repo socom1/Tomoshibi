@@ -128,9 +128,6 @@ public class AppState
     public List<TodoItem> Todos { get; set; } = new();
     public int NextTodoNumber { get; set; } = 1;
 
-    // Study video links (opened in the browser)
-    public List<StudyLink> StudyLinks { get; set; } = new();
-
     // Music player
     public bool MusicEnabled { get; set; } = true;
     public bool MusicAutoplay { get; set; }

@@ -64,4 +64,10 @@
          width is a feature there. -->
     <x:Double x:Key="PageMaxWidth">960</x:Double>
 
+    <!-- Wider cap for the grid/dashboard pages — the ones whose content (a
+         week grid, a two-column dashboard) genuinely uses horizontal space,
+         rather than lines of text to read. They widen to fill a laptop and
+         fall back to a single column below the breakpoint in the layout. -->
+    <x:Double x:Key="WidePageMaxWidth">1400</x:Double>
+
 </ResourceDictionary>

@@ -14,7 +14,9 @@
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="28,4,28,28">
-        <StackPanel MaxWidth="{StaticResource PageMaxWidth}">
+        <!-- Wide-capable: the week grid uses the extra width to give each day
+             column real room on a big screen. -->
+        <StackPanel MaxWidth="{StaticResource WidePageMaxWidth}">
 
             <!-- The whole schedule lives in one flat terminal panel -->
             <Border Classes="termpanel">

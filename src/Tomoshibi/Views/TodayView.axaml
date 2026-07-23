@@ -3,6 +3,7 @@
              xmlns:vm="using:Tomoshibi.ViewModels"
              xmlns:m="using:Tomoshibi.Models"
              xmlns:conv="using:Tomoshibi.Converters"
+             xmlns:materialIcons="using:Material.Icons.Avalonia"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
@@ -16,18 +17,26 @@
     <Grid RowDefinitions="Auto,*" Margin="28,4,28,28">
 
         <!-- Page header -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,20">
-            <StackPanel Grid.Column="0" Spacing="2">
-                <TextBlock Text="ポモドーロ · Pomodoro" Classes="jp" />
-            </StackPanel>
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,20">
+            <TextBlock Grid.Column="0" Text="ポモドーロ · Pomodoro" Classes="jp"
+                       VerticalAlignment="Center" />
 
-            <Button Grid.Column="1" Classes="icon" Content="⛶" FontSize="20"
-                    VerticalAlignment="Top" Margin="0,0,4,0"
-                    Command="{Binding ToggleZenCommand}"
-                    ToolTip.Tip="集中 · zen" />
+            <!-- Zen + settings: vector Material icons (not text glyphs) so both
+                 sit on a common centre — two symbol glyphs put their ink at
+                 different heights in the line box and never line up. -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                        VerticalAlignment="Center">
+                <Button Classes="icon" Width="34" Height="30" Padding="0"
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                        Command="{Binding ToggleZenCommand}"
+                        ToolTip.Tip="集中 · zen">
+                    <materialIcons:MaterialIcon Kind="Fullscreen" Width="19" Height="19" />
+                </Button>
 
-            <Button Grid.Column="2" Classes="icon" Content="⚙" FontSize="20"
-                    VerticalAlignment="Top" ToolTip.Tip="設定 · settings">
+                <Button Classes="icon" Width="34" Height="30" Padding="0"
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                        ToolTip.Tip="設定 · settings">
+                <materialIcons:MaterialIcon Kind="Cog" Width="19" Height="19" />
                 <Button.Flyout>
                     <Flyout Placement="BottomEdgeAlignedRight">
                         <StackPanel Width="250" Spacing="12" Margin="8">
@@ -65,7 +74,8 @@
                         </StackPanel>
                     </Flyout>
                 </Button.Flyout>
-            </Button>
+                </Button>
+            </StackPanel>
         </Grid>
 
         <!-- Body: the timer on the left, tasks on the right. The overview
