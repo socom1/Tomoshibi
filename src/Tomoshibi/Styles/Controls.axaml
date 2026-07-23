@@ -770,21 +770,29 @@
         <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
     </Style>
 
-    <!-- Class slot block on the week grid -->
+    <!-- Class slot block on the week grid. Its fill and border come from the
+         course colour (set inline per slot), so hover can't recolour them —
+         instead the block lifts: a subtle scale, a drop shadow and a raised
+         z-index so it rises above its neighbours. -->
     <Style Selector="Border.slot">
         <Setter Property="Background" Value="#339ECE6A" />
         <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
         <Setter Property="BorderThickness" Value="3,0,0,0" />
         <Setter Property="CornerRadius" Value="3" />
         <Setter Property="Margin" Value="2,1" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Setter Property="Transitions">
             <Transitions>
                 <BrushTransition Property="Background" Duration="0:0:0.15" />
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.13" Easing="CubicEaseOut" />
+                <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.13" />
             </Transitions>
         </Setter>
     </Style>
     <Style Selector="Border.slot:pointerover">
-        <Setter Property="Background" Value="#4D9ECE6A" />
+        <Setter Property="RenderTransform" Value="scale(1.04)" />
+        <Setter Property="BoxShadow" Value="0 4 14 0 #55000000" />
+        <Setter Property="ZIndex" Value="10" />
     </Style>
 
     <!-- Music bubble: a floating circle whose equaliser bars dance while
@@ -921,6 +929,27 @@
     <Style Selector="Border.modal-backdrop.open > Border.modal-card">
         <Setter Property="Opacity" Value="1" />
         <Setter Property="RenderTransform" Value="scale(1)" />
+    </Style>
+
+    <!-- Reusable "ease a view in" entrance — a fade plus a small upward rise.
+         The class is toggled from the same bind as the element's IsVisible, so
+         the keyframe clock starts exactly as it becomes visible (a bare
+         IsVisible flip can't animate). Used by the master↔detail swaps on the
+         review and subjects pages, both directions, so a page never hard-cuts
+         in or out. -->
+    <Style Selector="Border.editorReveal, ScrollViewer.editorReveal, Grid.editorReveal">
+        <Style.Animations>
+            <Animation Duration="0:0:0.26" Easing="CubicEaseOut">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="TranslateTransform.Y" Value="10" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
     </Style>
 
     <!-- After-midnight sleep nudge — a quiet line whose dismiss ✕ only fades in
