@@ -306,12 +306,21 @@ public partial class MainWindowViewModel : ViewModelBase
     /// plus one notification per version, so an update never nags twice.</summary>
     private async System.Threading.Tasks.Task AnnounceUpdateAsync()
     {
-        var tag = await UpdateCheck.FetchLatestTagAsync();
-        if (tag is null || !UpdateCheck.IsNewer(ReleaseNotes.Version, tag))
-            return;
+        var result = await UpdateCheck.FetchAsync(ReleaseNotes.Version);
 
         Dispatcher.UIThread.Post(() =>
         {
+            // Only the unreachable case is worth a word, and only a quiet one:
+            // the check couldn't run, which is different from having run and
+            // found nothing. Saying nothing at all there would leave the
+            // settings page implying this build is current when nobody asked.
+            SettingsPage.UpdateProblem = result.Status == UpdateStatus.Unreachable
+                ? "couldn't check for updates — no connection"
+                : string.Empty;
+
+            if (result.Status != UpdateStatus.UpdateAvailable || result.Tag is not { } tag)
+                return;
+
             SettingsPage.UpdateAvailable = $"{tag} is out — the releases page has it";
 
             if (_state.UpdateNotifiedFor != tag)

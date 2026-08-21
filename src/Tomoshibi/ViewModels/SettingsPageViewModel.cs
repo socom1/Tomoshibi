@@ -70,10 +70,14 @@ public partial class SettingsPageViewModel : ViewModelBase
 
     [ObservableProperty] private bool _updateCheckEnabled;
 
-    /// <summary>"v2.1.0 is out …" once the launch check finds one. Empty
-    /// means up to date — or the check is off, or the machine is offline;
-    /// the app deliberately can't tell those apart.</summary>
+    /// <summary>"v2.1.0 is out …" once the launch check finds one. Empty means
+    /// there's nothing newer — or the check is switched off.</summary>
     [ObservableProperty] private string _updateAvailable = string.Empty;
+
+    /// <summary>Set when the check couldn't complete, so the page can say that
+    /// rather than let an empty <see cref="UpdateAvailable"/> imply this build
+    /// is current. Offline is not the same answer as up to date.</summary>
+    [ObservableProperty] private string _updateProblem = string.Empty;
 
     /// <summary>Which section the sidebar has selected. Drives the detail pane;
     /// the Is*Section helpers light the matching nav item and show its card.</summary>

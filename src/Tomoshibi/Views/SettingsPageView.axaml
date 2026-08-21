@@ -104,6 +104,13 @@
                     <Button Classes="seg" Content="open releases"
                             Click="OnOpenReleases" HorizontalAlignment="Left" />
                 </StackPanel>
+
+                <!-- Only appears when the check couldn't run. Muted rather than
+                     matcha: nothing is wrong with the app, we just don't know. -->
+                <TextBlock Text="{Binding UpdateProblem}" Classes="comment"
+                           Foreground="{DynamicResource MutedTextBrush}"
+                           TextWrapping="Wrap" Margin="14,8,0,0"
+                           IsVisible="{Binding UpdateProblem, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             </StackPanel>
 
             <!-- ===================== Detail pane ===================== -->
