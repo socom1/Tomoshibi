@@ -43,6 +43,16 @@ public static class ThemeService
         ["TextBrush"] = text,
         ["MutedTextBrush"] = muted,
         ["AccentTextBrush"] = accentText,
+
+        // Fluent paints the ComboBox's open dropdown from its own keys, set
+        // directly on the template's PopupBorder. A local value outranks a
+        // style setter, so the `/template/ Border#PopupBorder` block in
+        // Controls.axaml never applied — the panel had been rendering in
+        // Fluent's colours the whole time, against every theme here.
+        // Redefining the keys is the hook the template does leave open, and
+        // doing it from the map means it re-themes with everything else.
+        ["ComboBoxDropDownBackground"] = surface,
+        ["ComboBoxDropDownBorderBrush"] = border,
     };
 
     public static readonly IReadOnlyList<AppTheme> All = new[]

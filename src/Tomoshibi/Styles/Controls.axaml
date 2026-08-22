@@ -231,14 +231,16 @@
         <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
     </Style>
 
-    <!-- Strip the inner TextBox's own chrome so it doesn't render on top
-         of NumericUpDown's chrome. -->
+    <!-- Strip the inner TextBox's own chrome so it doesn't render on top of
+         NumericUpDown's. Only these two are ours to set: Fluent's template
+         writes Padding and Foreground onto the element itself as
+         TemplateBindings, and a local value outranks a style setter, so
+         setters for those never applied on any Avalonia version — they read
+         as intent while the outer control's values were what actually landed.
+         Background is the same story and already Transparent there. -->
     <Style Selector="NumericUpDown /template/ TextBox#PART_TextBox">
-        <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="0" />
         <Setter Property="MinHeight" Value="0" />
-        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
     </Style>
 
     <!-- AutoCompleteBox wraps an inner TextBox; the TextBox style already
@@ -406,11 +408,13 @@
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource MatchaBrush}" />
     </Style>
-    <Style Selector="ComboBox /template/ Border#PopupBorder">
-        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="CornerRadius" Value="8" />
-    </Style>
+    <!-- The open dropdown's panel is themed from ThemeService's map, not from
+         here: Fluent sets PopupBorder's colours on the element itself, which
+         outranks anything a selector can say. Its corner radius comes from the
+         global OverlayCornerRadius (5) and is left alone deliberately — that
+         key is shared with flyouts, tooltips and menus, so moving it to match
+         this one popup would quietly restyle all of them. -->
+
     <Style Selector="ComboBoxItem">
         <Setter Property="Padding" Value="10,6" />
         <Setter Property="CornerRadius" Value="6" />

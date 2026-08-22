@@ -11,6 +11,7 @@ using Avalonia.VisualTree;
 using LibVLCSharp.Avalonia;
 using Material.Icons;
 using Material.Icons.Avalonia;
+using Tomoshibi.Services;
 using Tomoshibi;
 using Xunit;
 
@@ -50,6 +51,14 @@ public class ThemeTemplateTests
     /// what actually applies the template and resolves the styles.</summary>
     private static T Shown<T>(T control) where T : Control
     {
+        Host(control);
+        return control;
+    }
+
+    /// <summary>Same, but hands back the window — a popup's contents hang off
+    /// the top level rather than off the control that owns it.</summary>
+    private static Window Host(Control control)
+    {
         var window = new Window { Width = 500, Height = 400, Content = control };
         window.Show();
 
@@ -58,7 +67,7 @@ public class ThemeTemplateTests
         window.Measure(new Size(500, 400));
         window.Arrange(new Rect(0, 0, 500, 400));
 
-        return control;
+        return window;
     }
 
     /// <summary>The named element inside a built template — the thing a
@@ -134,12 +143,33 @@ public class ThemeTemplateTests
         // The closed-state surface the :pointerover and :focus styles target.
         // Fluent calls it "Background" with no PART_ prefix, so it carries no
         // compatibility promise across a theme revision — hence checking it.
-        // (PopupBorder is the other one those styles reach for; it lives in the
-        // popup's own root rather than this visual tree, so it isn't asserted
-        // here.)
         var surface = Part<Border>(combo, "Background");
 
         Assert.NotNull(surface);
+    });
+
+    [Fact]
+    public void The_open_dropdowns_panel_is_ours_too() => Run(() =>
+    {
+        var combo = new ComboBox { ItemsSource = new[] { "us 4.0", "uk" } };
+        var window = Host(combo);
+
+        // The app installs its palette at startup; nothing else here does.
+        ThemeService.Apply("dark");
+
+        // PopupBorder only exists once the dropdown is up, and it hangs off the
+        // top level rather than the ComboBox — which is why this one went
+        // unasserted when the theme tests first landed.
+        combo.IsDropDownOpen = true;
+        Dispatcher.UIThread.RunJobs();
+
+        var popup = Part<Border>(window, "PopupBorder");
+
+        // Fluent sets these on the element, so they can only be reached by
+        // redefining the keys it looks up. Before that, this panel rendered in
+        // Fluent's own grey on every theme the app ships.
+        Assert.Equal(Palette("SurfaceBrush").ToString(), popup.Background?.ToString());
+        Assert.Equal(Palette("BorderBrush").ToString(), popup.BorderBrush?.ToString());
     });
 
     [Fact]
