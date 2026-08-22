@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.Json;
 using Tomoshibi.Models;
 using Tomoshibi.Services;
 using Xunit;
@@ -14,15 +15,18 @@ public class StateMigrationsTests
     // ---- deadlines → todo tickets ----
 
     [Fact]
-    public void Legacy_deadlines_become_numbered_tickets_and_the_list_empties()
+    public void Legacy_deadlines_become_numbered_tickets_and_the_list_goes_away()
     {
         var state = new AppState { NextTodoNumber = 5 };
-        state.Deadlines.Add(new Deadline
+        state.Deadlines = new()
         {
-            Date = new DateOnly(2026, 7, 10),
-            Title = "algorithms exam",
-            Course = "CS210"
-        });
+            new Deadline
+            {
+                Date = new DateOnly(2026, 7, 10),
+                Title = "algorithms exam",
+                Course = "CS210"
+            }
+        };
 
         StateMigrations.Apply(state);
 
@@ -32,7 +36,7 @@ public class StateMigrationsTests
         Assert.Equal("CS210", ticket.Course);
         Assert.Equal(new DateOnly(2026, 7, 10), ticket.Due);
         Assert.Equal(6, state.NextTodoNumber);
-        Assert.Empty(state.Deadlines);
+        Assert.Null(state.Deadlines);
     }
 
     [Fact]
@@ -44,16 +48,37 @@ public class StateMigrationsTests
             Title = "algorithms exam",
             Due = new DateOnly(2026, 7, 10)
         });
-        state.Deadlines.Add(new Deadline
+        state.Deadlines = new()
         {
-            Date = new DateOnly(2026, 7, 10),
-            Title = "algorithms exam"
-        });
+            new Deadline
+            {
+                Date = new DateOnly(2026, 7, 10),
+                Title = "algorithms exam"
+            }
+        };
 
         StateMigrations.Apply(state);
 
         Assert.Single(state.Todos);
-        Assert.Empty(state.Deadlines);
+        Assert.Null(state.Deadlines);
+    }
+
+    [Fact]
+    public void A_migrated_state_stops_carrying_the_legacy_key_at_all()
+    {
+        // The point of the exercise. Every save written since deadlines became
+        // tickets has included "deadlines": [] — an empty array, in every file,
+        // for a concept the app no longer has.
+        var state = new AppState();
+        state.Deadlines = new() { new Deadline { Date = new DateOnly(2026, 7, 10), Title = "exam" } };
+
+        StateMigrations.Apply(state);
+        var json = JsonSerializer.Serialize(state,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+
+        Assert.DoesNotContain("deadlines", json);
+        // and the ticket it turned into is still there
+        Assert.Equal("exam", Assert.Single(state.Todos).Title);
     }
 
     // ---- legacy task list → template text ----
@@ -118,7 +143,7 @@ public class StateMigrationsTests
     public void Running_migrations_twice_changes_nothing_more()
     {
         var state = new AppState { NextTodoNumber = 1 };
-        state.Deadlines.Add(new Deadline { Date = new DateOnly(2026, 7, 10), Title = "exam" });
+        state.Deadlines = new() { new Deadline { Date = new DateOnly(2026, 7, 10), Title = "exam" } };
         state.Tasks.Add(new TaskItem { Title = "read" });
 
         StateMigrations.Apply(state);

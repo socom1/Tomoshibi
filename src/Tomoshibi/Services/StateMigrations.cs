@@ -78,10 +78,15 @@ public static class StateMigrations
     /// (skipping ones that already exist) and empty the legacy list.</summary>
     private static void MigrateDeadlinesToTickets(AppState state)
     {
-        if (state.Deadlines.Count == 0)
+        // Null it either way on the way out: that's what stops the legacy key
+        // being written back to a file that had no need of it.
+        if (state.Deadlines is not { Count: > 0 } legacy)
+        {
+            state.Deadlines = null;
             return;
+        }
 
-        foreach (var d in state.Deadlines)
+        foreach (var d in legacy)
         {
             var exists = state.Todos.Any(t => t.Due == d.Date && t.Title == d.Title);
             if (!exists)
@@ -96,7 +101,7 @@ public static class StateMigrations
             }
         }
 
-        state.Deadlines.Clear();
+        state.Deadlines = null;
     }
 
     /// <summary>The legacy checkbox task list became the code template. Turn

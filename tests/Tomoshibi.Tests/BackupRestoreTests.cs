@@ -63,17 +63,20 @@ public class BackupRestoreTests
         // Standalone deadlines predate the todo backlog — the migration
         // converts them, same as a load from disk would.
         var old = new AppState();
-        old.Deadlines.Add(new Deadline
+        old.Deadlines = new()
         {
-            Date = new DateOnly(2026, 12, 11),
-            Title = "essay due",
-            Course = "ENG201"
-        });
+            new Deadline
+            {
+                Date = new DateOnly(2026, 12, 11),
+                Title = "essay due",
+                Course = "ENG201"
+            }
+        };
 
         var restored = BackupRestore.Parse(JsonSerializer.Serialize(old, CamelCase));
 
         Assert.NotNull(restored);
-        Assert.Empty(restored.Deadlines);
+        Assert.Null(restored.Deadlines);
         var ticket = Assert.Single(restored.Todos);
         Assert.Equal("essay due", ticket.Title);
         Assert.Equal(new DateOnly(2026, 12, 11), ticket.Due);

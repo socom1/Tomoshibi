@@ -127,10 +127,18 @@ public class AppState
     public List<ClassSlot> ClassSlots { get; set; } = new();
     public ClassesView ClassesView { get; set; } = ClassesView.Grid;
 
-    /// <summary>Legacy: standalone deadlines were folded into the todo
-    /// backlog as tickets with due dates. Kept so old state files still
-    /// deserialise; migrated and emptied on load.</summary>
-    public List<Deadline> Deadlines { get; set; } = new();
+    /// <summary>Legacy, and read-only in practice: standalone deadlines were
+    /// folded into the todo backlog as tickets with due dates. This exists so
+    /// an old state file still deserialises — <c>StateMigrations</c> drains it
+    /// on load and sets it back to null, and the attribute keeps it out of
+    /// everything written afterwards. It had been serialising as an empty
+    /// array into every save, forever, for no one.
+    ///
+    /// <para>Not to be confused with <see cref="Models.Deadline"/> itself,
+    /// which is alive and well as the .ics importer's parse result on its way
+    /// to becoming tickets. Only this field is history.</para></summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<Deadline>? Deadlines { get; set; }
 
     // Todo backlog
     public List<TodoItem> Todos { get; set; } = new();
