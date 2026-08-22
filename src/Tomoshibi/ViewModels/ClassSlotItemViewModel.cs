@@ -66,6 +66,32 @@ public class ClassSlotItemViewModel : ViewModelBase
     public double BlockHeight =>
         Math.Max(RowHeight * 0.6, (EndOffsetHours - StartOffsetHours) * RowHeight);
 
+    /// <summary>Which side-by-side lane this block draws in, and how many the
+    /// clash it belongs to needs. 0 of 1 for a class with the hour to itself.
+    /// Set by the timetable when it rebuilds, because a slot can't know what
+    /// it clashes with on its own. See <see cref="Services.SlotLanes"/>.</summary>
+    public int LaneIndex { get; set; }
+    public int LaneCount { get; set; } = 1;
+
+    /// <summary>Lanes are drawn by placing the block into a fixed twelve-column
+    /// grid inside its day cell. Twelve because it divides evenly by one, two,
+    /// three and four, so every supported split lands on whole columns and the
+    /// widths need no measuring.</summary>
+    private const int LaneGridColumns = 12;
+
+    /// <summary>Beyond this the blocks are too narrow to read, so further
+    /// clashes share the last lane and stack as they used to. Four classes at
+    /// literally the same hour is already past what the grid can show.</summary>
+    private const int MaxLanes = 4;
+
+    private int VisibleLanes => Math.Clamp(LaneCount, 1, MaxLanes);
+
+    /// <summary>Columns this block spans in that twelve-column grid.</summary>
+    public int LaneSpan => LaneGridColumns / VisibleLanes;
+
+    /// <summary>Which column it starts at.</summary>
+    public int LaneColumn => Math.Min(LaneIndex, VisibleLanes - 1) * LaneSpan;
+
     public ClassSlotItemViewModel(ClassSlot model,
                                   int gridStart = DefaultStartHour,
                                   int gridEnd = DefaultEndHour)

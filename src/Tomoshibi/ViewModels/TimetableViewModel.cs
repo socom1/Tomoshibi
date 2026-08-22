@@ -189,8 +189,25 @@ public partial class TimetableViewModel : ViewModelBase
             HourLabels.Add(h.ToString("00"));
 
         Slots.Clear();
-        foreach (var slot in _state.ClassSlots.OrderBy(s => s.Day).ThenBy(s => s.Start))
-            Slots.Add(new ClassSlotItemViewModel(slot, _gridStart, _gridEnd));
+
+        // Per day, so a clash on Tuesday doesn't narrow Monday. Ordered by
+        // start within the day because the lane assignment reads them that way
+        // — and because that's the order they're drawn in anyway.
+        foreach (var day in _state.ClassSlots.GroupBy(s => s.Day).OrderBy(g => g.Key))
+        {
+            var ordered = day.OrderBy(s => s.Start).ToList();
+            var lanes = SlotLanes.Assign(
+                ordered.Select(s => (s.Start, s.End)).ToList());
+
+            for (var i = 0; i < ordered.Count; i++)
+            {
+                Slots.Add(new ClassSlotItemViewModel(ordered[i], _gridStart, _gridEnd)
+                {
+                    LaneIndex = lanes[i].Index,
+                    LaneCount = lanes[i].Count
+                });
+            }
+        }
     }
 
     /// <summary>The seven weekdays as picker options for the new-slot form.</summary>

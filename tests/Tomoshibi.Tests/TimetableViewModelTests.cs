@@ -164,4 +164,56 @@ public class TimetableViewModelTests
 
         Assert.Equal(before, vm.NewSlotStart);
     }
+
+    // ---- clashing classes share the day column ----
+
+    [Fact]
+    public void Two_classes_at_the_same_hour_each_get_half_the_day()
+    {
+        var vm = Vm(Slot(WeekDay.Mon, "09:00", "10:00", "Algorithms"),
+                    Slot(WeekDay.Mon, "09:00", "10:00", "Statistics"));
+
+        Assert.All(vm.Slots, s => Assert.Equal(2, s.LaneCount));
+        Assert.Equal(new[] { 0, 6 }, vm.Slots.Select(s => s.LaneColumn).OrderBy(c => c));
+        Assert.All(vm.Slots, s => Assert.Equal(6, s.LaneSpan));
+    }
+
+    [Fact]
+    public void A_clash_on_one_day_doesnt_narrow_another()
+    {
+        var vm = Vm(Slot(WeekDay.Mon, "09:00", "10:00", "Algorithms"),
+                    Slot(WeekDay.Mon, "09:00", "10:00", "Statistics"),
+                    Slot(WeekDay.Tue, "09:00", "10:00", "Japanese"));
+
+        var tuesday = Assert.Single(vm.Slots, s => s.Model.Day == WeekDay.Tue);
+        Assert.Equal(1, tuesday.LaneCount);
+        Assert.Equal(12, tuesday.LaneSpan);   // the whole day column
+        Assert.Equal(0, tuesday.LaneColumn);
+    }
+
+    [Fact]
+    public void A_class_with_the_hour_to_itself_spans_the_whole_column()
+    {
+        var vm = Vm(Slot(WeekDay.Wed, "14:00", "15:00"));
+
+        var only = Assert.Single(vm.Slots);
+        Assert.Equal(0, only.LaneColumn);
+        Assert.Equal(12, only.LaneSpan);
+    }
+
+    [Fact]
+    public void Beyond_four_at_once_the_extras_stack_rather_than_becoming_slivers()
+    {
+        var vm = Vm(Slot(WeekDay.Thu, "09:00", "10:00", "one"),
+                    Slot(WeekDay.Thu, "09:00", "10:00", "two"),
+                    Slot(WeekDay.Thu, "09:00", "10:00", "three"),
+                    Slot(WeekDay.Thu, "09:00", "10:00", "four"),
+                    Slot(WeekDay.Thu, "09:00", "10:00", "five"));
+
+        // Five lanes would be three columns wide each at best; the grid stops
+        // splitting at four and the fifth shares the last lane.
+        Assert.All(vm.Slots, s => Assert.Equal(3, s.LaneSpan));
+        Assert.All(vm.Slots, s => Assert.InRange(s.LaneColumn, 0, 9));
+        Assert.Equal(4, vm.Slots.Select(s => s.LaneColumn).Distinct().Count());
+    }
 }

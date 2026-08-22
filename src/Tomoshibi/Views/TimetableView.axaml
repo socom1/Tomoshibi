@@ -147,7 +147,14 @@
                             </ItemsControl.Styles>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:ClassSlotItemViewModel">
-                                    <Border Classes="slot" ToolTip.Tip="click to edit" Cursor="Hand"
+                                    <!-- Clashing classes share the day column
+                                         instead of drawing on top of one
+                                         another; one class gets a single
+                                         full-width lane. -->
+                                    <Grid ColumnDefinitions="*,*,*,*,*,*,*,*,*,*,*,*">
+                                    <Border Grid.Column="{Binding LaneColumn}"
+                                            Grid.ColumnSpan="{Binding LaneSpan}"
+                                            Classes="slot" ToolTip.Tip="click to edit" Cursor="Hand"
                                             PointerPressed="OnSlotPressed"
                                             Background="{Binding Course, Converter={StaticResource CourseColor}, ConverterParameter=soft}"
                                             BorderBrush="{Binding Course, Converter={StaticResource CourseColor}}">
@@ -170,6 +177,7 @@
                                                     CommandParameter="{Binding}" />
                                         </Grid>
                                     </Border>
+                                    </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
