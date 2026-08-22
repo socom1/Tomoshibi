@@ -232,6 +232,13 @@ public partial class MainWindowViewModel : ViewModelBase
         StateMigrations.Apply(_state);
         DailyReset.Apply(_state, DateOnly.FromDateTime(DateTime.Now));
 
+        // The grade engine's custom bands are process-wide, so installing them
+        // belongs here — once, where state is assembled — rather than as a side
+        // effect of whichever page happened to be constructed first.
+        if (_state.CustomGradeBands.Count == 0)
+            _state.CustomGradeBands.AddRange(GradeScale.DefaultCustomBands());
+        GradeScale.UseBands(_state.CustomGradeBands);
+
         _isNavOpen = _state.IsNavOpen;
         _activeDestination = _state.ActiveDestination;
 

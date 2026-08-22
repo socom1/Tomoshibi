@@ -9,9 +9,6 @@ namespace Tomoshibi.Tests;
 /// <summary>The subjects page's destructive path and its form. Deleting a
 /// subject takes a term's worth of marks with it and there's no undo, so the
 /// confirmation is worth asserting rather than eyeballing.</summary>
-// Shares a collection with GradeScaleTests: building a SubjectsViewModel
-// reassigns the app-wide GradeScale.CustomBands, which that class asserts on.
-[Collection(GradeScaleStaticCollection.Name)]
 public class SubjectsViewModelTests
 {
     private static Subject Subject(string name, params double[] grades)

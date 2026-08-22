@@ -34,11 +34,11 @@ public partial class GradeScaleViewModel : ViewModelBase
 
         _selected = Options.FirstOrDefault(o => o.Kind == _state.GradeScale) ?? Options[0];
 
-        // Seed a starter custom scale on first use and point the engine at the
-        // live list so band edits are seen everywhere without re-wiring.
-        if (_state.CustomGradeBands.Count == 0)
-            _state.CustomGradeBands.AddRange(GradeScale.DefaultCustomBands());
-        GradeScale.CustomBands = _state.CustomGradeBands;
+        // Seeding the starter scale and pointing the engine at it used to
+        // happen here. Both are app-wide effects and neither is this page's to
+        // cause — building a view model shouldn't change how every grade in the
+        // app is labelled. MainWindowViewModel does it once, where state is
+        // assembled; the engine already holds the live list this page edits.
         RebuildBands();
     }
 
@@ -78,10 +78,13 @@ public partial class GradeScaleViewModel : ViewModelBase
     }
 
     /// <summary>A band's min/label/points changed — re-grade everything against
-    /// the new scale. The engine already points at the live list.</summary>
+    /// the new scale.</summary>
     private void OnBandChanged()
     {
-        GradeScale.CustomBands = _state.CustomGradeBands;
+        // No re-pointing needed: the engine holds this exact list, and every
+        // edit path here mutates it in place rather than replacing it. The
+        // assignment that used to sit here had been a no-op since the day the
+        // engine started taking the live reference.
         _regrade();
     }
 

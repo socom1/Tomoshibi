@@ -46,16 +46,16 @@ public class GradeScaleTests
     [Fact]
     public void Custom_bands_label_and_score_from_the_user_table()
     {
-        // The static bands are app-wide state; set them for this test and put
-        // them back so other tests see a clean engine.
+        // The bands are app-wide state; install them for this test and put the
+        // previous ones back so other tests see a clean engine.
         var previous = GradeScale.CustomBands;
         try
         {
-            GradeScale.CustomBands = new List<GradeBand>
+            GradeScale.UseBands(new List<GradeBand>
             {
                 new() { MinPercent = 50, Label = "Pass", Points = 1.0 },
                 new() { MinPercent = 0, Label = "Fail", Points = 0.0 },
-            };
+            });
 
             Assert.Equal("Pass", GradeScale.Label(GradeScaleKind.Custom, 50));
             Assert.Equal("Fail", GradeScale.Label(GradeScaleKind.Custom, 49.9));
@@ -64,7 +64,7 @@ public class GradeScaleTests
         }
         finally
         {
-            GradeScale.CustomBands = previous;
+            GradeScale.UseBands(previous);
         }
     }
 
@@ -74,15 +74,15 @@ public class GradeScaleTests
         var previous = GradeScale.CustomBands;
         try
         {
-            GradeScale.CustomBands = new List<GradeBand>
+            GradeScale.UseBands(new List<GradeBand>
             {
                 new() { MinPercent = 0, Label = "Done", Points = 0.0 },
-            };
+            });
             Assert.False(GradeScale.UsesPoints(GradeScaleKind.Custom));
         }
         finally
         {
-            GradeScale.CustomBands = previous;
+            GradeScale.UseBands(previous);
         }
     }
 }

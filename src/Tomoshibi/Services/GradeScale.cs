@@ -13,9 +13,22 @@ namespace Tomoshibi.Services;
 /// </summary>
 public static class GradeScale
 {
-    /// <summary>The active custom bands, pointed at <c>AppState.CustomGradeBands</c>
-    /// so edits there are seen here without re-wiring. Null until set.</summary>
-    public static IReadOnlyList<GradeBand>? CustomBands { get; set; }
+    /// <summary>The active custom bands — the live <c>AppState.CustomGradeBands</c>
+    /// list, so edits to it are seen here without re-wiring. Null until
+    /// <see cref="UseBands"/> is called.</summary>
+    public static IReadOnlyList<GradeBand>? CustomBands { get; private set; }
+
+    /// <summary>Point the engine at the app's band list.
+    ///
+    /// <para>Process-wide, and settable only through here on purpose. This was
+    /// an ordinary setter that a view-model constructor assigned to as a side
+    /// effect, which meant merely building a page reached out and changed how
+    /// every grade in the app was labelled. Two test classes doing that
+    /// concurrently is what produced a grade-engine failure that reproduced
+    /// about one run in eight.</para>
+    ///
+    /// <para>Call it once, from wherever app state is assembled.</para></summary>
+    public static void UseBands(IReadOnlyList<GradeBand>? bands) => CustomBands = bands;
 
     /// <summary>A reasonable starting scale for first-time custom users to edit.</summary>
     public static List<GradeBand> DefaultCustomBands() => new()
