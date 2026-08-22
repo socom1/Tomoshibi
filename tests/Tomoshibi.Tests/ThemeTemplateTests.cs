@@ -16,12 +16,6 @@ using Xunit;
 
 namespace Tomoshibi.Tests;
 
-public static class HeadlessApp
-{
-    public static AppBuilder BuildAvaloniaApp() =>
-        AppBuilder.Configure<App>().UseHeadless(new AvaloniaHeadlessPlatformOptions());
-}
-
 /// <summary>Guards the theme against the failure that doesn't announce itself.
 ///
 /// <para><c>Controls.axaml</c> reaches into Fluent's own control templates —
@@ -36,15 +30,12 @@ public static class HeadlessApp
 /// doesn't even fail at startup; it throws the first time a template is built,
 /// which in a running app means on navigation. Loading the real style stack
 /// here is what makes it show up at test time instead.</para></summary>
+[Collection(HeadlessCollection.Name)]
 public class ThemeTemplateTests
 {
-    // One Avalonia per test run. Controls can only be touched on its UI
-    // thread, which is what Run marshals onto.
-    private static readonly HeadlessUnitTestSession Session =
-        HeadlessUnitTestSession.StartNew(typeof(HeadlessApp));
-
-    private static void Run(Action body) =>
-        Session.Dispatch(body, default).GetAwaiter().GetResult();
+    // Controls can only be touched on Avalonia's UI thread; Headless.Run
+    // marshals onto the one session the whole suite shares.
+    private static void Run(Action body) => Headless.Run(body);
 
     /// <summary>Put the control in a window and run a layout pass, which is
     /// what actually applies the template and resolves the styles.</summary>
